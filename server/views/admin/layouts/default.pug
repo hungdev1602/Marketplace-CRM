@@ -1,0 +1,74 @@
+doctype html
+html(
+  data-bs-theme="dark" 
+  data-startbar="dark" 
+  dir="ltr" 
+  lang="en"
+  )
+  head
+    meta(charset="utf-8")
+    title #{pageTitle}
+    meta(
+      content="width=device-width, initial-scale=1, shrink-to-fit=no" 
+      name="viewport"
+      )
+    meta(
+      name="description" 
+      content="Premium Multipurpose Admin & Dashboard Template"
+      )
+    meta(
+      name="author" 
+      content=""
+      )
+    meta(
+      content="IE=edge" 
+      http-equiv="X-UA-Compatible"
+      )
+    // App favicon
+    link(
+      href="/admin/assets/images/favicon.ico" 
+      rel="shortcut icon"
+      )
+    // App css
+    link(
+      type="text/css" 
+      rel="stylesheet" 
+      href="/admin/assets/css/bootstrap.min.css"
+      )
+    link(
+      type="text/css" 
+      rel="stylesheet" 
+      href="/admin/assets/css/icons.min.css"
+      )
+    link(
+      type="text/css" 
+      rel="stylesheet" 
+      href="/admin/assets/css/app.min.css"
+      )
+  // Top Bar Start
+  body
+    // Top Bar Start
+    include ../partials/topbar.pug
+    // Top Bar End
+    // leftbar-tab-menu
+    include ../partials/startbar.pug
+    // end leftbar-tab-menu
+    .page-wrapper
+      // Page Content
+      .page-content
+        .container-xxl
+          block main
+        // container
+        // Start Footer
+        include ../partials/footer.pug
+        // end footer
+      // end page content
+    // end page-wrapper
+    // Javascript
+    // vendor js
+    script(src="/admin/assets/libs/bootstrap/js/bootstrap.bundle.min.js")
+    script(src="/admin/assets/libs/simplebar/simplebar.min.js")
+    script(src="/admin/assets/libs/apexcharts/apexcharts.min.js")
+    script(src="/admin/assets/js/pages/ecommerce-index.init.js")
+    script(src="/admin/assets/js/app.js")
+  // end body

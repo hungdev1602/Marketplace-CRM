@@ -17,6 +17,12 @@ app.get("/", (req: Request, res: Response) => {
   })
 })
 
+app.get("/admin/dashboard", (req: Request, res: Response) => {
+  res.render("admin/pages/dashboard", {
+    pageTitle: "Admin Dashboard"
+  })
+})
+
 app.listen(port, () => {
   console.log(`App listening on port ${port}`)
 })

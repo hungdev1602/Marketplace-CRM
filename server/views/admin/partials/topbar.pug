@@ -1,0 +1,312 @@
+.topbar.d-print-none
+  .container-xxl
+    nav#topbar-custom.topbar-custom.d-flex.justify-content-between
+      ul.topbar-item.list-unstyled.d-inline-flex.align-items-center.mb-0
+        li
+          button#togglemenu.nav-link.mobile-menu-btn.nav-icon
+            i.iconoir-menu-scale
+        li.mx-3.welcome-text
+          h3.mb-0.fw-bold.text-truncate Hello, Đình Hưng!
+          // <h6 class="mb-0 fw-normal text-muted text-truncate fs-14">Here's your overview this week.</h6>
+      ul.topbar-item.list-unstyled.d-inline-flex.align-items-center.mb-0
+        li.hide-phone.app-search
+          form(
+            method="get" 
+            action="#" 
+            role="search"
+            )
+            input.form-control.top-search.mb-0(
+              placeholder="Search here..." 
+              name="search" 
+              type="search"
+              )
+            button(type="submit")
+              i.iconoir-search
+        li.dropdown
+          a.nav-link.dropdown-toggle.arrow-none.nav-icon(
+            aria-expanded="false" 
+            aria-haspopup="false" 
+            role="button" 
+            href="#" 
+            data-bs-toggle="dropdown"
+            )
+            img.thumb-sm.rounded-circle(
+              alt="" 
+              src="/admin/assets/images/flags/us_flag.jpg"
+              )
+          .dropdown-menu
+            a.dropdown-item(href="#")
+              img.me-2(
+                height="15" 
+                alt="" 
+                src="/admin/assets/images/flags/us_flag.jpg"
+                )
+              | English
+            a.dropdown-item(href="#")
+              img.me-2(
+                height="15" 
+                alt="" 
+                src="/admin/assets/images/flags/spain_flag.jpg"
+                )
+              | Spanish
+            a.dropdown-item(href="#")
+              img.me-2(
+                height="15" 
+                alt="" 
+                src="/admin/assets/images/flags/germany_flag.jpg"
+                )
+              | German
+            a.dropdown-item(href="#")
+              img.me-2(
+                height="15" 
+                alt="" 
+                src="/admin/assets/images/flags/french_flag.jpg"
+                )
+              | French
+        // end topbar-language
+        li.topbar-item
+          a#light-dark-mode.nav-link.nav-icon(href="javascript:void(0);")
+            i.icofont-moon.dark-mode
+            i.icofont-sun.light-mode
+        li.dropdown.topbar-item
+          a.nav-link.dropdown-toggle.arrow-none.nav-icon(
+            aria-expanded="false" 
+            aria-haspopup="false" 
+            role="button" 
+            href="#" 
+            data-bs-toggle="dropdown"
+            )
+            i.icofont-bell-alt
+            span.alert-badge
+          .dropdown-menu.stop.dropdown-menu-end.dropdown-lg.py-0
+            h5.dropdown-item-text.m-0.py-3.d-flex.justify-content-between.align-items-center
+              | Notifications
+              a.badge.text-body-tertiary.badge-pill(href="#")
+                i.iconoir-plus-circle.fs-4
+            ul.nav.nav-tabs.nav-tabs-custom.nav-success.nav-justified.mb-1(role="tablist")
+              li.nav-item(role="presentation")
+                a.nav-link.mx-0.active(
+                  aria-selected="true" 
+                  role="tab" 
+                  href="#All" 
+                  data-bs-toggle="tab"
+                  )
+                  | All
+                  span.badge.bg-primary-subtle.text-primary.badge-pill.ms-1 24
+              li.nav-item(role="presentation")
+                a.nav-link.mx-0(
+                  tabindex="-1" 
+                  aria-selected="false" 
+                  role="tab" 
+                  href="#Projects" 
+                  data-bs-toggle="tab"
+                  ) Projects
+              li.nav-item(role="presentation")
+                a.nav-link.mx-0(
+                  tabindex="-1" 
+                  aria-selected="false" 
+                  role="tab" 
+                  href="#Teams" 
+                  data-bs-toggle="tab"
+                  ) Team
+            .ms-0(
+              data-simplebar="" 
+              style="max-height:230px;"
+              )
+              #myTabContent.tab-content
+                #All.tab-pane.fade.show.active(
+                  tabindex="0" 
+                  aria-labelledby="all-tab" 
+                  role="tabpanel"
+                  )
+                  // item
+                  a.dropdown-item.py-3(href="#")
+                    small.float-end.text-muted.ps-2 2 min ago
+                    .d-flex.align-items-center
+                      .flex-shrink-0.bg-primary-subtle.text-primary.thumb-md.rounded-circle
+                        i.iconoir-wolf.fs-4
+                      .flex-grow-1.ms-2.text-truncate
+                        h6.my-0.fw-normal.text-dark.fs-13 Your order is placed
+                        small.text-muted.mb-0
+                          | Dummy text of the printing and
+                          |   industry.
+                      // end media-body
+                    // end media
+                  // end-item
+                  // item
+                  a.dropdown-item.py-3(href="#")
+                    small.float-end.text-muted.ps-2 10 min ago
+                    .d-flex.align-items-center
+                      .flex-shrink-0.bg-primary-subtle.text-primary.thumb-md.rounded-circle
+                        i.iconoir-apple-swift.fs-4
+                      .flex-grow-1.ms-2.text-truncate
+                        h6.my-0.fw-normal.text-dark.fs-13 Meeting with designers
+                        small.text-muted.mb-0
+                          | It is a long established fact that a
+                          |   reader.
+                      // end media-body
+                    // end media
+                  // end-item
+                  // item
+                  a.dropdown-item.py-3(href="#")
+                    small.float-end.text-muted.ps-2 40 min ago
+                    .d-flex.align-items-center
+                      .flex-shrink-0.bg-primary-subtle.text-primary.thumb-md.rounded-circle
+                        i.iconoir-birthday-cake.fs-4
+                      .flex-grow-1.ms-2.text-truncate
+                        h6.my-0.fw-normal.text-dark.fs-13 UX 3 Task complete.
+                        small.text-muted.mb-0 Dummy text of the printing.
+                      // end media-body
+                    // end media
+                  // end-item
+                  // item
+                  a.dropdown-item.py-3(href="#")
+                    small.float-end.text-muted.ps-2 1 hr ago
+                    .d-flex.align-items-center
+                      .flex-shrink-0.bg-primary-subtle.text-primary.thumb-md.rounded-circle
+                        i.iconoir-drone.fs-4
+                      .flex-grow-1.ms-2.text-truncate
+                        h6.my-0.fw-normal.text-dark.fs-13 Your order is placed
+                        small.text-muted.mb-0
+                          | It is a long established fact that a
+                          |   reader.
+                      // end media-body
+                    // end media
+                  // end-item
+                  // item
+                  a.dropdown-item.py-3(href="#")
+                    small.float-end.text-muted.ps-2 2 hrs ago
+                    .d-flex.align-items-center
+                      .flex-shrink-0.bg-primary-subtle.text-primary.thumb-md.rounded-circle
+                        i.iconoir-user.fs-4
+                      .flex-grow-1.ms-2.text-truncate
+                        h6.my-0.fw-normal.text-dark.fs-13 Payment Successfull
+                        small.text-muted.mb-0 Dummy text of the printing.
+                      // end media-body
+                    // end media
+                  // end-item
+                #Projects.tab-pane.fade(
+                  tabindex="0" 
+                  aria-labelledby="projects-tab" 
+                  role="tabpanel"
+                  )
+                  // item
+                  a.dropdown-item.py-3(href="#")
+                    small.float-end.text-muted.ps-2 40 min ago
+                    .d-flex.align-items-center
+                      .flex-shrink-0.bg-primary-subtle.text-primary.thumb-md.rounded-circle
+                        i.iconoir-birthday-cake.fs-4
+                      .flex-grow-1.ms-2.text-truncate
+                        h6.my-0.fw-normal.text-dark.fs-13 UX 3 Task complete.
+                        small.text-muted.mb-0 Dummy text of the printing.
+                      // end media-body
+                    // end media
+                  // end-item
+                  // item
+                  a.dropdown-item.py-3(href="#")
+                    small.float-end.text-muted.ps-2 1 hr ago
+                    .d-flex.align-items-center
+                      .flex-shrink-0.bg-primary-subtle.text-primary.thumb-md.rounded-circle
+                        i.iconoir-drone.fs-4
+                      .flex-grow-1.ms-2.text-truncate
+                        h6.my-0.fw-normal.text-dark.fs-13 Your order is placed
+                        small.text-muted.mb-0
+                          | It is a long established fact that a
+                          |   reader.
+                      // end media-body
+                    // end media
+                  // end-item
+                  // item
+                  a.dropdown-item.py-3(href="#")
+                    small.float-end.text-muted.ps-2 2 hrs ago
+                    .d-flex.align-items-center
+                      .flex-shrink-0.bg-primary-subtle.text-primary.thumb-md.rounded-circle
+                        i.iconoir-user.fs-4
+                      .flex-grow-1.ms-2.text-truncate
+                        h6.my-0.fw-normal.text-dark.fs-13 Payment Successfull
+                        small.text-muted.mb-0 Dummy text of the printing.
+                      // end media-body
+                    // end media
+                  // end-item
+                #Teams.tab-pane.fade(
+                  tabindex="0" 
+                  aria-labelledby="teams-tab" 
+                  role="tabpanel"
+                  )
+                  // item
+                  a.dropdown-item.py-3(href="#")
+                    small.float-end.text-muted.ps-2 1 hr ago
+                    .d-flex.align-items-center
+                      .flex-shrink-0.bg-primary-subtle.text-primary.thumb-md.rounded-circle
+                        i.iconoir-drone.fs-4
+                      .flex-grow-1.ms-2.text-truncate
+                        h6.my-0.fw-normal.text-dark.fs-13 Your order is placed
+                        small.text-muted.mb-0
+                          | It is a long established fact that a
+                          |   reader.
+                      // end media-body
+                    // end media
+                  // end-item
+                  // item
+                  a.dropdown-item.py-3(href="#")
+                    small.float-end.text-muted.ps-2 2 hrs ago
+                    .d-flex.align-items-center
+                      .flex-shrink-0.bg-primary-subtle.text-primary.thumb-md.rounded-circle
+                        i.iconoir-user.fs-4
+                      .flex-grow-1.ms-2.text-truncate
+                        h6.my-0.fw-normal.text-dark.fs-13 Payment Successfull
+                        small.text-muted.mb-0 Dummy text of the printing.
+                      // end media-body
+                    // end media
+                  // end-item
+            // All
+            a.dropdown-item.text-center.text-dark.fs-13.py-2(href="pages-notifications.html")
+              | View All
+              i.fi-arrow-right
+        li.dropdown.topbar-item
+          a.nav-link.dropdown-toggle.arrow-none.nav-icon(
+            aria-expanded="false" 
+            aria-haspopup="false" 
+            role="button" 
+            href="#" 
+            data-bs-toggle="dropdown"
+            )
+            img.thumb-lg.rounded-circle(
+              alt="" 
+              src="/admin/assets/images/users/avatar-1.jpg"
+              )
+          .dropdown-menu.dropdown-menu-end.py-0
+            .d-flex.align-items-center.dropdown-item.py-2.bg-secondary-subtle
+              .flex-shrink-0
+                img.thumb-md.rounded-circle(
+                  alt="" 
+                  src="/admin/assets/images/users/avatar-1.jpg"
+                  )
+              .flex-grow-1.ms-2.text-truncate.align-self-center
+                h6.my-0.fw-medium.text-dark.fs-13 William Martin
+                small.text-muted.mb-0 Front End Developer
+              // end media-body
+            .dropdown-divider.mt-0
+            small.text-muted.px-2.pb-1.d-block Account
+            a.dropdown-item(href="pages-profile.html")
+              i.las.la-user.fs-18.me-1.align-text-bottom
+              | Profile
+            a.dropdown-item(href="pages-faq.html")
+              i.las.la-wallet.fs-18.me-1.align-text-bottom
+              | Earning
+            small.text-muted.px-2.py-1.d-block Settings
+            a.dropdown-item(href="pages-profile.html")
+              i.las.la-cog.fs-18.me-1.align-text-bottom
+              | Account Settings
+            a.dropdown-item(href="pages-profile.html")
+              i.las.la-lock.fs-18.me-1.align-text-bottom
+              | Security
+            a.dropdown-item(href="pages-faq.html")
+              i.las.la-question-circle.fs-18.me-1.align-text-bottom
+              | Help Center
+            .dropdown-divider.mb-0
+            a.dropdown-item.text-danger(href="auth-login.html")
+              i.las.la-power-off.fs-18.me-1.align-text-bottom
+              | Logout
+      // end topbar-nav
+    // end navbar

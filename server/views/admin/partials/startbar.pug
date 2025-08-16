@@ -1,0 +1,557 @@
+.startbar.d-print-none
+  // start brand
+  .brand
+    a.logo(href="index.html")
+      span
+        img.logo-sm(
+          alt="logo-small" 
+          src="/admin/assets/images/logo-sm.png"
+          )
+      span
+        img.logo-lg.logo-light(
+          alt="logo-large" 
+          src="/admin/assets/images/logo-light.png"
+          )
+        img.logo-lg.logo-dark(
+          alt="logo-large" 
+          src="/admin/assets/images/logo-dark.png"
+          )
+  // end brand
+  // start startbar-menu
+  .startbar-menu
+    #startbarCollapse.startbar-collapse(data-simplebar="")
+      .d-flex.align-items-start.flex-column.w-100
+        // Navigation
+        ul.navbar-nav.mb-auto.w-100
+          li.menu-label.pt-0.mt-0
+            //
+              <small class="label-border">
+                <div class="border_left hidden-xs"></div>
+                <div class="border_right"></div>
+                </small>
+            span Main Menu
+          li.nav-item
+            a.nav-link(
+              aria-controls="sidebarDashboards" 
+              aria-expanded="false" 
+              role="button" 
+              data-bs-toggle="collapse" 
+              href="#sidebarDashboards"
+              )
+              i.iconoir-home-simple.menu-icon
+              span Dashboards
+            #sidebarDashboards.collapse
+              ul.nav.flex-column
+                li.nav-item
+                  a.nav-link(href="index.html") Analytics
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ecommerce-index.html") Ecommerce
+                // end nav-item
+              // end nav
+            // end startbarDashboards
+          // end nav-item
+          li.nav-item
+            a.nav-link(
+              aria-controls="sidebarApplications" 
+              aria-expanded="false" 
+              role="button" 
+              data-bs-toggle="collapse" 
+              href="#sidebarApplications"
+              )
+              i.iconoir-view-grid.menu-icon
+              span Applications
+            #sidebarApplications.collapse
+              ul.nav.flex-column
+                li.nav-item
+                  a.nav-link(
+                    aria-controls="sidebarAnalytics" 
+                    aria-expanded="false" 
+                    role="button" 
+                    data-bs-toggle="collapse" 
+                    href="#sidebarAnalytics"
+                    )
+                    span Analytics
+                  #sidebarAnalytics.collapse
+                    ul.nav.flex-column
+                      li.nav-item
+                        a.nav-link(href="analytics-customers.html") Customers
+                      // end nav-item
+                      li.nav-item
+                        a.nav-link(href="analytics-reports.html") Reports
+                      // end nav-item
+                    // end nav
+                // end nav-item
+                li.nav-item
+                  a.nav-link(
+                    aria-controls="sidebarProjects" 
+                    aria-expanded="false" 
+                    role="button" 
+                    data-bs-toggle="collapse" 
+                    href="#sidebarProjects"
+                    )
+                    span Projects
+                  #sidebarProjects.collapse
+                    ul.nav.flex-column
+                      li.nav-item
+                        a.nav-link(href="projects-clients.html") Clients
+                      // end nav-item
+                      li.nav-item
+                        a.nav-link(href="projects-team.html") Team
+                      // end nav-item
+                      li.nav-item
+                        a.nav-link(href="projects-project.html") Project
+                      // end nav-item
+                      li.nav-item
+                        a.nav-link(href="projects-task.html") Task
+                      // end nav-item
+                      li.nav-item
+                        a.nav-link(href="projects-kanban-board.html")
+                          | Kanban
+                          |   Board
+                      // end nav-item
+                      li.nav-item
+                        a.nav-link(href="projects-chat.html") Chat
+                      // end nav-item
+                      li.nav-item
+                        a.nav-link(href="projects-users.html") Users
+                      // end nav-item
+                      li.nav-item
+                        a.nav-link(href="projects-create.html") Project Create
+                      // end nav-item
+                    // end nav
+                // end nav-item
+                li.nav-item
+                  a.nav-link(
+                    aria-controls="sidebarEcommerce" 
+                    aria-expanded="false" 
+                    role="button" 
+                    data-bs-toggle="collapse" 
+                    href="#sidebarEcommerce"
+                    )
+                    span Ecommerce
+                  #sidebarEcommerce.collapse
+                    ul.nav.flex-column
+                      li.nav-item
+                        a.nav-link(href="ecommerce-products.html") Products
+                      // end nav-item
+                      li.nav-item
+                        a.nav-link(href="ecommerce-customers.html") Customers
+                      // end nav-item
+                      li.nav-item
+                        a.nav-link(href="ecommerce-customer-details.html")
+                          | Customer
+                          |   Details
+                      // end nav-item
+                      li.nav-item
+                        a.nav-link(href="ecommerce-orders.html") Orders
+                      // end nav-item
+                      li.nav-item
+                        a.nav-link(href="ecommerce-order-details.html")
+                          | Order
+                          |   Details
+                      // end nav-item
+                      li.nav-item
+                        a.nav-link(href="ecommerce-refunds.html") Refunds
+                      // end nav-item
+                    // end nav
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="apps-chat.html") Chat
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="apps-contact-list.html") Contact List
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="apps-calendar.html") Calendar
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="apps-invoice.html") Invoice
+                // end nav-item
+              // end nav
+            // end startbarApplications
+          // end nav-item
+          li.menu-label.mt-2
+            small.label-border
+              .hidden-xs(class="border_left")
+              div(class="border_right")
+            span Components
+          li.nav-item
+            a.nav-link(
+              aria-controls="sidebarElements" 
+              aria-expanded="false" 
+              role="button" 
+              data-bs-toggle="collapse" 
+              href="#sidebarElements"
+              )
+              i.iconoir-compact-disc.menu-icon
+              span UI Elements
+            #sidebarElements.collapse
+              ul.nav.flex-column
+                li.nav-item
+                  a.nav-link(href="ui-alerts.html") Alerts
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-avatar.html") Avatar
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-buttons.html") Buttons
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-badges.html") Badges
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-cards.html") Cards
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-carousels.html") Carousels
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-dropdowns.html") Dropdowns
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-grids.html") Grids
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-images.html") Images
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-list.html") List
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-modals.html") Modals
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-navs.html") Navs
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-navbar.html") Navbar
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-paginations.html") Paginations
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-popover-tooltips.html") Popover & Tooltips
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-progress.html") Progress
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-spinners.html") Spinners
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-tabs-accordions.html") Tabs & Accordions
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-typography.html") Typography
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="ui-videos.html") Videos
+                // end nav-item
+              // end nav
+            // end startbarElements
+          // end nav-item
+          li.nav-item
+            a.nav-link(
+              aria-controls="sidebarAdvancedUI" 
+              aria-expanded="false" 
+              role="button" 
+              data-bs-toggle="collapse" 
+              href="#sidebarAdvancedUI"
+              )
+              i.iconoir-peace-hand.menu-icon
+              span Advanced UI
+              span.badge.rounded.text-success.bg-success-subtle.ms-1 New
+            #sidebarAdvancedUI.collapse
+              ul.nav.flex-column
+                li.nav-item
+                  a.nav-link(href="advanced-animation.html") Animation
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="advanced-clipboard.html") Clip Board
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="advanced-dragula.html") Dragula
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="advanced-files.html") File Manager
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="advanced-highlight.html") Highlight
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="advanced-rangeslider.html") Range Slider
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="advanced-ratings.html") Ratings
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="advanced-ribbons.html") Ribbons
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="advanced-sweetalerts.html") Sweet Alerts
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="advanced-toasts.html") Toasts
+                // end nav-item
+              // end nav
+            // end startbarAdvancedUI
+          // end nav-item
+          li.nav-item
+            a.nav-link(
+              aria-controls="sidebarForms" 
+              aria-expanded="false" 
+              role="button" 
+              data-bs-toggle="collapse" 
+              href="#sidebarForms"
+              )
+              i.iconoir-journal-page.menu-icon
+              span Forms
+            #sidebarForms.collapse
+              ul.nav.flex-column
+                li.nav-item
+                  a.nav-link(href="forms-elements.html") Basic Elements
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="forms-advanced.html") Advance Elements
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="forms-validation.html") Validation
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="forms-wizard.html") Wizard
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="forms-editors.html") Editors
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="forms-uploads.html") File Upload
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="forms-img-crop.html") Image Crop
+                // end nav-item
+              // end nav
+            // end startbarForms
+          // end nav-item
+          li.nav-item
+            a.nav-link(
+              aria-controls="sidebarCharts" 
+              aria-expanded="false" 
+              role="button" 
+              data-bs-toggle="collapse" 
+              href="#sidebarCharts"
+              )
+              i.iconoir-candlestick-chart.menu-icon
+              span Charts
+            #sidebarCharts.collapse
+              ul.nav.flex-column
+                li.nav-item
+                  a.nav-link(href="charts-apex.html") Apex
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="charts-justgage.html") JustGage
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="charts-chartjs.html") Chartjs
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="charts-toast-ui.html") Toast
+                // end nav-item
+              // end nav
+            // end startbarCharts
+          // end nav-item
+          li.nav-item
+            a.nav-link(
+              aria-controls="sidebarTables" 
+              aria-expanded="false" 
+              role="button" 
+              data-bs-toggle="collapse" 
+              href="#sidebarTables"
+              )
+              i.iconoir-table-rows.menu-icon
+              span Tables
+            #sidebarTables.collapse
+              ul.nav.flex-column
+                li.nav-item
+                  a.nav-link(href="tables-basic.html") Basic
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="tables-datatable.html") Datatables
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="tables-editable.html") Editable
+                // end nav-item
+              // end nav
+            // end startbarTables
+          // end nav-item
+          li.nav-item
+            a.nav-link(
+              aria-controls="sidebarIcons" 
+              aria-expanded="false" 
+              role="button" 
+              data-bs-toggle="collapse" 
+              href="#sidebarIcons"
+              )
+              i.iconoir-trophy.menu-icon
+              span Icons
+            #sidebarIcons.collapse
+              ul.nav.flex-column
+                li.nav-item
+                  a.nav-link(href="icons-fontawesome.html") Font Awesome
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="icons-lineawesome.html") Line Awesome
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="icons-icofont.html") Icofont
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="icons-iconoir.html") Iconoir
+                // end nav-item
+              // end nav
+            // end startbarIcons
+          // end nav-item
+          li.nav-item
+            a.nav-link(
+              aria-controls="sidebarMaps" 
+              aria-expanded="false" 
+              role="button" 
+              data-bs-toggle="collapse" 
+              href="#sidebarMaps"
+              )
+              i.iconoir-navigator-alt.menu-icon
+              span Maps
+            #sidebarMaps.collapse
+              ul.nav.flex-column
+                li.nav-item
+                  a.nav-link(href="maps-google.html") Google Maps
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="maps-leaflet.html") Leaflet Maps
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="maps-vector.html") Vector Maps
+                // end nav-item
+              // end nav
+            // end startbarMaps
+          // end nav-item
+          li.nav-item
+            a.nav-link(
+              aria-controls="sidebarEmailTemplates" 
+              aria-expanded="false" 
+              role="button" 
+              data-bs-toggle="collapse" 
+              href="#sidebarEmailTemplates"
+              )
+              i.iconoir-send-mail.menu-icon
+              span Email Templates
+            #sidebarEmailTemplates.collapse
+              ul.nav.flex-column
+                li.nav-item
+                  a.nav-link(href="email-templates-basic.html") Basic Action Email
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="email-templates-alert.html") Alert Email
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="email-templates-billing.html") Billing Email
+                // end nav-item
+              // end nav
+            // end startbarEmailTemplates
+          // end nav-item
+          li.menu-label.mt-2
+            small.label-border
+              .hidden-xs(class="border_left")
+              div(class="border_right")
+            span Crafted
+          li.nav-item
+            a.nav-link(
+              aria-controls="sidebarPages" 
+              aria-expanded="false" 
+              role="button" 
+              data-bs-toggle="collapse" 
+              href="#sidebarPages"
+              )
+              i.iconoir-page-star.menu-icon
+              span Pages
+            #sidebarPages.collapse
+              ul.nav.flex-column
+                li.nav-item
+                  a.nav-link(href="pages-profile.html") Profile
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="pages-notifications.html") Notifications
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="pages-timeline.html") Timeline
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="pages-treeview.html") Treeview
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="pages-starter.html") Starter Page
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="pages-pricing.html") Pricing
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="pages-blogs.html") Blogs
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="pages-faq.html") FAQs
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="pages-gallery.html") Gallery
+                // end nav-item
+              // end nav
+            // end startbarPages
+          // end nav-item
+          li.nav-item
+            a.nav-link(
+              aria-controls="sidebarAuthentication" 
+              aria-expanded="false" 
+              role="button" 
+              data-bs-toggle="collapse" 
+              href="#sidebarAuthentication"
+              )
+              i.iconoir-fingerprint-lock-circle.menu-icon
+              span Authentication
+            #sidebarAuthentication.collapse
+              ul.nav.flex-column
+                li.nav-item
+                  a.nav-link(href="auth-login.html") Log in
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="auth-register.html") Register
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="auth-recover-pw.html") Re-Password
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="auth-lock-screen.html") Lock Screen
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="auth-maintenance.html") Maintenance
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="auth-404.html") Error 404
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href="auth-500.html") Error 500
+                // end nav-item
+              // end nav
+            // end startbarAuthentication
+          // end nav-item
+        // end navbar-nav-
+        .update-msg.text-center
+          .d-flex.justify-content-center.align-items-center.thumb-lg.update-icon-box.rounded-circle.mx-auto
+            i.iconoir-peace-hand.h3.align-self-center.mb-0.text-primary
+          h5.mt-3 Mannat Themes
+          p.mb-3.text-muted Rizz is a high quality web applications.
+          a.btn.text-primary.shadow-sm.rounded-pill(href="javascript: void(0);")
+            | Upgrade your
+            |   plan
+    // end startbar-collapse
+  // end startbar-menu
+// end startbar
+.startbar-overlay.d-print-none
