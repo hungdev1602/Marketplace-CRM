@@ -1,0 +1,162 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densityDpi=device-dpi" 
+      name="viewport"
+      )
+    title #{pageTitle}
+    link(
+      href="/client/assets/images/favicon.png" 
+      type="image/png" 
+      rel="icon"
+      )
+    link(
+      href="/client/assets/css/all.min.css" 
+      rel="stylesheet"
+      )
+    link(
+      href="/client/assets/css/bootstrap.min.css" 
+      rel="stylesheet"
+      )
+    link(
+      href="/client/assets/css/animate.css" 
+      rel="stylesheet"
+      )
+    link(
+      href="/client/assets/css/mobile_menu.css" 
+      rel="stylesheet"
+      )
+    link(
+      href="/client/assets/css/nice-select.css" 
+      rel="stylesheet"
+      )
+    link(
+      href="/client/assets/css/scroll_button.css" 
+      rel="stylesheet"
+      )
+    link(
+      href="/client/assets/css/slick.css" 
+      rel="stylesheet"
+      )
+    link(
+      href="/client/assets/css/venobox.min.css" 
+      rel="stylesheet"
+      )
+    link(
+      href="/client/assets/css/select2.min.css" 
+      rel="stylesheet"
+      )
+    link(
+      href="/client/assets/css/jquery.pwstabs.css" 
+      rel="stylesheet"
+      )
+    link(
+      href="/client/assets/css/range_slider.css" 
+      rel="stylesheet"
+      )
+    link(
+      href="/client/assets/css/multiple-image-video.css" 
+      rel="stylesheet"
+      )
+    link(
+      href="/client/assets/css/custom_spacing.css" 
+      rel="stylesheet"
+      )
+    link(
+      href="/client/assets/css/style.css" 
+      rel="stylesheet"
+      )
+    link(
+      href="/client/assets/css/responsive.css" 
+      rel="stylesheet"
+      )
+  body(class="default_home")
+    //
+      =========================
+       HEADER START
+       ==========================
+    include ../partials/header.pug
+    //
+      =========================
+       HEADER END
+       ==========================
+    //
+      =========================
+       MENU 2 START
+       ==========================
+    include ../partials/main-menu.pug
+    include ../partials/mini-cart.pug
+    //
+      =========================
+       MENU 2 END
+       ==========================
+    //
+      ============================
+       MOBILE MENU START
+       ==============================
+    include ../partials/mobile-menu-area.pug
+    //
+      ============================
+       MOBILE MENU END
+       ==============================
+    
+    // Main
+    block main 
+    // End Main
+
+      =========================
+       FOOTER 2 START
+       ==========================
+    include ../partials/footer.pug
+    //
+      =========================
+       FOOTER 2 END
+       ==========================
+    //
+      ==========================
+       SCROLL BUTTON START
+       ===========================
+    include ../partials/scroll-button.pug
+    //
+      ==========================
+       SCROLL BUTTON END
+       ===========================
+    // jquery library js
+    script(src="/client/assets/js/jquery-3.7.1.min.js")
+    // bootstrap js
+    script(src="/client/assets/js/bootstrap.bundle.min.js")
+    // font-awesome js
+    script(src="/client/assets/js/Font-Awesome.js")
+    // counter js
+    script(src="/client/assets/js/jquery.waypoints.min.js")
+    script(src="/client/assets/js/jquery.countup.min.js")
+    // nice select js
+    script(src="/client/assets/js/jquery.nice-select.min.js")
+    // select 2 js
+    script(src="/client/assets/js/select2.min.js")
+    // simply countdown js
+    script(src="/client/assets/js/simplyCountdown.js")
+    // slick slider js
+    script(src="/client/assets/js/slick.min.js")
+    // venobox js
+    script(src="/client/assets/js/venobox.min.js")
+    // wow js
+    script(src="/client/assets/js/wow.min.js")
+    // marquee js
+    script(src="/client/assets/js/jquery.marquee.min.js")
+    // pws tabs js
+    script(src="/client/assets/js/jquery.pwstabs.min.js")
+    // scroll button js
+    script(src="/client/assets/js/scroll_button.js")
+    // youtube background js
+    script(src="/client/assets/js/jquery.youtube-background.min.js")
+    // range slider js
+    script(src="/client/assets/js/range_slider.js")
+    // sticky sidebar js
+    script(src="/client/assets/js/sticky_sidebar.js")
+    // multiple image upload js
+    script(src="/client/assets/js/multiple-image-video.js")
+    // main/custom js
+    script(src="/client/assets/js/custom.js")

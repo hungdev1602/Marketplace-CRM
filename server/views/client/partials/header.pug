@@ -1,0 +1,58 @@
+header(class="header_2")
+  .container
+    .row.align-items-center
+      .col-lg-2
+        div(class="header_logo_area")
+          a(
+            class="header_logo" 
+            href="index.html"
+            )
+            img.img-fluid.w-100(
+              alt="Zenis" 
+              src="/client/assets/images/logo_2.png"
+              )
+          .d-block.d-lg-none(
+            aria-controls="offcanvasWithBothOptions" 
+            data-bs-target="#offcanvasWithBothOptions" 
+            data-bs-toggle="offcanvas" 
+            class="mobile_menu_icon"
+            )
+            span(class="mobile_menu_icon")
+              i.far.fa-stream(class="menu_icon_bar")
+      .col-xXl-6.col-xl-5.col-lg-5.d-none.d-lg-block
+        form(action="#")
+          select(class="select_2")
+            option All Categories
+            option Fashion
+            option Elentronics
+            option Fashion & Beauty
+            option Jewelry
+            option Grocery
+          .input
+            input(
+              placeholder="Search your product..." 
+              type="text"
+              )
+            button(type="submit")
+              i.far.fa-search
+      .col-xXl-4.col-xl-5.col-lg-5.d-none.d-lg-flex
+        .d-flex.flex-wrap(class="header_support_user")
+          div(class="header_support")
+            span.icon
+              i.far.fa-phone-alt
+            h3
+              | Hotline:
+              a(href="callto:1234567890")
+                span +(402) 763 282 46
+        .d-flex.flex-wrap.align-items-center.justify-content-end(class="topbar_right")
+          select.language(class="select_js")
+            option English
+            option Arabic
+            option Hindi
+            option Chinese
+          select(class="select_js")
+            option $USD
+            option €EUR
+            option ¥JPY
+            option £GBP
+            option ₹INR
