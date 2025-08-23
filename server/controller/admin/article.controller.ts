@@ -1,4 +1,5 @@
 import { Request, Response } from "express"
+import { CategoryBlog } from "../../models/category-blog.model"
 
 export const category = (req: Request, res: Response) => {
   res.render("admin/pages/article-category", {
@@ -6,14 +7,18 @@ export const category = (req: Request, res: Response) => {
   })
 }
 
-export const categoryCreate = (req: Request, res: Response) => {
+export const categoryCreate = async (req: Request, res: Response) => {
+  const allCategory = await CategoryBlog.find()
+
   res.render("admin/pages/article-category-create", {
-    pageTitle: "Tạo danh mục bài viết"
+    pageTitle: "Tạo danh mục bài viết",
+    allCategory: allCategory
   })
 }
 
-export const categoryCreatePost = (req: Request, res: Response) => {
-  console.log(req.body)
+export const categoryCreatePost = async (req: Request, res: Response) => {
+  const newRecord = new CategoryBlog(req.body)
+  await newRecord.save()
 
   res.json({
     code: "success",

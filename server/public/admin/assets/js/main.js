@@ -1,6 +1,31 @@
+// Create an instance of Notyf
+var notyf = new Notyf({
+  duration: 3000,
+  position: {
+    x:'right',
+    y:'top'
+  },
+  dismissible: true
+});
+// End Notyf
+
+// Kiểm tra xem trong session có notify hay ko
+const notifyData = sessionStorage.getItem("notify")
+if(notifyData){
+  const { type, message } = JSON.parse(notifyData)
+
+  if(type === "success"){
+    notyf.success(message)
+  } 
+  else if(type === "error"){
+    notyf.error(message)
+  }
+  
+  sessionStorage.removeItem("notify")
+}
+
 // Validate article Create Category Form
 const articleCreateCategoryForm = document.querySelector("#articleCreateCategoryForm")
-
 if(articleCreateCategoryForm) {
   const validator = new JustValidate('#articleCreateCategoryForm')
 
@@ -29,7 +54,19 @@ if(articleCreateCategoryForm) {
       })
         .then(res => res.json())
         .then(data => {
-          console.log(data)
+          if(data.code === "error") {
+            notyf.error(data.message)
+          }
+
+          if(data.code === "success") {
+            // lưu vào session
+            sessionStorage.setItem("notify", JSON.stringify({
+              type: data.code,
+              message: data.message
+            }))
+            // sau đó load lại trang
+            location.reload()
+          }
         })
     })
 }

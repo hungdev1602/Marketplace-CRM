@@ -17,8 +17,8 @@ block main
             .mb-3
               label.form-label(for="parent") Danh mục cha
               select.form-select(id="parent" name="parent")
-                option(value="") Danh mục 1
-                option(value="") Danh mục 2
+                each category in allCategory
+                  option(value=category._id) #{category.name}
           .col-md-12.col-lg-12
             .mb-3
               label.form-label(for="description") Mô tả
