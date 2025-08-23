@@ -3,6 +3,6 @@ import * as controller from "../../controller/admin/dashboard.controller"
 
 const router = Router()
 
-router.get("/dashboard", controller.index)
+router.get("/", controller.dashboard)
 
 export const dashboardRoute = router

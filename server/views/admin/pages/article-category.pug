@@ -1,0 +1,23 @@
+extends ../layouts/default.pug
+
+block main 
+  .row
+    .col-12
+      .card
+        .card-header
+          .row.align-items-center
+            .col
+              h4.card-title #{pageTitle}
+            // end col
+            .col-auto
+              a.btn.btn-primary(
+                href=`/${pathAdmin}/article/category/create`
+                )
+                i.fa-solid.fa-plus.me-1
+                | Tạo danh mục
+            // end col
+          // end row
+        // end card-header
+        //- Table
+    // end col
+  // end row

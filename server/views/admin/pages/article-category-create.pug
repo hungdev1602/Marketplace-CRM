@@ -1,0 +1,27 @@
+extends ../layouts/default.pug
+
+block main 
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title #{pageTitle}
+    .card-body.pt-0
+      form(id="articleCreateCategoryForm")
+        .row
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label(for="name") Tên danh mục *
+              input.form-control(id="name" type="text" name="name")
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label(for="parent") Danh mục cha
+              select.form-select(id="parent" name="parent")
+                option(value="") Danh mục 1
+                option(value="") Danh mục 2
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label(for="description") Mô tả
+              textarea.form-control(id="description" name="description")
+        button.btn.btn-primary(type="submit") Tạo mới
+        a.btn.btn-danger.ms-1(href=`/${pathAdmin}/article/category`) Hủy
