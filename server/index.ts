@@ -2,6 +2,7 @@ import express, { Request, Response, Express } from 'express';
 import path from "path"
 import { adminRoute } from './routes/admin/index.route';
 import { clientRoute } from './routes/client/index.route';
+import { pathAdmin } from './config/variable.config';
 
 const app: Express = express()
 const port: number = 3000
@@ -12,6 +13,9 @@ app.set("view engine", "pug") // thiết lập view engine là pug
 
 // thiết lập thư mục public, chứa file tĩnh (css, js, img,...)
 app.use(express.static(path.join(__dirname, "public")))
+
+// tạo biến toàn cục để dùng được trong file PUG
+app.locals.pathAdmin = pathAdmin // "admin"
 
 // route client
 clientRoute(app)
