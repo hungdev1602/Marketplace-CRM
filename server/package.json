@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon index.ts"
+    "start": "nodemon --exec \"node --inspect -r ts-node/register\" index.ts"
   },
   "dependencies": {
     "@types/multer": "^2.0.0",
