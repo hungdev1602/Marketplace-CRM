@@ -16,6 +16,17 @@ block main
               input.form-control(id="name" type="text" name="name")
           .col-md-12.col-lg-12
             .mb-3
+              label.form-label(for="slug") Đường dẫn *
+              .input-group
+                span.btn.btn-outline-info(
+                  btn-generate-slug
+                  from="name"
+                  to="slug"
+                  model="CategoryBlog"
+                ) Tự động
+                input.form-control(id="slug" type="text" name="slug")
+          .col-md-12.col-lg-12
+            .mb-3
               label.form-label(for="parent") Danh mục cha
               select.form-select(id="parent" name="parent")
                 option(value="") ---

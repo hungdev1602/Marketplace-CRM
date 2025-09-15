@@ -9,6 +9,16 @@ var notyf = new Notyf({
 });
 // End Notyf
 
+const drawNotify = (type, message) => {
+  // lưu vào session
+  sessionStorage.setItem("notify", JSON.stringify({
+    type: type,
+    message: message
+  }))
+  // sau đó load lại trang
+  location.reload()
+}
+
 // Kiểm tra xem trong session có notify hay ko
 const notifyData = sessionStorage.getItem("notify")
 if(notifyData){
@@ -36,14 +46,22 @@ if(articleCreateCategoryForm) {
         errorMessage: 'Vui lòng nhập tên danh mục'
       }
     ])
+    .addField('#slug', [
+      {
+        rule: 'required',
+        errorMessage: 'Vui lòng nhập đường dẫn'
+      }
+    ])
     .onSuccess((event) => {
       const name = event.target.name.value
+      const slug = event.target.slug.value
       const parent = event.target.parent.value
       const description = event.target.description.value
 
       // Tạo form bằng JS
       const formData = new FormData()
       formData.append('name', name)
+      formData.append('slug', slug)
       formData.append('parent', parent)
       formData.append('description', description)
 
@@ -59,16 +77,45 @@ if(articleCreateCategoryForm) {
           }
 
           if(data.code === "success") {
-            // lưu vào session
-            sessionStorage.setItem("notify", JSON.stringify({
-              type: data.code,
-              message: data.message
-            }))
-            // sau đó load lại trang
-            location.reload()
+            drawNotify(data.code, data.message)
           }
         })
     })
 }
-
 // End Validate article Create Category Form
+
+// btn-generate-slug
+const btnGenerateSlug = document.querySelector("[btn-generate-slug]")
+if(btnGenerateSlug){
+  btnGenerateSlug.addEventListener("click", () => {
+    const modelName = btnGenerateSlug.getAttribute("model") //model cho bên BE
+    const from = btnGenerateSlug.getAttribute("from") // lấy data ở đâu để tạo slug
+    const to = btnGenerateSlug.getAttribute("to") // sau khi có slug thì paste vào đâu
+
+    const string = document.querySelector(`[name='${from}']`).value
+    
+    const dataFinal = {
+      string,
+      modelName
+    }
+
+    fetch(`/${pathAdmin}/helper/generate-slug`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(dataFinal)
+    })
+      .then(res => res.json())
+      .then(data => {
+        if(data.code === "error") {
+          notyf.error(data.message)
+        }
+        else if(data.code === "success") {
+          const slugInput = document.querySelector(`[name='${to}']`)
+          slugInput.value = data.slug
+        }
+      })
+  })
+}
+// End btn-generate-slug

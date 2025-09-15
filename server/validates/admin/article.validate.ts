@@ -8,6 +8,11 @@ export const categoryCreatePost = (req: Request, res: Response, next: NextFuncti
       .messages({
         "string.empty": "Vui lòng nhập tên danh mục!"
       }),
+    slug: Joi.string()
+    .required()
+    .messages({
+      "string.empty": "Vui lòng nhập đường dẫn!"
+    }),
     parent: Joi.string().allow(""),
     description: Joi.string().allow("")
   })

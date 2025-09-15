@@ -21,6 +21,18 @@ export const categoryCreate = async (req: Request, res: Response) => {
 }
 
 export const categoryCreatePost = async (req: Request, res: Response) => {
+  const existSlug = await CategoryBlog.findOne({
+    slug: req.body.slug
+  })
+
+  if(existSlug){
+    res.json({
+      code: "error",
+      message: "Đường dẫn đã tồn tại!"
+    })
+    return
+  }
+
   const newRecord = new CategoryBlog(req.body)
   await newRecord.save()
 
