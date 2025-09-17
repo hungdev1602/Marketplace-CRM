@@ -14,7 +14,8 @@ export const categoryCreatePost = (req: Request, res: Response, next: NextFuncti
       "string.empty": "Vui lòng nhập đường dẫn!"
     }),
     parent: Joi.string().allow(""),
-    description: Joi.string().allow("")
+    description: Joi.string().allow(""),
+    status: Joi.string().allow("")
   })
 
   const value = schema.validate(req.body)

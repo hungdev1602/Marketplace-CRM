@@ -57,6 +57,7 @@ if(articleCreateCategoryForm) {
       const slug = event.target.slug.value
       const parent = event.target.parent.value
       const description = event.target.description.value
+      const status = event.target.status.value
 
       // Tạo form bằng JS
       const formData = new FormData()
@@ -64,6 +65,7 @@ if(articleCreateCategoryForm) {
       formData.append('slug', slug)
       formData.append('parent', parent)
       formData.append('description', description)
+      formData.append('status', status)
 
       // gửi data lên BE
       fetch(`/${pathAdmin}/article/category/create`, {
