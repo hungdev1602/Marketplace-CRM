@@ -19,5 +19,33 @@ block main
           // end row
         // end card-header
         //- Table
+        .table-responsive
+            table.table.table-striped.mb-0
+              thead.table-light
+                tr
+                  th STT
+                  th Tên danh mục
+                  th Danh mục cha
+                  th Trạng thái
+                  th Lượt xem
+                  th.text-end Hành động
+              tbody
+                each item, index in allCategory
+                  tr
+                    td #{index + 1}
+                    td #{item.name}
+                    td #{item.parentName}
+                    td
+                      if (item.status == "active")
+                        span.badge.bg-success Hoạt động
+                      else if (item.status == "inactive")
+                        span.badge.bg-danger Tạm dừng
+                    td #{item.view}
+                    td.text-end
+                      a(href="#")
+                        i.las.la-pen.text-secondary.font-16
+                      a(href="#")
+                        i.las.la-trash-alt.text-secondary.font-16
+
     // end col
   // end row
