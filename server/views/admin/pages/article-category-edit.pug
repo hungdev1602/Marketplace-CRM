@@ -1,0 +1,49 @@
+extends ../layouts/default.pug
+include ../mixins/options.pug
+
+block main 
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title #{pageTitle}
+    .card-body.pt-0
+      form(id="articleEditCategoryForm")
+        .row
+          .col-md-12.col-lg-12.d-none
+            .mb-3
+              label.form-label(for="id") Id *
+              input.form-control(id="id" type="text" name="id" value=category.id)
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label(for="name") Tên danh mục *
+              input.form-control(id="name" type="text" name="name" value=category.name)
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label(for="slug") Đường dẫn *
+              .input-group
+                span.btn.btn-outline-info(
+                  btn-generate-slug
+                  from="name"
+                  to="slug"
+                  model="CategoryBlog"
+                ) Tự động
+                input.form-control(id="slug" type="text" name="slug" value=category.slug)
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label(for="parent") Danh mục cha
+              select.form-select(id="parent" name="parent")
+                option(value="") ---
+                +options(categoryTree, 0, category.parent)
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label(for="description") Mô tả
+              textarea.form-control(id="description" name="description" textarea-mce) #{category.description}
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="status") Trạng thái
+              select.form-select(id="status" name="status")
+                option(value="active" selected=(category.status == "active" ? true : false)) Hoạt động
+                option(value="inactive" selected=(category.status == "inactive" ? true : false)) Tạm dừng
+        button.btn.btn-primary(type="submit") Cập nhật
+        a.btn.btn-danger.ms-1(href=`/${pathAdmin}/article/category`) Hủy

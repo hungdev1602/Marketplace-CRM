@@ -49,7 +49,7 @@ if(notifyData){
   sessionStorage.removeItem("notify")
 }
 
-// Validate article Create Category Form
+// article Create Category Form
 const articleCreateCategoryForm = document.querySelector("#articleCreateCategoryForm")
 if(articleCreateCategoryForm) {
   const validator = new JustValidate('#articleCreateCategoryForm')
@@ -99,7 +99,7 @@ if(articleCreateCategoryForm) {
         })
     })
 }
-// End Validate article Create Category Form
+// End article Create Category Form
 
 // btn-generate-slug
 const btnGenerateSlug = document.querySelector("[btn-generate-slug]")
@@ -136,3 +136,56 @@ if(btnGenerateSlug){
   })
 }
 // End btn-generate-slug
+
+// article edit Category Form
+const articleEditCategoryForm = document.querySelector("#articleEditCategoryForm")
+if(articleEditCategoryForm) {
+  const validator = new JustValidate('#articleEditCategoryForm')
+
+  validator
+    .addField('#name', [
+      {
+        rule: 'required',
+        errorMessage: 'Vui lòng nhập tên danh mục'
+      }
+    ])
+    .addField('#slug', [
+      {
+        rule: 'required',
+        errorMessage: 'Vui lòng nhập đường dẫn'
+      }
+    ])
+    .onSuccess((event) => {
+      const id = event.target.id.value
+      const name = event.target.name.value
+      const slug = event.target.slug.value
+      const parent = event.target.parent.value
+      const description = tinymce.get("description").getContent()
+      const status = event.target.status.value
+
+      // Tạo form bằng JS
+      const formData = new FormData()
+      formData.append('name', name)
+      formData.append('slug', slug)
+      formData.append('parent', parent)
+      formData.append('description', description)
+      formData.append('status', status)
+
+      // gửi data lên BE
+      fetch(`/${pathAdmin}/article/category/edit/${id}`, {
+        method: "PATCH",
+        body: formData
+      })
+        .then(res => res.json())
+        .then(data => {
+          if(data.code === "error") {
+            notyf.error(data.message)
+          }
+
+          if(data.code === "success") {
+            notyf.success(data.message)
+          }
+        })
+    })
+}
+// End article edit Category Form

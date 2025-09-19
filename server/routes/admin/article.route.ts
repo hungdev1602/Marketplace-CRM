@@ -19,4 +19,13 @@ router.post(
   controller.categoryCreatePost
 )
 
+router.get("/category/edit/:id", controller.categoryEdit)
+
+router.patch(
+  "/category/edit/:id", 
+  upload.none(), 
+  articleValidate.categoryCreatePost, 
+  controller.categoryEditPatch
+)
+
 export const articleRoute = router

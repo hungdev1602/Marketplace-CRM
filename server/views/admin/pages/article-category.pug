@@ -42,10 +42,10 @@ block main
                         span.badge.bg-danger Tạm dừng
                     td #{item.view}
                     td.text-end
-                      a(href="#")
-                        i.las.la-pen.text-secondary.font-16
-                      a(href="#")
-                        i.las.la-trash-alt.text-secondary.font-16
+                      a(href=`/${pathAdmin}/article/category/edit/${item.id}` style="margin: 5px")
+                        <i class="fa-solid fa-pen-to-square text-secondary" style="font-size: 1.2rem;"></i>
+                      a(href="#" style="margin: 5px")
+                        <i class="fa-solid fa-trash text-secondary" style="font-size: 1.2rem;"></i>
 
     // end col
   // end row
