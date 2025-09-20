@@ -10,6 +10,8 @@ const router = Router()
 
 router.get("/category", controller.category)
 
+router.get("/category/trash", controller.categoryTrash)
+
 router.get("/category/create", controller.categoryCreate)
 
 router.post(
@@ -27,5 +29,11 @@ router.patch(
   articleValidate.categoryCreatePost, 
   controller.categoryEditPatch
 )
+
+router.patch("/category/delete/:id", controller.deleteCategoryPatch)
+
+router.patch("/category/undo/:id", controller.undoCategory)
+
+router.delete("/category/delete-permanently/:id", controller.deletePermanently)
 
 export const articleRoute = router

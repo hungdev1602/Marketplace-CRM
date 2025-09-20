@@ -28,6 +28,30 @@ export const category = async (req: Request, res: Response) => {
   })
 }
 
+export const categoryTrash = async (req: Request, res: Response) => {
+  const allCategory: any = await CategoryBlog.find({
+    deleted: true
+  })
+
+  for (const item of allCategory) {
+    if(item.parent) {
+      const parent = await CategoryBlog.findById({
+        _id: item.parent
+      })
+
+      item.parentName = parent?.name
+    }
+    else{
+      item.parentName = "--"
+    }
+  }
+
+  res.render("admin/pages/article-category-trash", {
+    pageTitle: "Trang thùng rác danh mục bài viết",
+    allCategory: allCategory
+  })
+}
+
 export const categoryCreate = async (req: Request, res: Response) => {
   const allCategory = await CategoryBlog.find()
 
@@ -126,6 +150,71 @@ export const categoryEditPatch = async (req: Request, res: Response) => {
     res.json({
       code: "success",
       message: "Chỉnh sửa danh mục bài viết thành công"
+    })
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Data không hợp lệ!"
+    })
+  }
+}
+
+export const deleteCategoryPatch = async (req: Request, res: Response) =>{
+  try {
+    const id = req.params.id
+
+    await CategoryBlog.updateOne({
+      _id: id
+    }, {
+      deleted: true,
+      deletedAt: Date.now()
+    })
+
+    res.json({
+      code: "success",
+      message: "Xoá danh mục bài viết thành công"
+    })
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Data không hợp lệ!"
+    })
+  }
+}
+
+export const undoCategory = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+
+    await CategoryBlog.updateOne({
+      _id: id
+    }, {
+      deleted: false
+    })
+
+    res.json({
+      code: "success",
+      message: "Khôi phục danh mục bài viết thành công"
+    })
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Data không hợp lệ!"
+    })
+  }
+}
+
+export const deletePermanently = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+
+    await CategoryBlog.deleteOne({
+      _id: id
+    })
+
+    res.json({
+      code: "success",
+      message: "Danh mục đã được xoá vĩnh viễn"
     })
   } catch (error) {
     res.json({

@@ -10,16 +10,11 @@ block main
               h4.card-title #{pageTitle}
             // end col
             .col-auto
-              a.btn.btn-danger.me-1(
-                href=`/${pathAdmin}/article/category/trash`
-                )
-                i.fa-solid.fa-trash.me-1
-                | Thùng rác
               a.btn.btn-primary(
-                href=`/${pathAdmin}/article/category/create`
+                href=`/${pathAdmin}/article/category`
                 )
-                i.fa-solid.fa-plus.me-1
-                | Tạo danh mục
+                i.fa-solid.fa-arrow-left.me-1
+                | Quay lại danh sách
             // end col
           // end row
         // end card-header
@@ -47,16 +42,21 @@ block main
                         span.badge.bg-danger Tạm dừng
                     td #{item.view}
                     td.text-end
-                      a(href=`/${pathAdmin}/article/category/edit/${item.id}` style="margin: 5px")
-                        <i class="fa-solid fa-pen-to-square text-secondary" style="font-size: 1.2rem;"></i>
+                      a(href="javascript:;" 
+                        button-api 
+                        data-method="PATCH"
+                        data-api=`/${pathAdmin}/article/category/undo/${item.id}`
+                        style="margin: 5px"
+                      )
+                        <i class="fa-solid fa-rotate-left text-secondary" style="font-size: 1.2rem;"></i>
                       a(
                         href="javascript:;" 
                         button-api 
-                        data-method="PATCH"
-                        data-api=`/${pathAdmin}/article/category/delete/${item.id}`
+                        data-method="DELETE"
+                        data-api=`/${pathAdmin}/article/category/delete-permanently/${item.id}`
                         style="margin: 5px"
                       )
-                        <i class="fa-solid fa-trash text-secondary" style="font-size: 1.2rem;"></i>
+                        <i class="fa-solid fa-trash text-danger" style="font-size: 1.2rem;"></i>
 
     // end col
   // end row

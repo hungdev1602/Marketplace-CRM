@@ -189,3 +189,60 @@ if(articleEditCategoryForm) {
     })
 }
 // End article edit Category Form
+
+// button API
+const listButtonApi = document.querySelectorAll("[button-api]")
+if(listButtonApi.length > 0){
+  listButtonApi.forEach(button => {
+    button.addEventListener("click", () => {
+      const method = button.getAttribute("data-method")
+      if(method == "DELETE"){
+        Swal.fire({
+          title: "Bạn có chắc muốn xoá không? Sau khi xoá sẽ không khôi phục được dữ liệu",
+          showDenyButton: true,
+          showCancelButton: false,
+          confirmButtonText: "Xoá",
+          denyButtonText: `Không xoá`
+        }).then((result) => {
+          if (result.isConfirmed) {
+            const method = button.getAttribute("data-method")
+            const api = button.getAttribute("data-api")
+
+            fetch(api, {
+              method: method || "GET"
+            })
+              .then(res => res.json())
+              .then(data => {
+                if(data.code === "error") {
+                  notyf.error(data.message)
+                }
+
+                if(data.code === "success") {
+                  drawNotify(data.code, data.message)
+                }
+              })
+          }
+        })
+      }
+      else{
+        const method = button.getAttribute("data-method")
+        const api = button.getAttribute("data-api")
+
+        fetch(api, {
+          method: method || "GET"
+        })
+          .then(res => res.json())
+          .then(data => {
+            if(data.code === "error") {
+              notyf.error(data.message)
+            }
+
+            if(data.code === "success") {
+              drawNotify(data.code, data.message)
+            }
+          })
+      }
+    })
+  })
+}
+// End button API
