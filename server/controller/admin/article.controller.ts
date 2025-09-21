@@ -5,9 +5,24 @@ import slugify from "slugify"
 import { pathAdmin } from "../../config/variable.config"
 
 export const category = async (req: Request, res: Response) => {
-  const allCategory: any = await CategoryBlog.find({
+  const find: {
+    deleted: boolean,
+    search?: RegExp
+  } = {
     deleted: false
-  })
+  }
+
+  if(req.query.keyword){
+    const keyword = slugify(`${req.query.keyword}`, {
+      replacement: " ",
+      lower: true
+    })
+
+    const keywordRegex = new RegExp(keyword, "i")
+    find.search = keywordRegex
+  }
+
+  const allCategory: any = await CategoryBlog.find(find)
 
   for (const item of allCategory) {
     if(item.parent) {

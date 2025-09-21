@@ -23,7 +23,18 @@ block main
             // end col
           // end row
         // end card-header
-        //- Table
+        // Search
+        .card-body.pt-0
+          .row
+            .col-lg-12
+              form.input-group.mb-3(form-search)
+                input.form-control(
+                  placeholder="Từ khóa..."
+                  type="text"
+                  name="keyword"
+                  )
+                button.btn.btn-secondary Tìm kiếm
+        // Table
         .table-responsive
             table.table.table-striped.mb-0
               thead.table-light
