@@ -3,6 +3,7 @@ import { CategoryBlog } from "../../models/category-blog.model"
 import { buildCategoryTree } from "../../helpers/category.helper"
 import slugify from "slugify"
 import { pathAdmin } from "../../config/variable.config"
+import { create } from "domain"
 
 export const category = async (req: Request, res: Response) => {
   const find: {
@@ -22,7 +23,30 @@ export const category = async (req: Request, res: Response) => {
     find.search = keywordRegex
   }
 
-  const allCategory: any = await CategoryBlog.find(find)
+  // Pagination
+  const limitItem: number = 5
+  let page: number = 1
+  if(req.query.page && Number(req.query.page) > 0){
+    page = Number(req.query.page)
+  }
+  const totalRecord = await CategoryBlog.countDocuments(find)
+  const totalPage = Math.ceil(totalRecord / limitItem)
+  const skip = (page - 1) * limitItem
+
+  const pagination = {
+    totalRecord: totalRecord,
+    totalPage: totalPage,
+    skip: skip
+  }
+  // End Pagination
+
+  const allCategory: any = await CategoryBlog
+    .find(find)
+    .sort({
+      createdAt: "desc"
+    })
+    .limit(limitItem)
+    .skip(skip)
 
   for (const item of allCategory) {
     if(item.parent) {
@@ -39,7 +63,8 @@ export const category = async (req: Request, res: Response) => {
 
   res.render("admin/pages/article-category", {
     pageTitle: "Quản lý danh mục bài viết",
-    allCategory: allCategory
+    allCategory: allCategory,
+    pagination: pagination
   })
 }
 

@@ -274,3 +274,39 @@ if(formSearch) {
   }
 }
 // ENd Form Search
+
+// Pagination
+const pagination = document.querySelector("[pagination]")
+if(pagination) {
+  const allButtonPagination = pagination.querySelectorAll("[button-pagination]")
+  const url = new URL(window.location.href)
+  allButtonPagination.forEach(button => {
+    button.addEventListener("click", () => {
+      const page = button.getAttribute("page")
+      if(page){
+        url.searchParams.set("page", page)
+      }
+      else{
+        url.searchParams.delete("page")
+      }
+
+      window.location.href = url.href
+    })
+  })
+
+  const currentPage = url.searchParams.get("page")
+  if(currentPage){
+    allButtonPagination.forEach(button => {
+      if(button.getAttribute("page") == currentPage){
+        button.classList.add("active")
+      }
+      else{
+        button.classList.remove("active")
+      }
+    })
+  }
+  else{
+    allButtonPagination[0].classList.add("active")
+  }
+}
+// End Pagination

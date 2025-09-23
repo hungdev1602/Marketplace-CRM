@@ -36,19 +36,20 @@ block main
                 button.btn.btn-secondary Tìm kiếm
         // Table
         .table-responsive
-            table.table.table-striped.mb-0
-              thead.table-light
-                tr
-                  th STT
-                  th Tên danh mục
-                  th Danh mục cha
-                  th Trạng thái
-                  th Lượt xem
-                  th.text-end Hành động
-              tbody
+          table.table.table-striped.mb-0
+            thead.table-light
+              tr
+                th STT
+                th Tên danh mục
+                th Danh mục cha
+                th Trạng thái
+                th Lượt xem
+                th.text-end Hành động
+            tbody
+              if(allCategory.length > 0)
                 each item, index in allCategory
                   tr
-                    td #{index + 1}
+                    td #{pagination.skip + index + 1}
                     td #{item.name}
                     td #{item.parentName}
                     td
@@ -68,6 +69,14 @@ block main
                         style="margin: 5px"
                       )
                         <i class="fa-solid fa-trash text-secondary" style="font-size: 1.2rem;"></i>
-
+              else 
+                tr
+                  td(colspan=6 class="text-center") Không tìm thấy dữ liệu
+          div(class="mt-4")
+            nav(aria-label="Page navigation example")
+              ul.pagination.justify-content-center(pagination)
+                - for(let i = 1; i <= pagination.totalPage; i++)
+                  li.page-item
+                    a.page-link(href="javascript:;" page=i button-pagination) #{i}
     // end col
   // end row
