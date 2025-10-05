@@ -3,7 +3,6 @@ import { CategoryBlog } from "../../models/category-blog.model"
 import { buildCategoryTree } from "../../helpers/category.helper"
 import slugify from "slugify"
 import { pathAdmin } from "../../config/variable.config"
-import { create } from "domain"
 
 export const category = async (req: Request, res: Response) => {
   const find: {
