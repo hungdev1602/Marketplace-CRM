@@ -2,10 +2,45 @@ import { Request, Response } from "express"
 import FormData from "form-data"
 import axios from 'axios';
 import { Media } from "../../models/media.model";
+import moment from "moment";
+import { formatFileSize } from "../../helpers/format.helper";
+import { domainFileManager } from "../../config/variable.config";
 
-export const index = (req: Request, res: Response) => {
+export const index = async (req: Request, res: Response) => {
+  // Pagination
+  const limitItem: number = 20
+  let page: number = 1
+  if(req.query.page && Number(req.query.page) > 0){
+    page = Number(req.query.page)
+  }
+  const totalRecord = await Media.countDocuments({})
+  const totalPage = Math.ceil(totalRecord / limitItem)
+  const skip = (page - 1) * limitItem
+
+  const pagination = {
+    totalRecord: totalRecord,
+    totalPage: totalPage,
+    skip: skip
+  }
+  // End Pagination
+
+  const listFile: any = await Media
+    .find({})
+    .sort({
+      createdAt: "desc"
+    })
+    .limit(limitItem)
+    .skip(skip)
+
+  for (const item of listFile) {
+    item.createdAtFormat = moment(item.createdAt).format("HH:mm - DD/MM/YYYY")
+    item.sizeFormat = formatFileSize(item.size)
+  }
+
   res.render("admin/pages/file-manager", {
-    pageTitle: "Quản lý file"
+    pageTitle: "Quản lý file",
+    listFile: listFile,
+    pagination: pagination
   })
 }
 
@@ -22,7 +57,7 @@ export const uploadPost = async (req: Request, res: Response) => {
       })
     })
 
-    const response = await axios.post("http://localhost:4000/file-manager/upload", formData, {
+    const response = await axios.post(`${domainFileManager}/file-manager/upload`, formData, {
       headers: formData.getHeaders() // nó y hệt với "Content-Type": "multipart/form-data"
     })
 

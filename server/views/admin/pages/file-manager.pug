@@ -1,6 +1,49 @@
 extends ../layouts/default.pug
+include ../mixins/pagination.pug
 
 block main 
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title Danh sách file
+        // end col
+      // end row
+    // end card-header
+    .card-body.pt-0
+      .table-responsive
+        table.table.table-striped.mb-0
+          thead.table-light
+            tr
+              th Tên
+              th Ngày tạo
+              th Kích thước
+              th.text-end Hành động
+          tbody
+            each file in listFile
+              tr
+                td
+                  img(
+                    src=`${domainFileManager}${file.folder}/${file.filename}`
+                    class="rounded thumb-md me-1 d-inline"
+                  )
+                  span #{file.filename}
+                td #{file.createdAtFormat}
+                td #{file.sizeFormat}
+                td.text-end
+                  a(href="#")
+                    i.las.la-copy.text-secondary.fs-18.ms-1
+                  a(href="#")
+                    i.las.la-eye.text-secondary.fs-18.ms-1
+                  a(href="#")
+                    i.las.la-download.text-secondary.fs-18.ms-1
+                  a(href="#")
+                    i.las.la-pen.text-secondary.fs-18.ms-1
+                  a( href="#")
+                    i.las.la-trash-alt.text-secondary.fs-18.ms-1
+      +pagination()
+
+
   .card
     .card-header
       .row.align-items-center

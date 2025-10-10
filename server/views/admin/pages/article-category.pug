@@ -1,4 +1,5 @@
 extends ../layouts/default.pug
+include ../mixins/pagination.pug
 
 block main 
   .row
@@ -72,11 +73,6 @@ block main
               else 
                 tr
                   td(colspan=6 class="text-center") Không tìm thấy dữ liệu
-          div(class="mt-4")
-            nav(aria-label="Page navigation example")
-              ul.pagination.justify-content-center(pagination)
-                - for(let i = 1; i <= pagination.totalPage; i++)
-                  li.page-item
-                    a.page-link(href="javascript:;" page=i button-pagination) #{i}
+          +pagination()
     // end col
   // end row
