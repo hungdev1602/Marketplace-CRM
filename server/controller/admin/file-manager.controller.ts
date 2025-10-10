@@ -20,7 +20,8 @@ export const index = async (req: Request, res: Response) => {
   const pagination = {
     totalRecord: totalRecord,
     totalPage: totalPage,
-    skip: skip
+    skip: skip,
+    currentPage: page
   }
   // End Pagination
 
@@ -40,7 +41,8 @@ export const index = async (req: Request, res: Response) => {
   res.render("admin/pages/file-manager", {
     pageTitle: "Quản lý file",
     listFile: listFile,
-    pagination: pagination
+    pagination: pagination,
+    page: page
   })
 }
 

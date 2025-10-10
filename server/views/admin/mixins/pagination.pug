@@ -1,7 +1,64 @@
-mixin pagination()
-  div(class="mt-4")
-    nav(aria-label="Page navigation example")
-      ul.pagination.justify-content-center(pagination)
-        - for(let i = 1; i <= pagination.totalPage; i++)
-          li.page-item
-            a.page-link(href="javascript:;" page=i button-pagination) #{i}
+mixin pagination(pagination, currentPage)
+  - const totalPages = pagination.totalPage
+  - currentPage = currentPage || 1
+  
+  if totalPages > 1
+    div(class="mt-4")
+      nav(aria-label="Page navigation example")
+        ul.pagination.justify-content-center(pagination)
+          
+          //- Nút Previous
+          li.page-item(class=currentPage === 1 ? 'disabled' : '')
+            a.page-link(
+              href=currentPage === 1 ? 'javascript:;' : 'javascript:;', 
+              page=currentPage - 1,
+              button-pagination
+              aria-label="Previous"
+            ) &laquo;
+          
+          //- Trang đầu tiên (luôn hiển thị)
+          li.page-item(class=currentPage === 1 ? 'active' : '')
+            a.page-link(href="javascript:;" page=1 button-pagination) 1
+          
+          //- Hiển thị dấu ... sau trang 1 nếu cần
+          - const showLeftDots = currentPage > 3
+          if showLeftDots
+            li.page-item.disabled
+              span.page-link ...
+          
+          //- Các trang ở giữa
+          - let startPage = Math.max(2, currentPage - 1)
+          - let endPage = Math.min(totalPages - 1, currentPage + 1)
+          
+          //- Điều chỉnh để hiển thị cân đối
+          - if (currentPage <= 3) {
+          -   endPage = Math.min(totalPages - 1, 4)
+          - }
+          - if (currentPage >= totalPages - 2) {
+          -   startPage = Math.max(2, totalPages - 3)
+          - }
+          
+          - for(let i = startPage; i <= endPage; i++)
+            if i > 1 && i < totalPages
+              li.page-item(class=currentPage === i ? 'active' : '')
+                a.page-link(href="javascript:;" page=i button-pagination) #{i}
+          
+          //- Hiển thị dấu ... trước trang cuối nếu cần
+          - const showRightDots = currentPage < totalPages - 2
+          if showRightDots
+            li.page-item.disabled
+              span.page-link ...
+          
+          //- Trang cuối cùng (nếu có nhiều hơn 1 trang)
+          if totalPages > 1
+            li.page-item(class=currentPage === totalPages ? 'active' : '')
+              a.page-link(href="javascript:;" page=totalPages button-pagination) #{totalPages}
+          
+          //- Nút Next
+          li.page-item(class=currentPage === totalPages ? 'disabled' : '')
+            a.page-link(
+              href=currentPage === totalPages ? 'javascript:;' : 'javascript:;', 
+              page=currentPage + 1,
+              button-pagination
+              aria-label="Next"
+            ) &raquo;

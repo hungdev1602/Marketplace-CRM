@@ -280,33 +280,46 @@ const pagination = document.querySelector("[pagination]")
 if(pagination) {
   const allButtonPagination = pagination.querySelectorAll("[button-pagination]")
   const url = new URL(window.location.href)
+  const currentPage = parseInt(url.searchParams.get("page")) || 1
+  
+  // Xử lý click pagination
   allButtonPagination.forEach(button => {
-    button.addEventListener("click", () => {
-      const page = button.getAttribute("page")
-      if(page){
+    button.addEventListener("click", (e) => {
+      e.preventDefault()
+      
+      if(button.parentElement.classList.contains("disabled")) {
+        return // Không làm gì nếu button bị disabled
+      }
+      
+      const page = parseInt(button.getAttribute("page"))
+      if(page && page > 0) {
         url.searchParams.set("page", page)
+        window.location.href = url.href
       }
-      else{
-        url.searchParams.delete("page")
-      }
-
-      window.location.href = url.href
     })
   })
 
-  const currentPage = url.searchParams.get("page")
-  if(currentPage){
-    allButtonPagination.forEach(button => {
-      if(button.getAttribute("page") == currentPage){
-        button.classList.add("active")
-      }
-      else{
-        button.classList.remove("active")
-      }
-    })
-  }
-  else{
-    allButtonPagination[0].classList.add("active")
-  }
+  // Xử lý active state và disabled state
+  allButtonPagination.forEach(button => {
+    const buttonPage = parseInt(button.getAttribute("page"))
+    const liElement = button.parentElement
+    
+    // Remove existing classes
+    liElement.classList.remove("active", "disabled")
+    
+    // Check if this is the current page
+    if(buttonPage === currentPage) {
+      liElement.classList.add("active")
+    }
+    
+    // Check for previous/next buttons disabled state
+    const ariaLabel = button.getAttribute("aria-label")
+    if(ariaLabel === "Previous" && currentPage === 1) {
+      liElement.classList.add("disabled")
+    }
+    if(ariaLabel === "Next" && currentPage === parseInt(pagination.getAttribute("data-total-pages") || currentPage)) {
+      liElement.classList.add("disabled")
+    }
+  })
 }
 // End Pagination

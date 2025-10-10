@@ -35,7 +35,8 @@ export const category = async (req: Request, res: Response) => {
   const pagination = {
     totalRecord: totalRecord,
     totalPage: totalPage,
-    skip: skip
+    skip: skip,
+    currentPage: page
   }
   // End Pagination
 
@@ -63,7 +64,8 @@ export const category = async (req: Request, res: Response) => {
   res.render("admin/pages/article-category", {
     pageTitle: "Quản lý danh mục bài viết",
     allCategory: allCategory,
-    pagination: pagination
+    pagination: pagination,
+    page: page
   })
 }
 
