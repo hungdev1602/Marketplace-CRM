@@ -31,16 +31,20 @@ block main
                 td #{file.createdAtFormat}
                 td #{file.sizeFormat}
                 td.text-end
+                  a(
+                    href="javascript:;"
+                    button-copy 
+                    content-copy=`${file.folder}/${file.filename}`
+                  )
+                    i.las.la-copy.text-secondary.fs-3.ms-1
                   a(href="#")
-                    i.las.la-copy.text-secondary.fs-18.ms-1
+                    i.las.la-eye.text-secondary.fs-3.ms-1
                   a(href="#")
-                    i.las.la-eye.text-secondary.fs-18.ms-1
+                    i.las.la-download.text-secondary.fs-3.ms-1
                   a(href="#")
-                    i.las.la-download.text-secondary.fs-18.ms-1
-                  a(href="#")
-                    i.las.la-pen.text-secondary.fs-18.ms-1
+                    i.las.la-pen.text-secondary.fs-3.ms-1
                   a( href="#")
-                    i.las.la-trash-alt.text-secondary.fs-18.ms-1
+                    i.las.la-trash-alt.text-secondary.fs-3.ms-1
       +pagination(pagination, page)
 
 
