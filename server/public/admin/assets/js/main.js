@@ -333,3 +333,55 @@ if(listButtonCopy.length > 0){
   })
 }
 // End Button copy
+
+// Modal Preview File
+const modalPreviewFile = document.querySelector("#previewFileModal")
+if(modalPreviewFile){
+  const innerPreview = modalPreviewFile.querySelector(".inner-preview")
+
+  let clickedFile = null
+  const listButtonPreviewFile = document.querySelectorAll("[button-preview-file]")
+
+  listButtonPreviewFile.forEach(button => {
+    button.addEventListener("click", () => {
+      clickedFile = button
+    })
+  })
+
+  // Close modal event
+  modalPreviewFile.addEventListener("hidden.bs.modal", (event) => {
+    clickedFile = null
+    innerPreview.innerHTML = ""
+  })
+
+  // Open modal event
+  modalPreviewFile.addEventListener("shown.bs.modal", (event) => {
+    const dataFile = clickedFile.getAttribute("data-file")
+    const fileMimetype = clickedFile.getAttribute("data-mimetype")
+    if(fileMimetype.includes("image")){
+      innerPreview.innerHTML = `
+        <div style="display: flex; justify-content: center; align-items: center; height: 600px; overflow: hidden;">
+          <img src="${dataFile}" alt="" width="auto" height="600px" style="object-fit: cover;">
+        </div>
+      `
+    }
+    else if(fileMimetype.includes("video")){
+      innerPreview.innerHTML = `
+        <video src="${dataFile}" controls width="100%" height="600px"></video>
+      `
+    }
+    else if(fileMimetype.includes("audio")){
+      innerPreview.innerHTML = `
+        <div style="display: flex; justify-content: center; align-items: center; height: 600px; overflow: hidden;">
+          <audio src="${dataFile}" controls width="100%" height="600px"></audio>
+        </div>
+      `
+    }
+    else if(fileMimetype.includes("pdf")){
+      innerPreview.innerHTML = `
+        <iframe src="${dataFile}" width="100%" height="600px" style="object-fit: cover;"></iframe>
+      `
+    }
+  })
+}
+// End Modal Preview File

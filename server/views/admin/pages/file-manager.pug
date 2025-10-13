@@ -23,10 +23,20 @@ block main
             each file in listFile
               tr
                 td
-                  img(
-                    src=`${domainFileManager}${file.folder}/${file.filename}`
-                    class="rounded thumb-md me-1 d-inline"
-                  )
+                  if(file.mimetype.includes("image"))
+                    img(
+                      src=`${domainFileManager}${file.folder}/${file.filename}`
+                      class="rounded thumb-md me-1 d-inline"
+                    )
+                  else if(file.mimetype.includes("video"))
+                    .d-inline-flex.justify-content-center.align-items-center.thumb-md.bg-blue-subtle.rounded.mx-auto.me-1
+                      i.fa-solid.fa-video.fs-18.align-self-center.mb-0.text-blue
+                  else if(file.mimetype.includes("audio"))
+                    .d-inline-flex.justify-content-center.align-items-center.thumb-md.bg-blue-subtle.rounded.mx-auto.me-1
+                      i.fa-solid.fa-headphones.fs-18.align-self-center.mb-0.text-blue 
+                  else if(file.mimetype.includes("pdf"))
+                    .d-inline-flex.justify-content-center.align-items-center.thumb-md.bg-blue-subtle.rounded.mx-auto.me-1
+                      i.fa-solid.fa-file-pdf.fs-18.align-self-center.mb-0.text-blue
                   span #{file.filename}
                 td #{file.createdAtFormat}
                 td #{file.sizeFormat}
@@ -37,7 +47,14 @@ block main
                     content-copy=`${file.folder}/${file.filename}`
                   )
                     i.las.la-copy.text-secondary.fs-3.ms-1
-                  a(href="#")
+                  a(
+                    href="javascript:;"
+                    button-preview-file 
+                    data-file=`${domainFileManager}${file.folder}/${file.filename}`
+                    data-mimetype=`${file.mimetype}`
+                    data-bs-toggle="modal" 
+                    data-bs-target="#previewFileModal"
+                  )
                     i.las.la-eye.text-secondary.fs-3.ms-1
                   a(href="#")
                     i.las.la-download.text-secondary.fs-3.ms-1
@@ -59,3 +76,20 @@ block main
     .card-body.pt-0
       div(id="uppy-upload")
     // end card-body
+
+  #previewFileModal.modal.fade.modal-xl(
+    aria-hidden="true" 
+    aria-labelledby="previewFileModal" 
+    tabindex="-1"
+    )
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h1#exampleModalLabel.modal-title.fs-5 Modal title
+          button.btn-close(
+            aria-label="Close" 
+            data-bs-dismiss="modal" 
+            type="button"
+            )
+        .modal-body 
+          .inner-preview
