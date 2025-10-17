@@ -136,3 +136,52 @@ export const changeFileName = async (req: Request, res: Response) => {
     })
   }
 }
+
+export const deleteFileDel = async(req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+
+    const existFileById = await Media.findOne({
+      _id: id
+    })
+
+    if(!existFileById){
+      res.json({
+        code: "error",
+        message: "Không tìm thấy File"
+      })
+      return
+    }
+
+    const formData = new FormData()
+    formData.append("folder", existFileById?.folder)
+    formData.append("fileName", existFileById?.filename)
+
+    const response = await axios.patch(`${domainFileManager}/file-manager/delete-file`, formData, {
+      headers: formData.getHeaders() // nó y hệt với "Content-Type": "multipart/form-data"
+    })
+
+    if(response.data.code === "error"){
+      res.json({
+        code: "error",
+        message: response.data.message
+      })
+      return
+    }
+
+    // Xoá trong DB
+    await Media.deleteOne({
+      _id: id
+    })
+
+    res.json({
+      code: "success",
+      message: "Xoá file thành công!"
+    })
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Lỗi server"
+    })
+  }
+}

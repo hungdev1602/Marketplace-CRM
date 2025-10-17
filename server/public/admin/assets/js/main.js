@@ -415,7 +415,6 @@ if(modalChangeFileName){
   })
 
   // Sự kiện submit form
-  console.log(form)
   form.addEventListener("submit", (event) => {
     event.preventDefault()
 
@@ -447,3 +446,39 @@ if(modalChangeFileName){
   })
 }
 // End Modal Change File Name
+
+// Button Delete File
+const listButtonDeleteFile = document.querySelectorAll("[button-delete-file]")
+if(listButtonDeleteFile.length > 0){
+  listButtonDeleteFile.forEach(button => {
+    button.addEventListener("click", () => {
+      const fileId = button.getAttribute("data-file-id")
+      const fileName = button.getAttribute("data-file-name")
+
+      Swal.fire({
+        title: `Bạn có chắc muốn xoá File: ${fileName}?`,
+        showDenyButton: true,
+        showCancelButton: false,
+        confirmButtonText: "Xoá",
+        denyButtonText: `Không xoá`
+      }).then((result) => {
+        if (result.isConfirmed) {
+          fetch(`/${pathAdmin}/file-manager/delete-file/${fileId}`, {
+            method: "DELETE"
+          })
+            .then(res => res.json())
+            .then(data => {
+              if(data.code === "error") {
+                notyf.error(data.message)
+              }
+
+              if(data.code === "success") {
+                drawNotify(data.code, data.message)
+              }
+            })
+        }
+      })
+    })
+  })
+}
+// End Button Delete File

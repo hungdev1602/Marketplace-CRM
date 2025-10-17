@@ -19,4 +19,6 @@ router.patch(
   controller.changeFileName
 )
 
+router.delete("/delete-file/:id", controller.deleteFileDel)
+
 export const fileManagerRoute = router

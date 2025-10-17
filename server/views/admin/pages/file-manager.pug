@@ -67,7 +67,12 @@ block main
                     i.las.la-pen.text-secondary.fs-3.ms-1
                   a(href=`${domainFileManager}${file.folder}/${file.filename}?type=download`)
                     i.las.la-download.text-secondary.fs-3.ms-1
-                  a( href="#")
+                  a(
+                    href="javascript:;"
+                    button-delete-file
+                    data-file-id=file.id 
+                    data-file-name=file.filename
+                  )
                     i.las.la-trash-alt.text-secondary.fs-3.ms-1
       +pagination(pagination, page)
 
