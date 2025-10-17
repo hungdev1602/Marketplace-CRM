@@ -13,4 +13,10 @@ router.post(
   controller.uploadPost
 )
 
+router.patch(
+  "/change-file-name/:id",
+  upload.none(),
+  controller.changeFileName
+)
+
 export const fileManagerRoute = router

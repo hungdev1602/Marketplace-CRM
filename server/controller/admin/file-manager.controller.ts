@@ -83,3 +83,56 @@ export const uploadPost = async (req: Request, res: Response) => {
     })
   }
 }
+
+export const changeFileName = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+    const newFileName = req.body.fileName
+
+    const existFileById = await Media.findOne({
+      _id: id
+    })
+
+    if(!existFileById){
+      res.json({
+        code: "error",
+        message: "Không tìm thấy File"
+      })
+      return
+    }
+
+    const formData = new FormData()
+    formData.append("folder", existFileById.folder)
+    formData.append("oldFileName", existFileById.filename)
+    formData.append("newFileName", newFileName)
+
+    const response = await axios.patch(`${domainFileManager}/file-manager/change-file-name`, formData, {
+      headers: formData.getHeaders() // nó y hệt với "Content-Type": "multipart/form-data"
+    })
+
+    if(response.data.code === "error"){
+      res.json({
+        code: "error",
+        message: response.data.message
+      })
+      return
+    }
+
+    // Update trong DB
+    await Media.updateOne({
+      _id: id
+    }, {
+      filename: newFileName
+    })
+
+    res.json({
+      code: "success",
+      message: "Sửa tên file thành công"
+    })
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Lỗi server"
+    })
+  }
+}

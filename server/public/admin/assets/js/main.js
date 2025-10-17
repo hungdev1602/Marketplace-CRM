@@ -385,3 +385,65 @@ if(modalPreviewFile){
   })
 }
 // End Modal Preview File
+
+// Modal Change File Name
+const modalChangeFileName = document.querySelector("#modalChangeFileName")
+if(modalChangeFileName){
+  let clickedFile = null
+  const listButtonChangeFileName = document.querySelectorAll("[button-change-file-name]")
+  const form = modalChangeFileName.querySelector("form")
+
+  listButtonChangeFileName.forEach(button => {
+    button.addEventListener("click", () => {
+      clickedFile = button
+    })
+  })
+
+  // Close modal event
+  modalChangeFileName.addEventListener("hidden.bs.modal", (event) => {
+    clickedFile = null
+    form.reset()
+  })
+
+  // Open modal event
+  modalChangeFileName.addEventListener("shown.bs.modal", (event) => {
+    const dataFileName = clickedFile.getAttribute("data-file-name")
+    const dataFileId = clickedFile.getAttribute("data-file-id")
+    
+    form.fileId.value = dataFileId
+    form.fileName.value = dataFileName
+  })
+
+  // Sự kiện submit form
+  console.log(form)
+  form.addEventListener("submit", (event) => {
+    event.preventDefault()
+
+    const fileId = form.fileId.value
+    const fileName = form.fileName.value
+
+    // có id và tên thì mới gửi lên BE
+    if(fileId && fileName){
+      // Tạo form bằng JS
+      const formData = new FormData()
+      formData.append('fileName', fileName)
+  
+      // gửi data lên BE
+      fetch(`/${pathAdmin}/file-manager/change-file-name/${fileId}`, {
+        method: "PATCH",
+        body: formData
+      })
+        .then(res => res.json())
+        .then(data => {
+          if(data.code === "error") {
+            notyf.error(data.message)
+          }
+
+          if(data.code === "success") {
+            drawNotify(data.code, data.message)
+          }
+        })
+    }
+  })
+}
+// End Modal Change File Name

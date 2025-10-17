@@ -56,10 +56,17 @@ block main
                     data-bs-target="#previewFileModal"
                   )
                     i.las.la-eye.text-secondary.fs-3.ms-1
+                  a(
+                    href="javascript:;"
+                    button-change-file-name 
+                    data-file-name=file.filename
+                    data-file-id=file.id
+                    data-bs-toggle="modal" 
+                    data-bs-target="#modalChangeFileName"
+                  )
+                    i.las.la-pen.text-secondary.fs-3.ms-1
                   a(href=`${domainFileManager}${file.folder}/${file.filename}?type=download`)
                     i.las.la-download.text-secondary.fs-3.ms-1
-                  a(href="#")
-                    i.las.la-pen.text-secondary.fs-3.ms-1
                   a( href="#")
                     i.las.la-trash-alt.text-secondary.fs-3.ms-1
       +pagination(pagination, page)
@@ -77,6 +84,7 @@ block main
       div(id="uppy-upload")
     // end card-body
 
+  // Modal preview file
   #previewFileModal.modal.fade.modal-xl(
     aria-hidden="true" 
     aria-labelledby="previewFileModal" 
@@ -93,3 +101,27 @@ block main
             )
         .modal-body 
           .inner-preview
+  // End Modal preview file
+  #modalChangeFileName.modal.fade.modal-xl(
+    aria-hidden="true" 
+    aria-labelledby="modalChangeFileName" 
+    tabindex="-1"
+    )
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h1#exampleModalLabel.modal-title.fs-5 Đổi tên File
+          button.btn-close(
+            aria-label="Close" 
+            data-bs-dismiss="modal" 
+            type="button"
+            )
+        .modal-body 
+          form(action="")
+            .mb-3.d-none
+              label(class="form-label") Id
+              input(type="text" class="form-control" name="fileId")
+            .mb-3
+              label(class="form-label") Tên file
+              input(type="text" class="form-control" name="fileName")
+            button.btn.btn-primary(type="submit") Cập nhật
