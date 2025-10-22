@@ -21,4 +21,10 @@ router.patch(
 
 router.delete("/delete-file/:id", controller.deleteFileDel)
 
+router.post(
+  "/folder/create", 
+  upload.none(), 
+  controller.folderCreatePost
+)
+
 export const fileManagerRoute = router

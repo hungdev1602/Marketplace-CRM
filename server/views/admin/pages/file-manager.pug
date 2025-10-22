@@ -2,6 +2,52 @@ extends ../layouts/default.pug
 include ../mixins/pagination.pug
 
 block main 
+  // Danh sách Folder
+  .card
+    .card-header
+      .row.align-items-center.g-2
+        .col-lg-12
+          h4.card-title Danh sách folder
+        .col-lg-4
+          form(form-create-folder)
+            .input-group
+              input(
+                class="form-control"
+                placeholder="Tên folder" 
+                type="text"
+                name="folderName"
+              )
+              button.btn.btn-secondary Tạo folder
+        // end col
+      // end row
+    // end card-header
+    .card-body.pt-0
+      .table-responsive
+        table.table.table-striped.mb-0
+          thead.table-light
+            tr
+              th Tên
+              th Ngày tạo
+              th.text-end Hành động
+          tbody
+            each folder in listFolder
+              tr
+                td
+                  a(href="#") 
+                    .d-inline-flex.justify-content-center.align-items-center.thumb-md.bg-secondary-subtle.rounded.mx-auto.me-1
+                      i.fa-solid.fa-folder.fs-18.align-self-center.mb-0.text-secondary
+                    span #{folder.name}
+                td #{folder.createdAtFormat}
+                td.text-end
+                  a(
+                    href="javascript:;"
+                  )
+                    i.las.la-trash-alt.text-secondary.fs-18.ms-1
+              
+    // end card-body
+
+
+  // Danh sách File
   .card
     .card-header
       .row.align-items-center

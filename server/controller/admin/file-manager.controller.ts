@@ -25,6 +25,7 @@ export const index = async (req: Request, res: Response) => {
   }
   // End Pagination
 
+  // Danh sách File
   const listFile: any = await Media
     .find({})
     .sort({
@@ -37,10 +38,25 @@ export const index = async (req: Request, res: Response) => {
     item.createdAtFormat = moment(item.createdAt).format("HH:mm - DD/MM/YYYY")
     item.sizeFormat = formatFileSize(item.size)
   }
+  // End Danh sách File
+
+  // Danh sách Folder
+  let listFolder = []
+  const response = await axios.get(`${domainFileManager}/file-manager/folder/list`)
+
+  if(response.data.code === "success"){
+    listFolder = response.data.listFolder
+
+    listFolder.forEach((item: any) => {
+      item.createdAtFormat = moment(item.createdAt).format("HH:mm - DD/MM/YYYY")
+    })
+  }
+  // End Danh sách Folder
 
   res.render("admin/pages/file-manager", {
     pageTitle: "Quản lý file",
     listFile: listFile,
+    listFolder: listFolder,
     pagination: pagination,
     page: page
   })
@@ -182,6 +198,46 @@ export const deleteFileDel = async(req: Request, res: Response) => {
     res.json({
       code: "error",
       message: "Lỗi server"
+    })
+  }
+}
+
+export const folderCreatePost = async (req: Request, res: Response) => {
+  try {
+    const { folderName } = req.body
+
+    if(!folderName){
+      res.json({
+        code: "error",
+        message: "Vui lòng nhập tên Folder"
+      })
+      return
+    }
+
+    // Gửi yêu cầu sang hệ thống "file manager"
+    const formData = new FormData()
+    formData.append("folderName", folderName)
+
+    const response = await axios.post(`${domainFileManager}/file-manager/folder/create`, formData, {
+      headers: formData.getHeaders() // nó y hệt với "Content-Type": "multipart/form-data"
+    })
+
+    if(response.data.code === "error"){
+      res.json({
+        code: "error",
+        message: response.data.message
+      })
+      return
+    }
+
+    res.json({
+      code: "success",
+      message: "Tạo folder thành công"
+    })
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Lỗi server khi tạo Folder EC"
     })
   }
 }
