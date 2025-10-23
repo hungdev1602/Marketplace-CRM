@@ -517,3 +517,23 @@ if(formCreateFolder) {
   })
 }
 // End Form Create Folder
+
+// Button To Folder
+const listButtonToFolder = document.querySelectorAll("[button-to-folder]")
+if(listButtonToFolder.length > 0){
+  const url = new URL(window.location.href)
+
+  listButtonToFolder.forEach(button => {
+    button.addEventListener("click", () => {
+      const folderPath = button.getAttribute("data-folder-path")
+      if(folderPath) {
+        url.searchParams.set("folderPath", folderPath)
+      }
+      else{
+        url.searchParams.delete("folderPath")
+      }
+      window.location.href = url.href
+    })
+  })
+}
+// End Button To Folder

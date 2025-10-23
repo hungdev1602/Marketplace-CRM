@@ -30,19 +30,28 @@ block main
               th Ngày tạo
               th.text-end Hành động
           tbody
-            each folder in listFolder
+            if(listFolder.length > 0)
+              each folder in listFolder
+                tr
+                  td
+                    a(
+                      href="javascript:;"
+                      button-to-folder
+                      data-folder-path=folder.name
+                    ) 
+                      .d-inline-flex.justify-content-center.align-items-center.thumb-md.bg-secondary-subtle.rounded.mx-auto.me-1
+                        i.fa-solid.fa-folder.fs-18.align-self-center.mb-0.text-secondary
+                      span #{folder.name}
+                  td #{folder.createdAtFormat}
+                  td.text-end
+                    a(
+                      href="javascript:;"
+                    )
+                      i.las.la-trash-alt.text-secondary.fs-18.ms-1
+            else 
               tr
-                td
-                  a(href="#") 
-                    .d-inline-flex.justify-content-center.align-items-center.thumb-md.bg-secondary-subtle.rounded.mx-auto.me-1
-                      i.fa-solid.fa-folder.fs-18.align-self-center.mb-0.text-secondary
-                    span #{folder.name}
-                td #{folder.createdAtFormat}
-                td.text-end
-                  a(
-                    href="javascript:;"
-                  )
-                    i.las.la-trash-alt.text-secondary.fs-18.ms-1
+                td(colspan="4")
+                  div.text-center Không có dữ liệu
               
     // end card-body
 
@@ -66,60 +75,66 @@ block main
               th Kích thước
               th.text-end Hành động
           tbody
-            each file in listFile
-              tr
-                td
-                  if(file.mimetype.includes("image"))
-                    img(
-                      src=`${domainFileManager}${file.folder}/${file.filename}`
-                      class="rounded thumb-md me-1 d-inline"
+            if(listFile.length > 0)
+              each file in listFile
+                tr
+                  td
+                    if(file.mimetype.includes("image"))
+                      img(
+                        src=`${domainFileManager}${file.folder}/${file.filename}`
+                        class="rounded thumb-md me-1 d-inline"
+                      )
+                    else if(file.mimetype.includes("video"))
+                      .d-inline-flex.justify-content-center.align-items-center.thumb-md.bg-blue-subtle.rounded.mx-auto.me-1
+                        i.fa-solid.fa-video.fs-18.align-self-center.mb-0.text-blue
+                    else if(file.mimetype.includes("audio"))
+                      .d-inline-flex.justify-content-center.align-items-center.thumb-md.bg-blue-subtle.rounded.mx-auto.me-1
+                        i.fa-solid.fa-headphones.fs-18.align-self-center.mb-0.text-blue 
+                    else if(file.mimetype.includes("pdf"))
+                      .d-inline-flex.justify-content-center.align-items-center.thumb-md.bg-blue-subtle.rounded.mx-auto.me-1
+                        i.fa-solid.fa-file-pdf.fs-18.align-self-center.mb-0.text-blue
+                    span #{file.filename}
+                  td #{file.createdAtFormat}
+                  td #{file.sizeFormat}
+                  td.text-end
+                    a(
+                      href="javascript:;"
+                      button-copy 
+                      content-copy=`${file.folder}/${file.filename}`
                     )
-                  else if(file.mimetype.includes("video"))
-                    .d-inline-flex.justify-content-center.align-items-center.thumb-md.bg-blue-subtle.rounded.mx-auto.me-1
-                      i.fa-solid.fa-video.fs-18.align-self-center.mb-0.text-blue
-                  else if(file.mimetype.includes("audio"))
-                    .d-inline-flex.justify-content-center.align-items-center.thumb-md.bg-blue-subtle.rounded.mx-auto.me-1
-                      i.fa-solid.fa-headphones.fs-18.align-self-center.mb-0.text-blue 
-                  else if(file.mimetype.includes("pdf"))
-                    .d-inline-flex.justify-content-center.align-items-center.thumb-md.bg-blue-subtle.rounded.mx-auto.me-1
-                      i.fa-solid.fa-file-pdf.fs-18.align-self-center.mb-0.text-blue
-                  span #{file.filename}
-                td #{file.createdAtFormat}
-                td #{file.sizeFormat}
-                td.text-end
-                  a(
-                    href="javascript:;"
-                    button-copy 
-                    content-copy=`${file.folder}/${file.filename}`
-                  )
-                    i.las.la-copy.text-secondary.fs-3.ms-1
-                  a(
-                    href="javascript:;"
-                    button-preview-file 
-                    data-file=`${domainFileManager}${file.folder}/${file.filename}`
-                    data-mimetype=`${file.mimetype}`
-                    data-bs-toggle="modal" 
-                    data-bs-target="#previewFileModal"
-                  )
-                    i.las.la-eye.text-secondary.fs-3.ms-1
-                  a(
-                    href="javascript:;"
-                    button-change-file-name 
-                    data-file-name=file.filename
-                    data-file-id=file.id
-                    data-bs-toggle="modal" 
-                    data-bs-target="#modalChangeFileName"
-                  )
-                    i.las.la-pen.text-secondary.fs-3.ms-1
-                  a(href=`${domainFileManager}${file.folder}/${file.filename}?type=download`)
-                    i.las.la-download.text-secondary.fs-3.ms-1
-                  a(
-                    href="javascript:;"
-                    button-delete-file
-                    data-file-id=file.id 
-                    data-file-name=file.filename
-                  )
-                    i.las.la-trash-alt.text-secondary.fs-3.ms-1
+                      i.las.la-copy.text-secondary.fs-3.ms-1
+                    a(
+                      href="javascript:;"
+                      button-preview-file 
+                      data-file=`${domainFileManager}${file.folder}/${file.filename}`
+                      data-mimetype=`${file.mimetype}`
+                      data-bs-toggle="modal" 
+                      data-bs-target="#previewFileModal"
+                    )
+                      i.las.la-eye.text-secondary.fs-3.ms-1
+                    a(
+                      href="javascript:;"
+                      button-change-file-name 
+                      data-file-name=file.filename
+                      data-file-id=file.id
+                      data-bs-toggle="modal" 
+                      data-bs-target="#modalChangeFileName"
+                    )
+                      i.las.la-pen.text-secondary.fs-3.ms-1
+                    a(href=`${domainFileManager}${file.folder}/${file.filename}?type=download`)
+                      i.las.la-download.text-secondary.fs-3.ms-1
+                    a(
+                      href="javascript:;"
+                      button-delete-file
+                      data-file-id=file.id 
+                      data-file-name=file.filename
+                    )
+                      i.las.la-trash-alt.text-secondary.fs-3.ms-1
+
+            else 
+              tr
+                td(colspan="4")
+                  div.text-center Không có dữ liệu
       +pagination(pagination, page)
 
 

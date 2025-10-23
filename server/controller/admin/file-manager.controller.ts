@@ -7,6 +7,15 @@ import { formatFileSize } from "../../helpers/format.helper";
 import { domainFileManager } from "../../config/variable.config";
 
 export const index = async (req: Request, res: Response) => {
+  const find: {
+    folder?: string
+  } = {}
+
+  find.folder = "/media" //mặc định
+  if(req.query.folderPath){
+    find.folder = find.folder + `/${req.query.folderPath}`
+  }
+
   // Pagination
   const limitItem: number = 20
   let page: number = 1
@@ -27,7 +36,7 @@ export const index = async (req: Request, res: Response) => {
 
   // Danh sách File
   const listFile: any = await Media
-    .find({})
+    .find(find)
     .sort({
       createdAt: "desc"
     })
@@ -42,7 +51,7 @@ export const index = async (req: Request, res: Response) => {
 
   // Danh sách Folder
   let listFolder = []
-  const response = await axios.get(`${domainFileManager}/file-manager/folder/list`)
+  const response = await axios.get(`${domainFileManager}/file-manager/folder/list?folderPath=${req.query.folderPath}`)
 
   if(response.data.code === "success"){
     listFolder = response.data.listFolder
