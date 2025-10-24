@@ -490,6 +490,7 @@ if(formCreateFolder) {
     event.preventDefault()
 
     const folderName = event.target.folderName.value
+
     if(!folderName) {
       notyf.error("Vui lòng nhập tên folder")
     }
@@ -497,6 +498,13 @@ if(formCreateFolder) {
       // Tạo form bằng JS
       const formData = new FormData()
       formData.append('folderName', folderName)
+
+      // Check xem có searchParams hay ko
+      const searchParams = new URLSearchParams(window.location.search)
+      const folderPath = searchParams.get("folderPath")
+      if(folderPath){
+        formData.append('folderPath', folderPath)
+      }
   
       // gửi data lên BE
       fetch(`/${pathAdmin}/file-manager/folder/create`, {
@@ -525,8 +533,14 @@ if(listButtonToFolder.length > 0){
 
   listButtonToFolder.forEach(button => {
     button.addEventListener("click", () => {
-      const folderPath = button.getAttribute("data-folder-path")
+      let folderPath = button.getAttribute("data-folder-path")
       if(folderPath) {
+
+        const searchParams = new URLSearchParams(window.location.search)
+        const folderPathCurrent = searchParams.get("folderPath")
+        if(folderPathCurrent){
+          folderPath = `${folderPathCurrent}/${folderPath}`
+        }
         url.searchParams.set("folderPath", folderPath)
       }
       else{
@@ -537,3 +551,33 @@ if(listButtonToFolder.length > 0){
   })
 }
 // End Button To Folder
+
+// Breadcrumb Folder
+const breadcrumbFolder = document.querySelector("[breadcrumb-folder]")
+if(breadcrumbFolder) {
+  const searchParams = new URLSearchParams(window.location.search)
+  const folderPath = searchParams.get("folderPath") || ""
+  const listFolder = folderPath !== "" ? folderPath.split("/") : []
+
+  let htmls = `
+    <li class="list-group-item bg-dark">
+      <a href="/${pathAdmin}/file-manager">
+        <i class="la la-angle-double-right text-info me-2"></i>Media
+      </a>
+    </li>
+  `
+
+  let path = ""
+  listFolder.forEach((item, index) => {
+    path += (index > 0 ? "/" : "")  + listFolder[index]
+    htmls += `
+      <li class="list-group-item bg-dark">
+        <a href="/${pathAdmin}/file-manager?folderPath=${path}">
+          <i class="la la-angle-double-right text-info me-2"></i>${item}
+        </a>
+      </li>
+    `
+  })
+  breadcrumbFolder.innerHTML = htmls
+}
+// End Breadcrumb Folder

@@ -213,7 +213,7 @@ export const deleteFileDel = async(req: Request, res: Response) => {
 
 export const folderCreatePost = async (req: Request, res: Response) => {
   try {
-    const { folderName } = req.body
+    const { folderName, folderPath } = req.body
 
     if(!folderName){
       res.json({
@@ -226,6 +226,10 @@ export const folderCreatePost = async (req: Request, res: Response) => {
     // Gửi yêu cầu sang hệ thống "file manager"
     const formData = new FormData()
     formData.append("folderName", folderName)
+
+    if(folderPath){
+      formData.append("folderPath", folderPath)
+    }
 
     const response = await axios.post(`${domainFileManager}/file-manager/folder/create`, formData, {
       headers: formData.getHeaders() // nó y hệt với "Content-Type": "multipart/form-data"
