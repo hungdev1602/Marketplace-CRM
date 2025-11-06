@@ -84,6 +84,11 @@ export const uploadPost = async (req: Request, res: Response) => {
       })
     })
 
+    const folderPath = req.query.folderPath
+    if(folderPath){
+      formData.append("folderPath", folderPath)
+    }
+
     const response = await axios.post(`${domainFileManager}/file-manager/upload`, formData, {
       headers: formData.getHeaders() // nó y hệt với "Content-Type": "multipart/form-data"
     })

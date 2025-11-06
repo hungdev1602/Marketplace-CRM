@@ -9,9 +9,12 @@ if(uppyUpload){
     width: "100%"
   })
 
+  const urlParams = new URLSearchParams(window.location.search)
+  const folderPath = urlParams.get("folderPath") || ""
+
   uppy.use(XHRUpload, { // mặc định method="POST"
-    endpoint: `/${pathAdmin}/file-manager/upload`, //link Backend nhận file
-    fieldName: "files", // trường file bên Backend nhận
+    endpoint: `/${pathAdmin}/file-manager/upload?folderPath=${folderPath}`, //link Backend nhận file
+    fieldName: "files", // trường files bên Backend nhận
     bundle: true // cho gửi nhiều file
   })
 
