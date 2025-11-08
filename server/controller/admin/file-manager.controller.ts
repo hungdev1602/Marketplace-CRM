@@ -259,3 +259,49 @@ export const folderCreatePost = async (req: Request, res: Response) => {
     })
   }
 }
+
+export const folderDelete = async (req: Request, res: Response) => {
+  try {
+    const folderPath = req.query.folderPath
+
+    if(!folderPath){
+      res.json({
+        code: "error",
+        message: "Vui lòng gửi kèm tên Folder"
+      })
+      return
+    }
+    
+    const formData = new FormData()
+    formData.append("folderPath", folderPath)
+
+    const response = await axios.patch(`${domainFileManager}/file-manager/folder/delete`, formData, {
+      headers: formData.getHeaders() // nó y hệt với "Content-Type": "multipart/form-data"
+    })
+
+    if(response.data.code === "error"){
+      res.json({
+        code: "error",
+        message: response.data.message
+      })
+      return
+    }
+
+    // Xoá các file liên quan trong DB
+    const regexFolderPath = new RegExp(`${folderPath}`) // vì khi xoá folder cha, thì trong DB folder con cũng chứa chuỗi của folder cha
+    await Media.deleteMany({
+      folder: regexFolderPath
+    })
+
+    res.json({
+      code: "success",
+      message: "Xoá Folder thành công"
+    })
+
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Lỗi server"
+    })
+  }
+}

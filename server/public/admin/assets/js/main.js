@@ -562,7 +562,7 @@ if(breadcrumbFolder) {
   let htmls = `
     <li class="list-group-item bg-dark">
       <a href="/${pathAdmin}/file-manager">
-        <i class="la la-angle-double-right text-info me-2"></i>Media
+        <i class="la la-angle-double-right text-info me-2"></i>Quản lý file
       </a>
     </li>
   `
@@ -581,3 +581,48 @@ if(breadcrumbFolder) {
   breadcrumbFolder.innerHTML = htmls
 }
 // End Breadcrumb Folder
+
+// Delete Folder
+const listButtonDeleteFolder = document.querySelectorAll("[button-delete-folder]")
+if(listButtonDeleteFolder.length > 0){
+  listButtonDeleteFolder.forEach(button => {
+    button.addEventListener("click", () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      const folderPath = urlParams.get("folderPath") || ""
+      const folderName = button.getAttribute("data-folder-name")
+
+      let folderFinal = "/media"
+      if(folderPath){
+        folderFinal += `/${folderPath}`
+      }
+      if(folderName){
+        folderFinal += `/${folderName}`
+      }
+
+      Swal.fire({
+        title: `Bạn có chắc muốn xoá Folder ${folderName} không? Sau khi xoá sẽ không khôi phục được dữ liệu`,
+        showDenyButton: true,
+        showCancelButton: false,
+        confirmButtonText: "Xoá",
+        denyButtonText: `Không xoá`
+      }).then((result) => {
+        if(result.isConfirmed) {
+          fetch(`/${pathAdmin}/file-manager/folder/delete?folderPath=${folderFinal}`, {
+            method: "DELETE"
+          })
+            .then(res => res.json())
+            .then(data => {
+              if(data.code === "error") {
+                notyf.error(data.message)
+              }
+
+              if(data.code === "success") {
+                drawNotify(data.code, data.message)
+              }
+            })
+        }
+      })
+    })
+  })
+}
+// End Delete Folder

@@ -27,4 +27,5 @@ router.post(
   controller.folderCreatePost
 )
 
+router.delete("/folder/delete", controller.folderDelete)
 export const fileManagerRoute = router
