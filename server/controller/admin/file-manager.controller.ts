@@ -17,7 +17,7 @@ export const index = async (req: Request, res: Response) => {
   }
 
   // Pagination
-  const limitItem: number = 20
+  const limitItem: number = 5
   let page: number = 1
   if(req.query.page && Number(req.query.page) > 0){
     page = Number(req.query.page)
@@ -304,4 +304,10 @@ export const folderDelete = async (req: Request, res: Response) => {
       message: "Lỗi server"
     })
   }
+}
+
+export const iframe = async (req: Request, res: Response) => {
+  res.render("admin/pages/file-manager-iframe", {
+    pageTitle: "Quản lý file"
+  })
 }

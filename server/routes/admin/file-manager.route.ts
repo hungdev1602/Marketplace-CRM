@@ -28,4 +28,6 @@ router.post(
 )
 
 router.delete("/folder/delete", controller.folderDelete)
+
+router.get("/iframe", controller.iframe)
 export const fileManagerRoute = router
