@@ -8,6 +8,7 @@ html(
   head
     script.
       const pathAdmin = "#{pathAdmin}" // "admin"
+      const domainFileManager = "#{domainFileManager}" // đường link tới trang File Manager
     meta(charset="utf-8")
     title #{pageTitle}
     meta(
@@ -86,6 +87,9 @@ html(
         // end footer
       // end page content
     // end page-wrapper
+
+    include ../partials/modalFileManager.pug
+
     // Javascript
     // vendor js
     script(src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js") 

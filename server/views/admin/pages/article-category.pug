@@ -41,6 +41,7 @@ block main
             thead.table-light
               tr
                 th STT
+                th Avatar
                 th Tên danh mục
                 th Danh mục cha
                 th Trạng thái
@@ -51,6 +52,12 @@ block main
                 each item, index in allCategory
                   tr
                     td #{pagination.skip + index + 1}
+                    td 
+                      if(item.avatar)
+                        img(
+                          src=`${domainFileManager}${item.avatar}`
+                          class="thumb-md me-1 d-inline rounded"
+                        )
                     td #{item.name}
                     td #{item.parentName}
                     td
@@ -60,7 +67,11 @@ block main
                         span.badge.bg-danger Tạm dừng
                     td #{item.view}
                     td.text-end
-                      a(href=`/${pathAdmin}/article/category/edit/${item.id}` style="margin: 5px")
+                      a(
+                        href=`/${pathAdmin}/article/category/edit/${item.id}` 
+                        style="margin: 5px" 
+                        title="Chỉnh sửa"
+                      )
                         <i class="fa-solid fa-pen-to-square text-secondary" style="font-size: 1.2rem;"></i>
                       a(
                         href="javascript:;" 
@@ -68,6 +79,7 @@ block main
                         data-method="PATCH"
                         data-api=`/${pathAdmin}/article/category/delete/${item.id}`
                         style="margin: 5px"
+                        title="Xoá"
                       )
                         <i class="fa-solid fa-trash text-secondary" style="font-size: 1.2rem;"></i>
               else 

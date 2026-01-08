@@ -63,9 +63,16 @@ if(articleCreateCategoryForm) {
         errorMessage: 'Vui lòng nhập đường dẫn'
       }
     ])
+    .addField('#avatar', [
+      {
+        rule: 'required',
+        errorMessage: 'Vui lòng nhập đường dẫn ảnh'
+      }
+    ])
     .onSuccess((event) => {
       const name = event.target.name.value
       const slug = event.target.slug.value
+      const avatar = event.target.avatar.value 
       const parent = event.target.parent.value
       const description = tinymce.get("description").getContent()
       const status = event.target.status.value
@@ -74,6 +81,7 @@ if(articleCreateCategoryForm) {
       const formData = new FormData()
       formData.append('name', name)
       formData.append('slug', slug)
+      formData.append('avatar', avatar)
       formData.append('parent', parent)
       formData.append('description', description)
       formData.append('status', status)
@@ -626,3 +634,29 @@ if(listButtonDeleteFolder.length > 0){
   })
 }
 // End Delete Folder
+
+// form-group-file
+const formGroupFile = document.querySelector("[form-group-file]")
+if(formGroupFile){
+  const inputFile = formGroupFile.querySelector("[input-file]")
+  const previewFile = formGroupFile.querySelector("[preview-file]")
+  
+
+  inputFile.addEventListener("input", () => {
+    const value = inputFile.value
+    if(value !== ""){
+      previewFile.style.display = "block"
+    }
+    else{
+      previewFile.style.display = "none"
+    }
+    previewFile.querySelector("img").src = `${domainFileManager}${value}`
+  })
+
+  // Hiển thị ảnh mặc định, ở trên là khi chưa có mặc định
+  if(inputFile.value !== "") {
+    previewFile.style.display = "block"
+    previewFile.querySelector("img").src = `${domainFileManager}${inputFile.value}`
+  }
+}
+// End form-group-file

@@ -1,5 +1,6 @@
 extends ../layouts/default.pug
 include ../mixins/options.pug
+include ../mixins/form-group.pug
 
 block main 
   .card
@@ -25,6 +26,15 @@ block main
                   model="CategoryBlog"
                 ) Tự động
                 input.form-control(id="slug" type="text" name="slug")
+          .col-md-12.col-lg-12
+            .mb-3
+              +form-group-file(
+                "Ảnh đại diện", 
+                "avatar", 
+                "avatar", 
+                "", 
+                "Đường dẫn file..."
+              )
           .col-md-12.col-lg-12
             .mb-3
               label.form-label(for="parent") Danh mục cha

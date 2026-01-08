@@ -13,6 +13,7 @@ export const categoryCreatePost = (req: Request, res: Response, next: NextFuncti
     .messages({
       "string.empty": "Vui lòng nhập đường dẫn!"
     }),
+    avatar: Joi.string().allow(""),
     parent: Joi.string().allow(""),
     description: Joi.string().allow(""),
     status: Joi.string().allow("")

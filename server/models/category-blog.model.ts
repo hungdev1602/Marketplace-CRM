@@ -4,6 +4,7 @@ const categoryBlogSchema = new mongoose.Schema(
   {
     name: String,
     slug: String,
+    avatar: String,
     parent: String,
     description: String,
     status: {
