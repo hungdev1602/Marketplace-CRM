@@ -660,3 +660,78 @@ if(formGroupFile){
   }
 }
 // End form-group-file
+
+// Checkbox List
+const getCheckboxList = (name) => {
+  const checkboxList = document.querySelector(`[checkbox-list="${name}"]`)
+  const inputList = checkboxList.querySelectorAll(`input[type="checkbox"]:checked`)
+  const idList = []
+  inputList.forEach(input => {
+    const id = input.getAttribute("value")
+    console.log(id)
+    if(id){
+      idList.push(id)
+    }
+  })
+  return idList
+}
+// End Checkbox List
+
+// articleCreateForm
+const articleCreateForm = document.querySelector("#articleCreateForm")
+if(articleCreateForm) {
+  const validator = new JustValidate('#articleCreateForm')
+
+  validator
+    .addField('#name', [
+      {
+        rule: 'required',
+        errorMessage: 'Vui lòng nhập tên bài viết!'
+      }
+    ])
+    .addField('#slug', [
+      {
+        rule: 'required',
+        errorMessage: 'Vui lòng nhập đường dẫn!'
+      }
+    ])
+    .onSuccess((event) => {
+      event.preventDefault()
+      const name = event.target.name.value
+      const slug = event.target.slug.value
+      const category = getCheckboxList("category")
+      const status = event.target.status.value
+      const avatar = event.target.avatar.value
+      const description = tinymce.get("description").getContent()
+      const content = tinymce.get("content").getContent()
+
+      // Tạo FormData
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("slug", slug);
+      formData.append("category", JSON.stringify(category));
+      formData.append("status", status);
+      formData.append("avatar", avatar);
+      formData.append("description", description);
+      formData.append("content", content);
+      
+      fetch(`/${pathAdmin}/article/create`, {
+        method: "POST",
+        body: formData
+      })
+        .then(res => res.json())
+        .then(data => {
+          if(data.code === "error") {
+            notyf.error(data.message)
+          }
+
+          if(data.code === "success") {
+            drawNotify(data.code, data.message)
+          }
+        })
+
+
+    })
+
+}
+// End articleCreateForm

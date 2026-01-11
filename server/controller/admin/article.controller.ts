@@ -3,6 +3,7 @@ import { CategoryBlog } from "../../models/category-blog.model"
 import { buildCategoryTree } from "../../helpers/category.helper"
 import slugify from "slugify"
 import { pathAdmin } from "../../config/variable.config"
+import { Blog } from "../../models/blog.model"
 
 export const category = async (req: Request, res: Response) => {
   const find: {
@@ -256,6 +257,57 @@ export const deletePermanently = async (req: Request, res: Response) => {
     res.json({
       code: "success",
       message: "Danh mục đã được xoá vĩnh viễn"
+    })
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Data không hợp lệ!"
+    })
+  }
+}
+
+export const create = async (req: Request, res: Response) => {
+  const allCategory = await CategoryBlog.find()
+
+  const categoryList = buildCategoryTree(allCategory)
+
+  res.render("admin/pages/article-create", {
+    pageTitle: "Tạo bài viết",
+    categoryList: categoryList
+  })
+}
+
+export const createPost = async (req: Request, res: Response) => {
+  try {
+    const existSlug = await Blog.findOne({
+      slug: req.body.slug
+    })
+
+    if(existSlug){
+      res.json({
+        code: "error",
+        message: "Đường dẫn đã tồn tại!"
+      })
+      return
+    }
+
+    req.body.category = JSON.parse(req.body.category)
+
+    req.body.search = slugify(`${req.body.name}`, {
+      replacement: " ",
+      lower: true
+    })
+
+    if(req.body.status === "published"){
+      req.body.publishedAt = new Date()
+    }
+
+    const newRecord = new Blog(req.body)
+    await newRecord.save()
+
+    res.json({
+      code: "success",
+      message: "Tạo bài viết thành công"
     })
   } catch (error) {
     res.json({

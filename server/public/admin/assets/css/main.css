@@ -26,3 +26,32 @@
   object-fit: contain;
   padding: 5px
 }
+
+/* checkbox-list */
+.checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #f0f0f0;
+  padding: 10px;
+  border-radius: 6.4px;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.checkbox-item input {
+  width: 15px;
+  height: 15px;
+}
+
+.checkbox-item label {
+  font-size: 13px;
+  cursor: pointer;
+}
+/* End checkbox-list */

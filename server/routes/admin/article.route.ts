@@ -36,4 +36,13 @@ router.patch("/category/undo/:id", controller.undoCategory)
 
 router.delete("/category/delete-permanently/:id", controller.deletePermanently)
 
+router.get("/create", controller.create)
+
+router.post(
+  "/create", 
+  upload.none(),  
+  articleValidate.createPost,
+  controller.createPost
+)
+
 export const articleRoute = router

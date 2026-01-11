@@ -11,11 +11,11 @@ block main
     .card-body.pt-0
       form(id="articleCreateCategoryForm")
         .row
-          .col-md-12.col-lg-12
+          .col-md-6.col-lg-6
             .mb-3
               label.form-label(for="name") Tên danh mục *
               input.form-control(id="name" type="text" name="name")
-          .col-md-12.col-lg-12
+          .col-md-6.col-lg-6
             .mb-3
               label.form-label(for="slug") Đường dẫn *
               .input-group
@@ -26,7 +26,7 @@ block main
                   model="CategoryBlog"
                 ) Tự động
                 input.form-control(id="slug" type="text" name="slug")
-          .col-md-12.col-lg-12
+          .col-md-6.col-lg-6
             .mb-3
               +form-group-file(
                 "Ảnh đại diện", 
@@ -35,7 +35,7 @@ block main
                 "", 
                 "Đường dẫn file..."
               )
-          .col-md-12.col-lg-12
+          .col-md-6.col-lg-6
             .mb-3
               label.form-label(for="parent") Danh mục cha
               select.form-select(id="parent" name="parent")
@@ -45,7 +45,7 @@ block main
             .mb-3
               label.form-label(for="description") Mô tả
               textarea.form-control(id="description" name="description" textarea-mce)
-          .col-md-6.col-lg-6
+          .col-md-12.col-lg-12
             .mb-3
               label.form-label(for="status") Trạng thái
               select.form-select(id="status" name="status")

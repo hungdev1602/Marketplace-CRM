@@ -1,8 +1,14 @@
 import { Request, Response } from "express"
 import slugify from "slugify"
 import { CategoryBlog } from "../../models/category-blog.model"
+import { Blog } from "../../models/blog.model"
 import { generateRandomString } from "../../helpers/generate.helper"
-import mongoose from "mongoose"
+// import mongoose from "mongoose"
+
+const models: any = {
+  CategoryBlog: CategoryBlog,
+  Blog: Blog
+}
 
 export const generateSlug = async (req: Request, res: Response) => {
   try {
@@ -13,7 +19,7 @@ export const generateSlug = async (req: Request, res: Response) => {
       strict: true // loại bỏ các ký tự đặc biệt
     })
 
-    const Model = mongoose.model(modelName)
+    const Model = models[modelName]
 
     // Kiểm tra xem slug tồn tại hay chưa, nếu có thì thêm chuỗi random
     const checkExistSlug = await Model.findOne({
