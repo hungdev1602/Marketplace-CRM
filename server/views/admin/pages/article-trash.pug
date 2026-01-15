@@ -1,0 +1,69 @@
+extends ../layouts/default.pug
+
+block main 
+  .row
+    .col-12
+      .card
+        .card-header
+          .row.align-items-center
+            .col
+              h4.card-title #{pageTitle}
+            // end col
+            .col-auto
+              a.btn.btn-primary(
+                href=`/${pathAdmin}/article/list`
+                )
+                i.fa-solid.fa-arrow-left.me-1
+                | Quay lại danh sách
+            // end col
+          // end row
+        // end card-header
+        //- Table
+        .table-responsive
+            table.table.table-striped.mb-0
+              thead.table-light
+                tr
+                  th STT
+                  th Avatar
+                  th Tên danh mục
+                  th Trạng thái
+                  th Lượt xem
+                  th.text-end Hành động
+              tbody
+                each item, index in allArticle
+                  tr
+                    td #{index + 1}
+                    td 
+                      if(item.avatar)
+                        img(
+                          src=`${domainFileManager}${item.avatar}`
+                          class="thumb-md me-1 d-inline rounded"
+                        )
+                    td #{item.name}
+                    td
+                      if (item.status == "draft")
+                        span.badge.bg-danger Bản nháp
+                      else if (item.status == "published")
+                        span.badge.bg-success Đã xuất bản
+                      else if (item.status == "archived")
+                        span.badge.bg-dark Đã lưu trữ
+                    td #{item.view}
+                    td.text-end
+                      a(href="javascript:;" 
+                        button-api 
+                        data-method="PATCH"
+                        data-api=`/${pathAdmin}/article/undo/${item.id}`
+                        style="margin: 5px"
+                      )
+                        <i class="fa-solid fa-rotate-left text-secondary" style="font-size: 1.2rem;"></i>
+                      a(
+                        href="javascript:;" 
+                        button-api 
+                        data-method="DELETE"
+                        data-api=`/${pathAdmin}/article/delete-permanently/${item.id}`
+                        style="margin: 5px"
+                      )
+                        <i class="fa-solid fa-trash text-danger" style="font-size: 1.2rem;"></i>
+
+    // end col
+  // end row

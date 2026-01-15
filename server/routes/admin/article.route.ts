@@ -45,4 +45,8 @@ router.post(
   controller.createPost
 )
 
+router.get("/list", controller.list)
+
+router.get("/trash", controller.listTrash)
+
 export const articleRoute = router

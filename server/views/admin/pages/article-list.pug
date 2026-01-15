@@ -12,15 +12,15 @@ block main
             // end col
             .col-auto
               a.btn.btn-danger.me-1(
-                href=`/${pathAdmin}/article/category/trash`
+                href=`/${pathAdmin}/article/trash`
                 )
                 i.fa-solid.fa-trash.me-1
                 | Thùng rác
               a.btn.btn-primary(
-                href=`/${pathAdmin}/article/category/create`
+                href=`/${pathAdmin}/article/create`
                 )
                 i.fa-solid.fa-plus.me-1
-                | Tạo danh mục
+                | Tạo bài viết
             // end col
           // end row
         // end card-header
@@ -36,14 +36,13 @@ block main
               tr
                 th STT
                 th Avatar
-                th Tên danh mục
-                th Danh mục cha
+                th Tên bài viết
                 th Trạng thái
                 th Lượt xem
                 th.text-end Hành động
             tbody
-              if(allCategory.length > 0)
-                each item, index in allCategory
+              if(allArticle.length > 0)
+                each item, index in allArticle
                   tr
                     td #{pagination.skip + index + 1}
                     td 
@@ -53,16 +52,17 @@ block main
                           class="thumb-md me-1 d-inline rounded"
                         )
                     td #{item.name}
-                    td #{item.parentName}
                     td
-                      if (item.status == "active")
-                        span.badge.bg-success Hoạt động
-                      else if (item.status == "inactive")
-                        span.badge.bg-danger Tạm dừng
+                      if (item.status == "draft")
+                        span.badge.bg-danger Bản nháp
+                      else if (item.status == "published")
+                        span.badge.bg-success Đã xuất bản
+                      else if (item.status == "archived")
+                        span.badge.bg-dark Đã lưu trữ
                     td #{item.view}
                     td.text-end
                       a(
-                        href=`/${pathAdmin}/article/category/edit/${item.id}` 
+                        href=`/${pathAdmin}/article/edit/${item.id}` 
                         style="margin: 5px" 
                         title="Chỉnh sửa"
                       )
@@ -71,7 +71,7 @@ block main
                         href="javascript:;" 
                         button-api 
                         data-method="PATCH"
-                        data-api=`/${pathAdmin}/article/category/delete/${item.id}`
+                        data-api=`/${pathAdmin}/article/delete/${item.id}`
                         style="margin: 5px"
                         title="Xoá"
                       )
