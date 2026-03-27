@@ -49,4 +49,13 @@ router.get("/list", controller.list)
 
 router.get("/trash", controller.listTrash)
 
+router.get("/edit/:id", controller.edit)
+
+router.patch(
+  "/edit/:id", 
+  upload.none(),  
+  articleValidate.createPost,
+  controller.editPatch
+)
+
 export const articleRoute = router

@@ -380,3 +380,89 @@ export const listTrash = async (req: Request, res: Response) => {
     allArticle: allArticle
   })
 }
+
+export const edit = async (req: Request, res: Response) => {
+  try {
+    const allCategory = await CategoryBlog.find()
+
+    const categoryList = buildCategoryTree(allCategory)
+
+    const id = req.params.id
+    const articleDetail = await Blog.findOne({
+      _id: id,
+      deleted: false
+    })
+
+    if(!articleDetail){
+      res.redirect(`/${pathAdmin}/article/list`)
+      return
+    }
+
+    res.render("admin/pages/article-edit", {
+      pageTitle: "Chỉnh sửa bài viết",
+      categoryList: categoryList,
+      articleDetail: articleDetail
+    })
+  } catch (error) {
+    console.log(error)
+    res.redirect(`/${pathAdmin}/article/list`)
+  }
+}
+
+export const editPatch = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+
+    const articleDetail = await Blog.findOne({
+      _id: id,
+      deleted: false
+    })
+
+    if(!articleDetail){
+      res.json({
+        code: "error",
+        message: "Bài viết không tồn tại!"
+      })
+      return
+    }
+
+    const existSlug = await Blog.findOne({
+      _id: { $ne: id }, // tìm các bản ghi TRỪ CHÍNH NÓ ne=not equal
+      slug: req.body.slug
+    })
+
+    if(existSlug){
+      res.json({
+        code: "error",
+        message: "Đường dẫn đã tồn tại!"
+      })
+      return
+    }
+
+    req.body.category = JSON.parse(req.body.category)
+
+    req.body.search = slugify(`${req.body.name}`, {
+      replacement: " ",
+      lower: true
+    })
+
+    if(req.body.status === "published"){
+      req.body.publishedAt = new Date()
+    }
+
+    await Blog.updateOne({
+      _id: id,
+      deleted: false
+    }, req.body)
+
+    res.json({
+      code: "success",
+      message: "Cập nhật bài viết thành công"
+    })
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Data không hợp lệ!"
+    })
+  }
+}
