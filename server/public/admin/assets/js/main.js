@@ -2,7 +2,19 @@
 const initialTinyMCE = () => {
   tinymce.init({
     selector: '[textarea-mce]',
+    plugins: [
+      'accordion', 'anchor', "link", 'autolink', 'autoresize', 'image', 'media'
+    ],
     toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat | image',
+    init_instance_callback: (editor) => {
+      editor.on("OpenWindow", () => {
+        const title = document.querySelector(".tox .tox-dialog__title")?.innerHTML
+        if(title == "Insert/Edit Media" || title == "Insert/Edit Image"){
+          const inputSource = document.querySelector(`.tox input.tox-textfield[type="url"]`)
+          inputSource.value = domainFileManager
+        }
+      })
+    }
   });
 }
 
