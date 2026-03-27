@@ -34,7 +34,7 @@ router.patch("/category/delete/:id", controller.deleteCategoryPatch)
 
 router.patch("/category/undo/:id", controller.undoCategory)
 
-router.delete("/category/delete-permanently/:id", controller.deletePermanently)
+router.delete("/category/delete-permanently/:id", controller.CategoryBlogDeletePermanently)
 
 router.get("/create", controller.create)
 
@@ -57,5 +57,11 @@ router.patch(
   articleValidate.createPost,
   controller.editPatch
 )
+
+router.patch("/delete/:id", controller.deletePatch)
+
+router.patch("/undo/:id", controller.undo)
+
+router.delete("/delete-permanently/:id", controller.deletePermanently)
 
 export const articleRoute = router

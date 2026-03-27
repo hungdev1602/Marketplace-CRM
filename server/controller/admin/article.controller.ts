@@ -246,7 +246,7 @@ export const undoCategory = async (req: Request, res: Response) => {
   }
 }
 
-export const deletePermanently = async (req: Request, res: Response) => {
+export const CategoryBlogDeletePermanently = async (req: Request, res: Response) => {
   try {
     const id = req.params.id
 
@@ -458,6 +458,71 @@ export const editPatch = async (req: Request, res: Response) => {
     res.json({
       code: "success",
       message: "Cập nhật bài viết thành công"
+    })
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Data không hợp lệ!"
+    })
+  }
+}
+
+export const deletePatch = async (req: Request, res: Response) =>{
+  try {
+    const id = req.params.id
+
+    await Blog.updateOne({
+      _id: id
+    }, {
+      deleted: true,
+      deletedAt: Date.now()
+    })
+
+    res.json({
+      code: "success",
+      message: "Xoá bài viết thành công"
+    })
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Data không hợp lệ!"
+    })
+  }
+}
+
+export const undo = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+
+    await Blog.updateOne({
+      _id: id
+    }, {
+      deleted: false
+    })
+
+    res.json({
+      code: "success",
+      message: "Khôi phục bài viết thành công"
+    })
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Data không hợp lệ!"
+    })
+  }
+}
+
+export const deletePermanently = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+
+    await Blog.deleteOne({
+      _id: id
+    })
+
+    res.json({
+      code: "success",
+      message: "Bài viết đã được xoá vĩnh viễn"
     })
   } catch (error) {
     res.json({
