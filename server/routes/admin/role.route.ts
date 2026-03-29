@@ -26,4 +26,12 @@ router.patch(
   controller.editPatch
 )
 
+router.patch("/delete/:id", controller.deletePatch)
+
+router.get("/trash", controller.trash)
+
+router.patch("/undo/:id", controller.undo)
+
+router.delete("/delete-permanently/:id", controller.deletePermanently)
+
 export const roleRoute = router

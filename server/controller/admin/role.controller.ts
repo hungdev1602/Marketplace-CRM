@@ -154,3 +154,159 @@ export const editPatch = async (req: Request, res: Response) => {
     })
   }
 }
+
+export const deletePatch = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+
+    const checkExist = await Role.findOne({
+      _id: id,
+      deleted: false
+    })
+
+    if(!checkExist){
+      res.json({
+        code: "error",
+        message: "Nhóm quyền không tồn tại"
+      })
+      return
+    }
+
+    await Role.updateOne({
+      _id: id,
+      deleted: false
+    }, {
+      deleted: true,
+      deletedAt: Date.now()
+    })
+
+    res.json({
+      code: "success",
+      message: "Xoá thành công"
+    })
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Nhóm quyền không tồn tại"
+    })
+  }
+}
+
+export const trash = async (req: Request, res: Response) => {
+  const find: {
+    deleted: boolean,
+    search?: RegExp
+  } = {
+    deleted: true
+  }
+
+  if(req.query.keyword){
+    const keyword = slugify(`${req.query.keyword}`, {
+      replacement: " ", // replace spaces with replacement character, defaults to `-`
+      lower: true
+    })
+
+    const keywordRegex = new RegExp(keyword, "i")
+    find.search = keywordRegex
+  }
+
+  // Pagination
+  const limitItem: number = 5
+  let page: number = 1
+  if(req.query.page && Number(req.query.page) > 0){
+    page = Number(req.query.page)
+  }
+  const totalRecord = await Role.countDocuments(find)
+  const totalPage = Math.ceil(totalRecord / limitItem)
+  const skip = (page - 1) * limitItem
+
+  const pagination = {
+    totalRecord: totalRecord,
+    totalPage: totalPage,
+    skip: skip,
+    currentPage: page
+  }
+  // End Pagination
+
+  const roleList = await Role
+    .find(find)
+    .sort({
+      createdAt: "desc"
+    })
+    .limit(limitItem)
+    .skip(skip)
+
+  res.render("admin/pages/role-trash", {
+    pageTitle: "Danh sách nhóm quyền đã bị xoá",
+    roleList: roleList,
+    pagination: pagination
+  })
+}
+
+export const undo = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+
+    const checkExist = await Role.findOne({
+      _id: id,
+      deleted: true
+    })
+
+    if(!checkExist){
+      res.json({
+        code: "error",
+        message: "Nhóm quyền không tồn tại"
+      })
+      return
+    }
+
+    await Role.updateOne({
+      _id: id
+    }, {
+      deleted: false
+    })
+
+    res.json({
+      code: "success",
+      message: "Khôi phục nhóm quyền thành công"
+    })
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Data không hợp lệ!"
+    })
+  }
+}
+
+export const deletePermanently = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+
+    const checkExist = await Role.findOne({
+      _id: id,
+      deleted: true
+    })
+
+    if(!checkExist){
+      res.json({
+        code: "error",
+        message: "Nhóm quyền không tồn tại"
+      })
+      return
+    }
+
+    await Role.deleteOne({
+      _id: id
+    })
+
+    res.json({
+      code: "success",
+      message: "Đã xoá vĩnh viễn nhóm quyền"
+    })
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Data không hợp lệ!"
+    })
+  }
+}
