@@ -17,4 +17,13 @@ router.post(
 
 router.get("/list", controller.list)
 
+router.get("/edit/:id", controller.edit)
+
+router.patch(
+  "/edit/:id", 
+  upload.none(),
+  roleValidate.createPost,
+  controller.editPatch
+)
+
 export const roleRoute = router

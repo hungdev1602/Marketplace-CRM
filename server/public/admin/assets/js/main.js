@@ -846,3 +846,47 @@ if(roleCreateForm){
     })
 }
 // End roleCreateForm
+
+// roleEditForm
+const roleEditForm = document.querySelector("#roleEditForm")
+if(roleEditForm){
+  const validation = new JustValidate("#roleEditForm")
+
+  validation
+    .addField("#name", [
+      {
+        rule: "required",
+        errorMessage: "Vui lòng nhập tên nhóm quyền!"
+      }
+    ])
+    .onSuccess((event) => {
+      const id = event.target.id.value
+      const name = event.target.name.value
+      const description = event.target.description.value
+      const permissions = getCheckboxList("permissions")
+      const status = event.target.status.value
+
+      // Tạo formData
+      const formData = new FormData()
+      formData.append("name", name)
+      formData.append("description", description)
+      formData.append("permissions", JSON.stringify(permissions))
+      formData.append("status", status)
+
+      fetch(`/${pathAdmin}/role/edit/${id}`, {
+        method: "PATCH",
+        body: formData
+      })
+        .then(res => res.json())
+        .then(data => {
+          if(data.code === "error") {
+            notyf.error(data.message)
+          }
+
+          if(data.code === "success") {
+            drawNotify(data.code, data.message)
+          }
+        })
+    })
+}
+// End roleEditForm
