@@ -15,4 +15,6 @@ router.post(
   controller.createPost
 )
 
+router.get("/list", controller.list)
+
 export const roleRoute = router

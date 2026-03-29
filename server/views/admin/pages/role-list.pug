@@ -1,0 +1,75 @@
+extends ../layouts/default.pug
+include ../mixins/pagination.pug
+
+block main 
+  .row
+    .col-12
+      .card
+        .card-header
+          .row.align-items-center
+            .col
+              h4.card-title #{pageTitle}
+            // end col
+            .col-auto
+              a.btn.btn-danger.me-1(
+                href=`/${pathAdmin}/role/trash`
+                )
+                i.fa-solid.fa-trash.me-1
+                | Thùng rác
+              a.btn.btn-primary(
+                href=`/${pathAdmin}/role/create`
+                )
+                i.fa-solid.fa-plus.me-1
+                | Tạo nhóm quyền
+            // end col
+          // end row
+        // end card-header
+        // Search
+        .card-body.pt-0
+          .row
+            .col-lg-12
+              include ../partials/form-search.pug
+        // Table
+        .table-responsive
+          table.table.table-striped.mb-0
+            thead.table-light
+              tr
+                th STT
+                th Tên nhóm quyền
+                th Mô tả
+                th Trạng thái
+                th.text-end Hành động
+            tbody
+              if(roleList.length > 0)
+                each item, index in roleList
+                  tr
+                    td #{pagination.skip + index + 1}
+                    td #{item.name}
+                    td #{item.description}
+                    td 
+                      if (item.status == "inactive")
+                        span.badge.bg-danger Tạm dừng
+                      else if (item.status == "active")
+                        span.badge.bg-success Hoạt động
+                    td.text-end
+                      a(
+                        href=`/${pathAdmin}/role/edit/${item.id}` 
+                        style="margin: 5px" 
+                        title="Chỉnh sửa"
+                      )
+                        <i class="fa-solid fa-pen-to-square text-secondary" style="font-size: 1.2rem;"></i>
+                      a(
+                        href="javascript:;" 
+                        button-api 
+                        data-method="PATCH"
+                        data-api=`/${pathAdmin}/role/delete/${item.id}`
+                        style="margin: 5px"
+                        title="Xoá"
+                      )
+                        <i class="fa-solid fa-trash text-secondary" style="font-size: 1.2rem;"></i>
+              else 
+                tr
+                  td(colspan=6 class="text-center") Không tìm thấy dữ liệu
+          +pagination(pagination, page)
+    // end col
+  // end row
