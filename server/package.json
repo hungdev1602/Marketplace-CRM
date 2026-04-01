@@ -9,6 +9,7 @@
   "dependencies": {
     "@types/multer": "^2.0.0",
     "axios": "^1.12.2",
+    "bcryptjs": "^3.0.3",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "form-data": "^4.0.4",

@@ -5,6 +5,7 @@ import { articleRoute } from "./article.route"
 import { helperRoute } from "./helper.route"
 import { fileManagerRoute } from "./file-manager.route"
 import { roleRoute } from "./role.route"
+import { accountAdminRoute } from "./account-admin.route"
 export const adminRoute = (app: Express) => {
   const path: string = pathAdmin // "admin"
 
@@ -17,4 +18,6 @@ export const adminRoute = (app: Express) => {
   app.use(`/${path}/file-manager`, fileManagerRoute)
 
   app.use(`/${path}/role`, roleRoute)
+
+  app.use(`/${path}/account-admin`, accountAdminRoute)
 }

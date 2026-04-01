@@ -81,6 +81,24 @@
                 // end nav-item
           li.nav-item
             a.nav-link(
+              aria-controls="sidebarAccountAdmin" 
+              aria-expanded="false" 
+              role="button" 
+              data-bs-toggle="collapse" 
+              href="#sidebarAccountAdmin"
+              )
+              i.iconoir-user-crown.menu-icon
+              span Tài khoản quản trị
+            #sidebarAccountAdmin.collapse
+              ul.nav.flex-column
+                li.nav-item
+                  a.nav-link(href=`/${pathAdmin}/account-admin/create`) Tạo tài khoản
+                // end nav-item
+                li.nav-item
+                  a.nav-link(href=`/${pathAdmin}/account-admin/list`) Danh sách tài khoản
+                // end nav-item
+          li.nav-item
+            a.nav-link(
               href=`/${pathAdmin}/file-manager/iframe`
               )
               i.iconoir-page-star.menu-icon
