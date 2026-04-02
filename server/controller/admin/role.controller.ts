@@ -84,7 +84,8 @@ export const list = async (req: Request, res: Response) => {
   res.render("admin/pages/role-list", {
     pageTitle: "Danh sách nhóm quyền",
     roleList: roleList,
-    pagination: pagination
+    pagination: pagination,
+    page: page
   })
 }
 
