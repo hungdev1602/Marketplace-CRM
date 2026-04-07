@@ -17,4 +17,13 @@ router.post(
 
 router.get("/list", controller.list)
 
+router.get("/edit/:id", controller.edit)
+
+router.patch(
+  "/edit/:id",
+  upload.none(),
+  accountAdminValidate.editPatch,
+  controller.editPatch
+)
+
 export const accountAdminRoute = router

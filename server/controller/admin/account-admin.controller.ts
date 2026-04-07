@@ -3,6 +3,7 @@ import { Role } from "../../models/role.models"
 import slugify from "slugify"
 import bcrypt from "bcryptjs"
 import { AccountAdmin } from "../../models/account-admin.model"
+import { pathAdmin } from "../../config/variable.config"
 export const create = async (req: Request, res: Response) => {
   const roleList = await Role.find({
     deleted: false,
@@ -114,4 +115,87 @@ export const list = async (req: Request, res: Response) => {
     pagination: pagination,
     page: page
   })
+}
+
+export const edit = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+
+    const accountDetail = await AccountAdmin.findOne({
+      _id: id,
+      deleted: false
+    })
+    
+    if(!accountDetail){
+      res.redirect(`/${pathAdmin}/account-admin/list`)
+      return
+    }
+
+    const roleList = await Role.find({
+      deleted: false,
+      status: "active"
+    })
+
+    res.render("admin/pages/account-admin-edit", {
+      pageTitle: "Chình sửa tài khoản admin",
+      roleList: roleList,
+      accountDetail: accountDetail
+    })
+  } catch (error) {
+    res.redirect(`/${pathAdmin}/account-admin/list`)
+  }
+}
+
+export const editPatch = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+
+    const accountDetail = await AccountAdmin.findOne({
+      _id: id,
+      deleted: false
+    })
+
+    if(!accountDetail){
+      res.json({
+        code: "error",
+        message: "Tài khoản admin không tồn tại"
+      })
+      return
+    }
+
+    const existEmail = await AccountAdmin.findOne({
+      _id: { $ne: id }, // not equal
+      email: req.body.email
+    })
+
+    if(existEmail){
+      res.json({
+        code: "error",
+        message: "Email đã tồn tại"
+      })
+      return
+    }
+
+    req.body.roles = JSON.parse(req.body.roles)
+
+    req.body.search = slugify(`${req.body.fullName} ${req.body.email}`, {
+      replacement: " ",
+      lower: true
+    })
+
+    await AccountAdmin.updateOne({
+      _id: id,
+      deleted: false
+    }, req.body)
+
+    res.json({
+      code: "success",
+      message: "Cập nhật thành công"
+    })
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Dữ liệu không hợp lệ"
+    })
+  }
 }
