@@ -199,3 +199,170 @@ export const editPatch = async (req: Request, res: Response) => {
     })
   }
 }
+
+export const deletePatch = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+
+    const accountDetail = await AccountAdmin.findOne({
+      _id: id,
+      deleted: false
+    })
+
+    if(!accountDetail){
+      res.json({
+        code: "error",
+        message: "Tài khoản admin không tồn tại"
+      })
+      return
+    }
+
+    await AccountAdmin.updateOne({
+      _id: id,
+      deleted: false
+    }, {
+      deleted: true,
+      deletedAt: Date.now()
+    })
+
+    res.json({
+      code: "success",
+      message: "Xoá tài khoản admin thành công"
+    })
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Tài khoản admin không tồn tại"
+    })
+  }
+}
+
+export const trash = async (req: Request, res: Response) => {
+  const find: {
+    deleted: boolean,
+    search?: RegExp
+  } = {
+    deleted: true
+  }
+
+  if(req.query.keyword){
+    const keyword = slugify(`${req.query.keyword}`, {
+      replacement: " ", // replace spaces with replacement character, defaults to `-`
+      lower: true
+    })
+
+    const keywordRegex = new RegExp(keyword, "i")
+    find.search = keywordRegex
+  }
+
+  // Pagination
+  const limitItem: number = 5
+  let page: number = 1
+  if(req.query.page && Number(req.query.page) > 0){
+    page = Number(req.query.page)
+  }
+  const totalRecord = await AccountAdmin.countDocuments(find)
+  const totalPage = Math.ceil(totalRecord / limitItem)
+  const skip = (page - 1) * limitItem
+
+  const pagination = {
+    totalRecord: totalRecord,
+    totalPage: totalPage,
+    skip: skip,
+    currentPage: page
+  }
+  // End Pagination
+
+  const allAccount: any = await AccountAdmin
+    .find(find)
+    .sort({
+      deletedAt: "desc"
+    })
+    .limit(limitItem)
+    .skip(skip)
+
+  for (const item of allAccount) {
+    const roleList = await Role.find({
+      _id: {
+        $in: item.roles
+      }
+    })
+
+    item.roleName = roleList.map(item => item.name)
+  }
+
+  res.render("admin/pages/account-admin-trash", {
+    pageTitle: "Danh sách tài khoản admin đã bị xoá",
+    allAccount: allAccount,
+    pagination: pagination,
+    page: page
+  })
+}
+
+export const undo = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+
+    const accountDetail = await AccountAdmin.findOne({
+      _id: id,
+      deleted: true
+    })
+
+    if(!accountDetail){
+      res.json({
+        code: "error",
+        message: "Tài khoản admin không tồn tại"
+      })
+      return
+    }
+
+    await AccountAdmin.updateOne({
+      _id: id
+    }, {
+      deleted: false
+    })
+
+    res.json({
+      code: "success",
+      message: "Khôi phục tài khoản admin thành công"
+    })
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Data không hợp lệ!"
+    })
+  }
+}
+
+export const deletePermanently = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+
+    const accountDetail = await AccountAdmin.findOne({
+      _id: id,
+      deleted: true
+    })
+
+    if(!accountDetail){
+      res.json({
+        code: "error",
+        message: "Tài khoản admin không tồn tại"
+      })
+      return
+    }
+
+    await AccountAdmin.deleteOne({
+      _id: id
+    })
+
+    res.json({
+      code: "success",
+      message: "Đã xoá vĩnh viễn tài khoản admin"
+    })
+  } catch (error) {
+    res.json({
+      code: "error",
+      message: "Data không hợp lệ!"
+    })
+  }
+}
