@@ -34,4 +34,13 @@ router.patch("/undo/:id", controller.undo)
 
 router.delete("/delete-permanently/:id", controller.deletePermanently)
 
+router.get("/change-password/:id", controller.changePassword)
+
+router.patch(
+  "/change-password/:id",
+  upload.none(),
+  accountAdminValidate.changePasswordPatch,
+  controller.changePasswordPatch
+)
+
 export const accountAdminRoute = router
