@@ -18,18 +18,35 @@ const initialTinyMCE = () => {
   });
 }
 
-initialTinyMCE()
+// Nếu không tải được TinyMCE từ CDN thì bỏ qua, tránh làm dừng toàn bộ file main.js
+if(typeof tinymce !== "undefined"){
+  initialTinyMCE()
+}
+else{
+  console.error("Không tải được thư viện TinyMCE")
+}
 // End TinyMCE
 
 // Create an instance of Notyf
-var notyf = new Notyf({
-  duration: 3000,
-  position: {
-    x:'right',
-    y:'top'
-  },
-  dismissible: true
-});
+var notyf
+if(typeof Notyf !== "undefined"){
+  notyf = new Notyf({
+    duration: 3000,
+    position: {
+      x:'right',
+      y:'top'
+    },
+    dismissible: true
+  });
+}
+else{
+  // Không tải được Notyf từ CDN => dùng alert để các tính năng bên dưới vẫn chạy
+  console.error("Không tải được thư viện Notyf")
+  notyf = {
+    success: (message) => alert(message),
+    error: (message) => alert(message)
+  }
+}
 // End Notyf
 
 const drawNotify = (type, message) => {
