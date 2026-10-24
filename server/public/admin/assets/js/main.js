@@ -26,7 +26,20 @@ if(document.querySelector("[textarea-mce]")){
   }
   else{
     console.error("Không tải được thư viện TinyMCE")
+    // notyf được khởi tạo ở bên dưới nên đợi trang tải xong mới hiện thông báo
+    window.addEventListener("load", () => {
+      notyf.error("Không tải được trình soạn thảo TinyMCE, nội dung sẽ được nhập dạng văn bản thường")
+    })
   }
+}
+
+// Lấy nội dung ô soạn thảo: dùng TinyMCE nếu đã khởi tạo được,
+// nếu không (lỗi tải TinyMCE) thì lấy trực tiếp từ textarea để form vẫn gửi được
+const getEditorContent = (id) => {
+  if(typeof tinymce !== "undefined" && tinymce.get(id)){
+    return tinymce.get(id).getContent()
+  }
+  return document.getElementById(id).value
 }
 // End TinyMCE
 
@@ -106,7 +119,7 @@ if(articleCreateCategoryForm) {
       const slug = event.target.slug.value
       const avatar = event.target.avatar.value 
       const parent = event.target.parent.value
-      const description = tinymce.get("description").getContent()
+      const description = getEditorContent("description")
       const status = event.target.status.value
 
       // Tạo form bằng JS
@@ -196,7 +209,7 @@ if(articleEditCategoryForm) {
       const name = event.target.name.value
       const slug = event.target.slug.value
       const parent = event.target.parent.value
-      const description = tinymce.get("description").getContent()
+      const description = getEditorContent("description")
       const status = event.target.status.value
 
       // Tạo form bằng JS
@@ -746,8 +759,8 @@ if(articleCreateForm) {
       const category = getCheckboxList("category")
       const status = event.target.status.value
       const avatar = event.target.avatar.value
-      const description = tinymce.get("description").getContent()
-      const content = tinymce.get("content").getContent()
+      const description = getEditorContent("description")
+      const content = getEditorContent("content")
 
       // Tạo FormData
       const formData = new FormData();
@@ -806,8 +819,8 @@ if(articleEditForm) {
       const category = getCheckboxList("category")
       const status = event.target.status.value
       const avatar = event.target.avatar.value
-      const description = tinymce.get("description").getContent()
-      const content = tinymce.get("content").getContent()
+      const description = getEditorContent("description")
+      const content = getEditorContent("content")
 
       // Tạo FormData
       const formData = new FormData();
