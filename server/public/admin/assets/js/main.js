@@ -273,6 +273,7 @@ if(articleEditCategoryForm) {
       const id = event.target.id.value
       const name = event.target.name.value
       const slug = event.target.slug.value
+      const avatar = event.target.avatar.value
       const parent = event.target.parent.value
       const description = getEditorContent("description")
       const status = event.target.status.value
@@ -281,6 +282,7 @@ if(articleEditCategoryForm) {
       const formData = new FormData()
       formData.append('name', name)
       formData.append('slug', slug)
+      formData.append('avatar', avatar)
       formData.append('parent', parent)
       formData.append('description', description)
       formData.append('status', status)
