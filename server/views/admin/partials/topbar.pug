@@ -5,6 +5,18 @@
         li
           button#togglemenu.nav-link.mobile-menu-btn.nav-icon
             i.iconoir-menu-scale
+        //- Logo chỉ hiện khi màn hình < 1200px (lúc này menu trái bị ẩn)
+        //- Điện thoại (< 576px): icon vuông, tablet: logo ngang
+        li.topbar-logo.d-xl-none
+          a(href=`/${pathAdmin}/dashboard`)
+            img.d-sm-none(
+              alt="SFoodie"
+              src="/admin/assets/images/sfoodie-icon.png"
+              )
+            img.d-none.d-sm-inline-block(
+              alt="SFoodie"
+              src="/admin/assets/images/sfoodie-logo.png"
+              )
         li.mx-3.welcome-text
           h3.mb-0.fw-bold.text-truncate Hello, Đình Hưng!
           // <h6 class="mb-0 fw-normal text-muted text-truncate fs-14">Here's your overview this week.</h6>
