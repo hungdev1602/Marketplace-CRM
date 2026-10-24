@@ -99,14 +99,17 @@ export const list = async (req: Request, res: Response) => {
     .limit(limitItem)
     .skip(skip)
 
-  for (const item of allAccount) {
-    const roleList = await Role.find({
-      _id: {
-        $in: item.roles
-      }
-    })
+  // Lấy nhóm quyền của tất cả tài khoản bằng 1 truy vấn (thay vì mỗi tài khoản 1 truy vấn)
+  const roleList = await Role.find({
+    _id: {
+      $in: allAccount.flatMap((item: any) => item.roles)
+    }
+  })
 
-    item.roleName = roleList.map(item => item.name)
+  for (const item of allAccount) {
+    item.roleName = roleList
+      .filter(role => item.roles.includes(role.id))
+      .map(role => role.name)
   }
 
   res.render("admin/pages/account-admin-list", {
@@ -281,14 +284,17 @@ export const trash = async (req: Request, res: Response) => {
     .limit(limitItem)
     .skip(skip)
 
-  for (const item of allAccount) {
-    const roleList = await Role.find({
-      _id: {
-        $in: item.roles
-      }
-    })
+  // Lấy nhóm quyền của tất cả tài khoản bằng 1 truy vấn (thay vì mỗi tài khoản 1 truy vấn)
+  const roleList = await Role.find({
+    _id: {
+      $in: allAccount.flatMap((item: any) => item.roles)
+    }
+  })
 
-    item.roleName = roleList.map(item => item.name)
+  for (const item of allAccount) {
+    item.roleName = roleList
+      .filter(role => item.roles.includes(role.id))
+      .map(role => role.name)
   }
 
   res.render("admin/pages/account-admin-trash", {

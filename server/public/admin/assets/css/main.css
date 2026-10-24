@@ -55,3 +55,41 @@
   cursor: pointer;
 }
 /* End checkbox-list */
+
+/* Logo admin */
+/* Logo ngang: hiện khi menu trái mở rộng */
+.startbar .brand .logo .logo-lg {
+  max-width: 210px;
+  height: auto;
+  margin-left: 0;
+}
+
+/* Icon vuông: chỉ hiện khi menu trái thu gọn (màn hình 1200px - 1440px) */
+.startbar .brand .logo .logo-sm {
+  display: none;
+  width: 48px;
+  height: 48px;
+}
+
+@media (min-width: 1200px) {
+  body[data-sidebar-size=collapsed] .startbar:not(:hover) .brand .logo .logo-lg {
+    display: none;
+  }
+
+  body[data-sidebar-size=collapsed] .startbar:not(:hover) .brand .logo .logo-sm {
+    display: block;
+  }
+}
+
+/* Logo trên thanh trên (màn hình < 1200px) */
+.topbar-logo img {
+  height: 40px;
+  width: auto;
+}
+/* End Logo admin */
+
+/* Trình soạn thảo Quill */
+.ql-container .ql-editor {
+  min-height: 250px;
+}
+/* End Trình soạn thảo Quill */

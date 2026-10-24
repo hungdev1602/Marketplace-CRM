@@ -27,15 +27,14 @@ html(
       content="IE=edge" 
       http-equiv="X-UA-Compatible"
       )
-    // Uppy
+    // App favicon (?v=2 để trình duyệt tải favicon mới thay cho favicon cũ đã lưu)
     link(
-      rel="stylesheet" 
-      href="https://releases.transloadit.com/uppy/v4.18.2/uppy.min.css"
-    )
-    // App favicon
+      rel="icon"
+      href="/admin/assets/images/favicon.ico?v=2"
+      )
     link(
-      href="/admin/assets/images/favicon.ico" 
-      rel="shortcut icon"
+      rel="apple-touch-icon"
+      href="/admin/assets/images/apple-touch-icon.png?v=2"
       )
     // notyf
     link(
@@ -94,7 +93,6 @@ html(
     // vendor js
     script(src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js") 
     script(src="https://unpkg.com/just-validate@latest/dist/just-validate.production.min.js") 
-    script(src="https://cdn.tiny.cloud/1/g0748klqcw8b58q6fzfxu7ntttplr4syumea4d7gp40a7vxz/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous") 
     script(src="https://cdn.jsdelivr.net/npm/sweetalert2@11.23.0/dist/sweetalert2.all.min.js") 
     script(src="/admin/assets/libs/bootstrap/js/bootstrap.bundle.min.js")
     script(src="/admin/assets/libs/simplebar/simplebar.min.js")

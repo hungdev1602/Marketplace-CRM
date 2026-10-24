@@ -48,7 +48,7 @@ block main
           .col-md-12.col-lg-12
             .mb-3
               label.form-label(for="description") Mô tả
-              textarea.form-control(id="description" name="description" textarea-mce) #{category.description}
+              textarea.form-control(id="description" name="description" textarea-editor) #{category.description}
           .col-md-6.col-lg-6
             .mb-3
               label.form-label(for="status") Trạng thái
@@ -57,3 +57,6 @@ block main
                 option(value="inactive" selected=(category.status == "inactive" ? true : false)) Tạm dừng
         button.btn.btn-primary(type="submit") Cập nhật
         a.btn.btn-danger.ms-1(href=`/${pathAdmin}/article/category`) Hủy
+
+block script
+  include ../partials/script-editor.pug

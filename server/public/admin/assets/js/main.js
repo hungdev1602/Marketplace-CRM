@@ -1,31 +1,112 @@
-// TinyMCE
-const initialTinyMCE = () => {
-  tinymce.init({
-    selector: '[textarea-mce]',
-    plugins: [
-      'accordion', 'anchor', "link", 'autolink', 'autoresize', 'image', 'media'
-    ],
-    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat | image',
-    init_instance_callback: (editor) => {
-      editor.on("OpenWindow", () => {
-        const title = document.querySelector(".tox .tox-dialog__title")?.innerHTML
-        if(title == "Insert/Edit Media" || title == "Insert/Edit Image"){
-          const inputSource = document.querySelector(`.tox input.tox-textfield[type="url"]`)
-          inputSource.value = domainFileManager
-        }
-      })
-    }
-  });
+// Trình soạn thảo (Quill)
+// Quill có sẵn trong template, chỉ được nhúng ở trang có [textarea-editor] (partials/script-editor.pug)
+// Mỗi textarea có thuộc tính [textarea-editor] được thay bằng 1 ô soạn thảo Quill.
+// Nếu không tải được Quill thì textarea vẫn hiện để nhập nội dung dạng văn bản thường
+const listEditor = {}
+
+// Hỏi đường dẫn ảnh/video, điền sẵn domain của server file-manager
+// (chỉ cần dán thêm đường dẫn file đã copy ở trang Quản lý file)
+const askMediaLink = async (title) => {
+  if(typeof Swal === "undefined") {
+    return prompt(title, domainFileManager)
+  }
+
+  const result = await Swal.fire({
+    title: title,
+    input: "text",
+    inputValue: domainFileManager,
+    showCancelButton: true,
+    confirmButtonText: "Chèn",
+    cancelButtonText: "Huỷ"
+  })
+
+  return result.isConfirmed ? result.value : null
 }
 
-// Nếu không tải được TinyMCE từ CDN thì bỏ qua, tránh làm dừng toàn bộ file main.js
-if(typeof tinymce !== "undefined"){
-  initialTinyMCE()
+// Chèn ảnh/video vào vị trí con trỏ
+const insertMedia = async (quill, type) => {
+  const range = quill.getSelection(true)
+
+  let link = await askMediaLink(type === "image" ? "Chèn ảnh" : "Chèn video")
+  if(!link) {
+    return
+  }
+
+  // Link YouTube => đổi sang link nhúng để phát được trong bài viết
+  const youtube = link.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/)
+  if(type === "video" && youtube) {
+    link = `https://www.youtube.com/embed/${youtube[1]}`
+  }
+
+  quill.insertEmbed(range.index, type, link, "user")
+  quill.setSelection(range.index + 1, 0)
 }
-else{
-  console.error("Không tải được thư viện TinyMCE")
+
+const listTextareaEditor = document.querySelectorAll("[textarea-editor]")
+if(listTextareaEditor.length > 0) {
+  if(typeof Quill !== "undefined") {
+    // Khi lấy HTML, Quill mặc định đổi video thành thẻ <a>, sửa lại để giữ nguyên thẻ <iframe>
+    const Video = Quill.import("formats/video")
+    class VideoEmbed extends Video {
+      html() {
+        return this.domNode.outerHTML
+      }
+    }
+    Quill.register(VideoEmbed, true)
+
+    listTextareaEditor.forEach(textarea => {
+      const editorElement = document.createElement("div")
+      textarea.after(editorElement)
+      textarea.style.display = "none"
+
+      const quill = new Quill(editorElement, {
+        theme: "snow",
+        modules: {
+          toolbar: {
+            container: [
+              [{ header: [1, 2, 3, 4, false] }],
+              ["bold", "italic", "underline", "strike"],
+              [{ color: [] }, { background: [] }],
+              [{ align: [] }],
+              [{ list: "ordered" }, { list: "bullet" }, { indent: "-1" }, { indent: "+1" }],
+              ["blockquote", "code-block"],
+              ["link", "image", "video"],
+              ["clean"]
+            ],
+            handlers: {
+              image: () => insertMedia(quill, "image"),
+              video: () => insertMedia(quill, "video")
+            }
+          },
+          // Không chèn ảnh dạng base64 khi kéo thả / dán file ảnh (làm database rất nặng)
+          uploader: {
+            mimetypes: []
+          }
+        }
+      })
+
+      // Hiển thị nội dung cũ (HTML) đang có trong textarea
+      quill.setContents(quill.clipboard.convert({ html: textarea.value }), "silent")
+      quill.history.clear()
+
+      listEditor[textarea.id] = quill
+    })
+  }
+  else {
+    console.error("Không tải được thư viện Quill")
+  }
 }
-// End TinyMCE
+
+// Lấy nội dung (HTML) của ô soạn thảo; nếu không có Quill thì lấy trực tiếp từ textarea
+const getEditorContent = (id) => {
+  const quill = listEditor[id]
+  if(quill) {
+    // Ô soạn thảo trống thì trả về chuỗi rỗng, bỏ các dòng trống thừa ở cuối
+    return quill.getLength() > 1 ? quill.getSemanticHTML().replace(/(<p><\/p>)+$/, "") : ""
+  }
+  return document.getElementById(id).value
+}
+// End Trình soạn thảo
 
 // Create an instance of Notyf
 var notyf
@@ -103,7 +184,7 @@ if(articleCreateCategoryForm) {
       const slug = event.target.slug.value
       const avatar = event.target.avatar.value 
       const parent = event.target.parent.value
-      const description = tinymce.get("description").getContent()
+      const description = getEditorContent("description")
       const status = event.target.status.value
 
       // Tạo form bằng JS
@@ -192,14 +273,16 @@ if(articleEditCategoryForm) {
       const id = event.target.id.value
       const name = event.target.name.value
       const slug = event.target.slug.value
+      const avatar = event.target.avatar.value
       const parent = event.target.parent.value
-      const description = tinymce.get("description").getContent()
+      const description = getEditorContent("description")
       const status = event.target.status.value
 
       // Tạo form bằng JS
       const formData = new FormData()
       formData.append('name', name)
       formData.append('slug', slug)
+      formData.append('avatar', avatar)
       formData.append('parent', parent)
       formData.append('description', description)
       formData.append('status', status)
@@ -690,6 +773,19 @@ if(formGroupFile){
 }
 // End form-group-file
 
+// Modal File Manager
+// iframe quản lý file chỉ được tải khi mở modal lần đầu (không tải ngầm ở mọi trang)
+const modalFileManager = document.querySelector("#modalFileManager")
+if(modalFileManager){
+  modalFileManager.addEventListener("show.bs.modal", () => {
+    const iframe = modalFileManager.querySelector("iframe[data-src]")
+    if(iframe && !iframe.getAttribute("src")){
+      iframe.setAttribute("src", iframe.getAttribute("data-src"))
+    }
+  })
+}
+// End Modal File Manager
+
 // Checkbox List
 const getCheckboxList = (name) => {
   const checkboxList = document.querySelector(`[checkbox-list="${name}"]`)
@@ -730,8 +826,8 @@ if(articleCreateForm) {
       const category = getCheckboxList("category")
       const status = event.target.status.value
       const avatar = event.target.avatar.value
-      const description = tinymce.get("description").getContent()
-      const content = tinymce.get("content").getContent()
+      const description = getEditorContent("description")
+      const content = getEditorContent("content")
 
       // Tạo FormData
       const formData = new FormData();
@@ -790,8 +886,8 @@ if(articleEditForm) {
       const category = getCheckboxList("category")
       const status = event.target.status.value
       const avatar = event.target.avatar.value
-      const description = tinymce.get("description").getContent()
-      const content = tinymce.get("content").getContent()
+      const description = getEditorContent("description")
+      const content = getEditorContent("content")
 
       // Tạo FormData
       const formData = new FormData();
