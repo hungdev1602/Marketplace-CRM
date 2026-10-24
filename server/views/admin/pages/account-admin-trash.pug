@@ -1,0 +1,83 @@
+extends ../layouts/default.pug
+include ../mixins/pagination.pug
+
+block main
+  .row
+    .col-12
+      .card
+        .card-header
+          .row.align-items-center
+            .col
+              h4.card-title #{pageTitle}
+            // end col
+            .col-auto
+              a.btn.btn-primary(
+                href=`/${pathAdmin}/account-admin/list`
+                )
+                i.fa-solid.fa-arrow-left.me-1
+                | Danh sách tài khoản
+            // end col
+          // end row
+        // end card-header
+        .card-body.pt-0
+          .row
+            .col-lg-12
+              include ../partials/form-search.pug
+          .table-responsive
+            table.table.table-striped.mb-0
+              thead.table-light
+                tr
+                  th STT
+                  th Ảnh đại diện
+                  th Họ tên
+                  th Email
+                  th Nhóm quyền
+                  th Trạng thái
+                  th.text-end Hành động
+              tbody
+                if(allAccount.length > 0)
+                  each item, index in allAccount
+                    tr
+                      td #{pagination.skip + index + 1}
+                      td
+                        if(item.avatar)
+                          img(
+                            src=`${domainFileManager}${item.avatar}`
+                            class="rounded thumb-lg me-1 d-inline"
+                          )
+                      td #{item.fullName}
+                      td #{item.email}
+                      td(style="max-width: 200px;")
+                        each roleName in item.roleName
+                          span(class="badge bg-dark me-1") #{roleName}
+                      td
+                        if (item.status == "active")
+                          span(class="badge bg-success") Hoạt động
+                        else if (item.status == "inactive")
+                          span(class="badge bg-danger") Tạm dừng
+                        else if (item.status == "initial")
+                          span(class="badge bg-warning") Khởi tạo
+                      td.text-end
+                        a(
+                          href="javascript:;"
+                          button-api
+                          data-method="PATCH"
+                          data-api=`/${pathAdmin}/account-admin/undo/${item.id}`
+                          style="margin: 5px"
+                          title="Khôi phục"
+                        )
+                          <i class="fa-solid fa-rotate-left text-secondary" style="font-size: 1.2rem;"></i>
+                        a(
+                          href="javascript:;"
+                          button-api
+                          data-method="DELETE"
+                          data-api=`/${pathAdmin}/account-admin/delete-permanently/${item.id}`
+                          style="margin: 5px"
+                          title="Xoá vĩnh viễn"
+                        )
+                          <i class="fa-solid fa-trash text-danger" style="font-size: 1.2rem;"></i>
+                else
+                  tr
+                    td(colspan=7 class="text-center") Không tìm thấy dữ liệu
+          +pagination(pagination, page)
+    // end col

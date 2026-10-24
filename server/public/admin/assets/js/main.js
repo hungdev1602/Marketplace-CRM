@@ -18,18 +18,35 @@ const initialTinyMCE = () => {
   });
 }
 
-initialTinyMCE()
+// Nếu không tải được TinyMCE từ CDN thì bỏ qua, tránh làm dừng toàn bộ file main.js
+if(typeof tinymce !== "undefined"){
+  initialTinyMCE()
+}
+else{
+  console.error("Không tải được thư viện TinyMCE")
+}
 // End TinyMCE
 
 // Create an instance of Notyf
-var notyf = new Notyf({
-  duration: 3000,
-  position: {
-    x:'right',
-    y:'top'
-  },
-  dismissible: true
-});
+var notyf
+if(typeof Notyf !== "undefined"){
+  notyf = new Notyf({
+    duration: 3000,
+    position: {
+      x:'right',
+      y:'top'
+    },
+    dismissible: true
+  });
+}
+else{
+  // Không tải được Notyf từ CDN => dùng alert để các tính năng bên dưới vẫn chạy
+  console.error("Không tải được thư viện Notyf")
+  notyf = {
+    success: (message) => alert(message),
+    error: (message) => alert(message)
+  }
+}
 // End Notyf
 
 const drawNotify = (type, message) => {
@@ -1053,3 +1070,74 @@ if(accountAdminEditForm) {
 }
 
 // End accountAdminEditForm
+
+// accountAdminChangePasswordForm
+const accountAdminChangePasswordForm = document.querySelector("#accountAdminChangePasswordForm");
+if(accountAdminChangePasswordForm) {
+  const validation = new JustValidate('#accountAdminChangePasswordForm');
+
+  validation
+    .addField('#password', [
+      {
+        rule: 'required',
+        errorMessage: 'Vui lòng nhập mật khẩu!',
+      },
+      {
+        validator: (value) => value.length >= 8,
+        errorMessage: 'Mật khẩu phải chứa ít nhất 8 ký tự!',
+      },
+      {
+        validator: (value) => /[A-Z]/.test(value),
+        errorMessage: 'Mật khẩu phải chứa ít nhất một chữ cái in hoa!',
+      },
+      {
+        validator: (value) => /[a-z]/.test(value),
+        errorMessage: 'Mật khẩu phải chứa ít nhất một chữ cái thường!',
+      },
+      {
+        validator: (value) => /\d/.test(value),
+        errorMessage: 'Mật khẩu phải chứa ít nhất một chữ số!',
+      },
+      {
+        validator: (value) => /[@$!%*?&]/.test(value),
+        errorMessage: 'Mật khẩu phải chứa ít nhất một ký tự đặc biệt!',
+      },
+    ])
+    .addField('#confirmPassword', [
+      {
+        rule: 'required',
+        errorMessage: 'Vui lòng xác nhận mật khẩu!',
+      },
+      {
+        validator: (value) => value === accountAdminChangePasswordForm.password.value,
+        errorMessage: 'Mật khẩu xác nhận không khớp!',
+      },
+    ])
+    .onSuccess((event) => {
+      const id = event.target.id.value;
+      const password = event.target.password.value;
+      const confirmPassword = event.target.confirmPassword.value;
+
+      // Tạo FormData
+      const formData = new FormData();
+      formData.append("password", password);
+      formData.append("confirmPassword", confirmPassword);
+
+      fetch(`/${pathAdmin}/account-admin/change-password/${id}`, {
+        method: "PATCH",
+        body: formData
+      })
+        .then(res => res.json())
+        .then(data => {
+          if(data.code == "error") {
+            notyf.error(data.message);
+          }
+
+          if(data.code == "success") {
+            drawNotify(data.code, data.message)
+          }
+        })
+    })
+  ;
+}
+// End accountAdminChangePasswordForm

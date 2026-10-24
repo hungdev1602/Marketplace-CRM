@@ -69,6 +69,12 @@ block main
                       )
                         <i class="fa-solid fa-pen-to-square text-secondary" style="font-size: 1.2rem;"></i>
                       a(
+                        href=`/${pathAdmin}/account-admin/change-password/${item.id}`
+                        style="margin: 5px"
+                        title="Đổi mật khẩu"
+                      )
+                        <i class="fa-solid fa-key text-secondary" style="font-size: 1.2rem;"></i>
+                      a(
                         href="javascript:;" 
                         button-api 
                         data-method="PATCH"
