@@ -44,7 +44,7 @@ block main
           .col-md-12.col-lg-12
             .mb-3
               label.form-label(for="description") Mô tả
-              textarea.form-control(id="description" name="description" textarea-mce)
+              textarea.form-control(id="description" name="description" textarea-editor)
           .col-md-12.col-lg-12
             .mb-3
               label.form-label(for="status") Trạng thái
@@ -55,4 +55,4 @@ block main
         a.btn.btn-danger.ms-1(href=`/${pathAdmin}/article/category`) Hủy
 
 block script
-  include ../partials/script-tinymce.pug
+  include ../partials/script-editor.pug

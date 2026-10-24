@@ -55,3 +55,9 @@
   cursor: pointer;
 }
 /* End checkbox-list */
+
+/* Trình soạn thảo Quill */
+.ql-container .ql-editor {
+  min-height: 250px;
+}
+/* End Trình soạn thảo Quill */

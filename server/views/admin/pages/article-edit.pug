@@ -53,13 +53,13 @@ block main
           .col-md-12.col-lg-12
             .mb-3
               label.form-label(for="description") Mô tả ngắn
-              textarea(id="description" name="description" textarea-mce) #{articleDetail.description}
+              textarea(id="description" name="description" textarea-editor) #{articleDetail.description}
           .col-md-12.col-lg-12
             .mb-3
               label.form-label(for="content") Nội dung chi tiết
-              textarea(id="content" name="content" textarea-mce) #{articleDetail.content}
+              textarea(id="content" name="content" textarea-editor) #{articleDetail.content}
         button.btn.btn-primary(type="submit") Cập nhật
         a.btn.btn-danger.ms-1(href=`/${pathAdmin}/article/list`) Hủy
 
 block script
-  include ../partials/script-tinymce.pug
+  include ../partials/script-editor.pug
