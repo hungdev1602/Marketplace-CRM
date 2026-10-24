@@ -18,12 +18,15 @@ const initialTinyMCE = () => {
   });
 }
 
+// TinyMCE chỉ được nhúng ở trang có trình soạn thảo (partials/script-tinymce.pug)
 // Nếu không tải được TinyMCE từ CDN thì bỏ qua, tránh làm dừng toàn bộ file main.js
-if(typeof tinymce !== "undefined"){
-  initialTinyMCE()
-}
-else{
-  console.error("Không tải được thư viện TinyMCE")
+if(document.querySelector("[textarea-mce]")){
+  if(typeof tinymce !== "undefined"){
+    initialTinyMCE()
+  }
+  else{
+    console.error("Không tải được thư viện TinyMCE")
+  }
 }
 // End TinyMCE
 
@@ -689,6 +692,19 @@ if(formGroupFile){
   }
 }
 // End form-group-file
+
+// Modal File Manager
+// iframe quản lý file chỉ được tải khi mở modal lần đầu (không tải ngầm ở mọi trang)
+const modalFileManager = document.querySelector("#modalFileManager")
+if(modalFileManager){
+  modalFileManager.addEventListener("show.bs.modal", () => {
+    const iframe = modalFileManager.querySelector("iframe[data-src]")
+    if(iframe && !iframe.getAttribute("src")){
+      iframe.setAttribute("src", iframe.getAttribute("data-src"))
+    }
+  })
+}
+// End Modal File Manager
 
 // Checkbox List
 const getCheckboxList = (name) => {

@@ -49,11 +49,16 @@ export const category = async (req: Request, res: Response) => {
     .limit(limitItem)
     .skip(skip)
 
+  // Lấy danh mục cha của tất cả danh mục bằng 1 truy vấn (thay vì mỗi danh mục 1 truy vấn)
+  const parentList = await CategoryBlog.find({
+    _id: {
+      $in: allCategory.filter((item: any) => item.parent).map((item: any) => item.parent)
+    }
+  })
+
   for (const item of allCategory) {
     if(item.parent) {
-      const parent = await CategoryBlog.findById({
-        _id: item.parent
-      })
+      const parent = parentList.find(parent => parent.id == item.parent)
 
       item.parentName = parent?.name
     }
@@ -75,11 +80,16 @@ export const categoryTrash = async (req: Request, res: Response) => {
     deleted: true
   })
 
+  // Lấy danh mục cha của tất cả danh mục bằng 1 truy vấn (thay vì mỗi danh mục 1 truy vấn)
+  const parentList = await CategoryBlog.find({
+    _id: {
+      $in: allCategory.filter((item: any) => item.parent).map((item: any) => item.parent)
+    }
+  })
+
   for (const item of allCategory) {
     if(item.parent) {
-      const parent = await CategoryBlog.findById({
-        _id: item.parent
-      })
+      const parent = parentList.find(parent => parent.id == item.parent)
 
       item.parentName = parent?.name
     }

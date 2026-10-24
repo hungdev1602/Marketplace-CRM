@@ -1,7 +1,8 @@
-import { Uppy, Dashboard, XHRUpload  } from "https://releases.transloadit.com/uppy/v4.18.2/uppy.min.mjs"
-
 const uppyUpload = document.querySelector("#uppy-upload")
 if(uppyUpload){
+  // Chỉ tải thư viện Uppy ở trang có khung upload
+  const { Uppy, Dashboard, XHRUpload } = await import("https://releases.transloadit.com/uppy/v4.18.2/uppy.min.mjs")
+
   const uppy = new Uppy()
   uppy.use(Dashboard, { 
     target: '#uppy-upload', 

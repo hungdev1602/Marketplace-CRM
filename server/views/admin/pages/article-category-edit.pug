@@ -57,3 +57,6 @@ block main
                 option(value="inactive" selected=(category.status == "inactive" ? true : false)) Tạm dừng
         button.btn.btn-primary(type="submit") Cập nhật
         a.btn.btn-danger.ms-1(href=`/${pathAdmin}/article/category`) Hủy
+
+block script
+  include ../partials/script-tinymce.pug

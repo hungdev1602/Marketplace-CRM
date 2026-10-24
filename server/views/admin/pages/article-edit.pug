@@ -60,3 +60,6 @@ block main
               textarea(id="content" name="content" textarea-mce) #{articleDetail.content}
         button.btn.btn-primary(type="submit") Cập nhật
         a.btn.btn-danger.ms-1(href=`/${pathAdmin}/article/list`) Hủy
+
+block script
+  include ../partials/script-tinymce.pug
