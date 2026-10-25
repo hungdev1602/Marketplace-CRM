@@ -11,16 +11,18 @@ block main
               h4.card-title #{pageTitle}
             // end col
             .col-auto
-              a.btn.btn-danger.me-1(
-                href=`/${pathAdmin}/role/trash`
-                )
-                i.fa-solid.fa-trash.me-1
-                | Thùng rác
-              a.btn.btn-primary(
-                href=`/${pathAdmin}/role/create`
-                )
-                i.fa-solid.fa-plus.me-1
-                | Tạo nhóm quyền
+              if permissions.includes("role-trash")
+                a.btn.btn-danger.me-1(
+                  href=`/${pathAdmin}/role/trash`
+                  )
+                  i.fa-solid.fa-trash.me-1
+                  | Thùng rác
+              if permissions.includes("role-create")
+                a.btn.btn-primary(
+                  href=`/${pathAdmin}/role/create`
+                  )
+                  i.fa-solid.fa-plus.me-1
+                  | Tạo nhóm quyền
             // end col
           // end row
         // end card-header
@@ -52,21 +54,23 @@ block main
                       else if (item.status == "active")
                         span.badge.bg-success Hoạt động
                     td.text-end
-                      a(
-                        href=`/${pathAdmin}/role/edit/${item.id}` 
-                        style="margin: 5px" 
-                        title="Chỉnh sửa"
-                      )
-                        <i class="fa-solid fa-pen-to-square text-secondary" style="font-size: 1.2rem;"></i>
-                      a(
-                        href="javascript:;" 
-                        button-api 
-                        data-method="PATCH"
-                        data-api=`/${pathAdmin}/role/delete/${item.id}`
-                        style="margin: 5px"
-                        title="Xoá"
-                      )
-                        <i class="fa-solid fa-trash text-secondary" style="font-size: 1.2rem;"></i>
+                      if permissions.includes("role-edit")
+                        a(
+                          href=`/${pathAdmin}/role/edit/${item.id}` 
+                          style="margin: 5px" 
+                          title="Chỉnh sửa"
+                        )
+                          <i class="fa-solid fa-pen-to-square text-secondary" style="font-size: 1.2rem;"></i>
+                      if permissions.includes("role-delete")
+                        a(
+                          href="javascript:;" 
+                          button-api 
+                          data-method="PATCH"
+                          data-api=`/${pathAdmin}/role/delete/${item.id}`
+                          style="margin: 5px"
+                          title="Xoá"
+                        )
+                          <i class="fa-solid fa-trash text-secondary" style="font-size: 1.2rem;"></i>
               else 
                 tr
                   td(colspan=6 class="text-center") Không tìm thấy dữ liệu

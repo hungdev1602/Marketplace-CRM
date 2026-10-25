@@ -1,0 +1,23 @@
+extends ../layouts/default.pug
+
+block main
+  .row.justify-content-center
+    .col-lg-6.col-md-8
+      .card.mt-4
+        .card-body.text-center.p-5
+          i.fa-solid.fa-lock.text-danger(style="font-size: 3rem;")
+          h4.mt-3.mb-2 #{pageTitle}
+          p.text-muted.mb-4
+            | Tài khoản của bạn chưa được cấp quyền vào trang này.
+            br
+            if permissions.length > 0
+              | Hãy chọn chức năng khác ở menu bên trái, hoặc liên hệ Super Admin để được cấp thêm quyền.
+            else
+              | Vui lòng liên hệ Super Admin để được cấp quyền.
+          a.btn.btn-secondary(href="javascript:history.back()")
+            i.fa-solid.fa-arrow-left.me-1
+            | Quay lại
+          if permissions.includes("dashboard")
+            a.btn.btn-primary.ms-1(href=`/${pathAdmin}/dashboard`)
+              i.fa-solid.fa-house.me-1
+              | Về trang tổng quan
