@@ -1167,6 +1167,103 @@ if(accountAdminEditForm) {
 
 // End accountAdminEditForm
 
+// Nút con mắt ẩn/hiện mật khẩu
+// Thêm thuộc tính [button-toggle-password="#idÔMậtKhẩu"] vào nút là dùng được
+const listButtonTogglePassword = document.querySelectorAll("[button-toggle-password]");
+listButtonTogglePassword.forEach(button => {
+  const input = document.querySelector(button.getAttribute("button-toggle-password"));
+  const icon = button.querySelector("i");
+
+  button.addEventListener("click", () => {
+    const isHidden = input.type === "password";
+    const title = isHidden ? "Ẩn mật khẩu" : "Hiện mật khẩu";
+
+    // Đổi ô nhập: password (dấu chấm) <=> text (chữ thường)
+    input.type = isHidden ? "text" : "password";
+
+    // Đổi icon: mắt mở <=> mắt gạch chéo
+    icon.classList.toggle("fa-eye", !isHidden);
+    icon.classList.toggle("fa-eye-slash", isHidden);
+
+    button.title = title;
+    button.setAttribute("aria-label", title);
+  })
+})
+// End Nút con mắt ẩn/hiện mật khẩu
+
+// loginForm
+const loginForm = document.querySelector("#loginForm");
+if(loginForm) {
+  const submitLogin = (form) => {
+    const email = form.email.value;
+    const password = form.password.value;
+    const rememberPassword = form.rememberPassword.checked;
+
+    // Tạo FormData
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("rememberPassword", rememberPassword);
+
+    fetch(`/${pathAdmin}/account/login`, {
+      method: "POST",
+      body: formData
+    })
+      .then(res => res.json())
+      .then(data => {
+        if(data.code == "error") {
+          notyf.error(data.message);
+        }
+
+        if(data.code == "success") {
+          // Lưu thông báo vào session, sang trang tổng quan sẽ hiện thông báo
+          sessionStorage.setItem("notify", JSON.stringify({
+            type: data.code,
+            message: data.message
+          }))
+          window.location.href = `/${pathAdmin}/dashboard`;
+        }
+      })
+  }
+
+  if(typeof JustValidate !== "undefined") {
+    const validation = new JustValidate('#loginForm');
+
+    validation
+      .addField('#email', [
+        {
+          rule: 'required',
+          errorMessage: 'Vui lòng nhập email!',
+        },
+        {
+          rule: 'email',
+          errorMessage: 'Email không đúng định dạng!',
+        },
+      ])
+      .addField('#password', [
+        {
+          rule: 'required',
+          errorMessage: 'Vui lòng nhập mật khẩu!',
+        },
+      ], {
+        errorsContainer: '#passwordError',
+      })
+      .onSuccess((event) => {
+        submitLogin(event.target)
+      })
+    ;
+  }
+  else {
+    // Không tải được JustValidate từ CDN => vẫn đăng nhập được, server sẽ kiểm tra dữ liệu
+    console.error("Không tải được thư viện JustValidate")
+    loginForm.addEventListener("submit", (event) => {
+      event.preventDefault()
+      submitLogin(loginForm)
+    })
+  }
+}
+// End loginForm
+
 // accountAdminChangePasswordForm
 const accountAdminChangePasswordForm = document.querySelector("#accountAdminChangePasswordForm");
 if(accountAdminChangePasswordForm) {
