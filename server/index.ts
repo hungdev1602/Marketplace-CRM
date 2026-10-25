@@ -5,6 +5,7 @@ import { adminRoute } from './routes/admin/index.route';
 import { clientRoute } from './routes/client/index.route';
 import { domainFileManager, pathAdmin } from './config/variable.config';
 import dotenv from "dotenv"
+import cookieParser from "cookie-parser"
 import { connectDB } from './config/database.config';
 
 // Load biến môi trường env
@@ -18,6 +19,9 @@ connectDB()
 
 // Cho phép gửi data lên dạng json
 app.use(express.json())
+
+// Đọc cookie gửi lên từ trình duyệt (req.cookies), dùng để lưu token đăng nhập
+app.use(cookieParser())
 
 // thiết lập thư mục public, chứa file tĩnh (css, js, img,...)
 // Đặt trước middleware tắt cache bên dưới, để trình duyệt được lưu cache file tĩnh.

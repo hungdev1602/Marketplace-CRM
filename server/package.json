@@ -4,16 +4,19 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon --exec \"node --inspect -r ts-node/register\" index.ts"
+    "start": "nodemon --exec \"node --inspect -r ts-node/register\" index.ts",
+    "create-super-admin": "ts-node scripts/create-super-admin.ts"
   },
   "dependencies": {
     "@types/multer": "^2.0.0",
     "axios": "^1.12.2",
     "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "form-data": "^4.0.4",
     "joi": "^18.0.1",
+    "jsonwebtoken": "^9.0.3",
     "moment": "^2.30.1",
     "mongoose": "^8.18.0",
     "multer": "^2.0.2",
@@ -21,7 +24,9 @@
     "slugify": "^1.6.6"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.3.0",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",

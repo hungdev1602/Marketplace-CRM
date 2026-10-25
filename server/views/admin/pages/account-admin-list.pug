@@ -52,6 +52,8 @@ block main
                     td #{item.fullName}
                     td #{item.email}
                     td(style="max-width: 200px;")
+                      if item.isSuperAdmin
+                        span(class="badge bg-primary me-1") Super Admin
                       each roleName in item.roleName
                         span(class="badge bg-dark me-1") #{roleName}
                     td

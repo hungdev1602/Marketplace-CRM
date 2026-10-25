@@ -1,0 +1,52 @@
+extends ../layouts/blank.pug
+
+block main
+  .container-xxl
+    .row.vh-100.d-flex.justify-content-center
+      .col-12.align-self-center
+        .card-body
+          .row
+            .col-lg-4.col-md-6.mx-auto
+              .card
+                .card-body.p-0.bg-black.auth-header-box.rounded-top
+                  .text-center.p-3
+                    img.auth-logo(
+                      src="/admin/assets/images/sfoodie-logo.png"
+                      height="50"
+                      alt="SFoodie"
+                      )
+                    h4.mt-3.mb-1.fw-semibold.text-white.fs-18 Đăng nhập trang quản trị
+                    p.text-muted.fw-medium.mb-0 Vui lòng đăng nhập để tiếp tục
+                .card-body.pt-0
+                  //- method="post": nếu JS chưa tải xong mà bấm đăng nhập, mật khẩu không bị hiện lên thanh địa chỉ
+                  form#loginForm.my-4(method="post")
+                    .form-group.mb-2
+                      label.form-label(for="email") Email
+                      input.form-control(
+                        id="email"
+                        type="email"
+                        name="email"
+                        placeholder="Nhập email"
+                        autocomplete="email"
+                        )
+                    .form-group
+                      label.form-label(for="password") Mật khẩu
+                      input.form-control(
+                        id="password"
+                        type="password"
+                        name="password"
+                        placeholder="Nhập mật khẩu"
+                        autocomplete="current-password"
+                        )
+                    .form-group.mt-3
+                      .form-check.form-switch.form-switch-success
+                        input.form-check-input(
+                          id="rememberPassword"
+                          type="checkbox"
+                          name="rememberPassword"
+                          )
+                        label.form-check-label(for="rememberPassword") Ghi nhớ đăng nhập (30 ngày)
+                    .d-grid.mt-3
+                      button.btn.btn-primary(type="submit")
+                        | Đăng nhập
+                        i.fas.fa-sign-in-alt.ms-1

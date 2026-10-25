@@ -6,6 +6,10 @@ const schema = new mongoose.Schema(
     email: String,
     password: String,
     roles: [String],
+    isSuperAdmin: {
+      type: Boolean,
+      default: false
+    }, // Super Admin: tài khoản quản trị cao nhất, chỉ tạo được bằng lệnh "yarn create-super-admin"
     status: {
       type: String,
       enum: ["initial", "active", "inactive"], // initial - Khởi tạo, active – Hoạt động, inactive – Tạm dừng

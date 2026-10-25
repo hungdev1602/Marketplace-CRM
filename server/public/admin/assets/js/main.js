@@ -1167,6 +1167,77 @@ if(accountAdminEditForm) {
 
 // End accountAdminEditForm
 
+// loginForm
+const loginForm = document.querySelector("#loginForm");
+if(loginForm) {
+  const submitLogin = (form) => {
+    const email = form.email.value;
+    const password = form.password.value;
+    const rememberPassword = form.rememberPassword.checked;
+
+    // Tạo FormData
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("rememberPassword", rememberPassword);
+
+    fetch(`/${pathAdmin}/account/login`, {
+      method: "POST",
+      body: formData
+    })
+      .then(res => res.json())
+      .then(data => {
+        if(data.code == "error") {
+          notyf.error(data.message);
+        }
+
+        if(data.code == "success") {
+          // Lưu thông báo vào session, sang trang tổng quan sẽ hiện thông báo
+          sessionStorage.setItem("notify", JSON.stringify({
+            type: data.code,
+            message: data.message
+          }))
+          window.location.href = `/${pathAdmin}/dashboard`;
+        }
+      })
+  }
+
+  if(typeof JustValidate !== "undefined") {
+    const validation = new JustValidate('#loginForm');
+
+    validation
+      .addField('#email', [
+        {
+          rule: 'required',
+          errorMessage: 'Vui lòng nhập email!',
+        },
+        {
+          rule: 'email',
+          errorMessage: 'Email không đúng định dạng!',
+        },
+      ])
+      .addField('#password', [
+        {
+          rule: 'required',
+          errorMessage: 'Vui lòng nhập mật khẩu!',
+        },
+      ])
+      .onSuccess((event) => {
+        submitLogin(event.target)
+      })
+    ;
+  }
+  else {
+    // Không tải được JustValidate từ CDN => vẫn đăng nhập được, server sẽ kiểm tra dữ liệu
+    console.error("Không tải được thư viện JustValidate")
+    loginForm.addEventListener("submit", (event) => {
+      event.preventDefault()
+      submitLogin(loginForm)
+    })
+  }
+}
+// End loginForm
+
 // accountAdminChangePasswordForm
 const accountAdminChangePasswordForm = document.querySelector("#accountAdminChangePasswordForm");
 if(accountAdminChangePasswordForm) {

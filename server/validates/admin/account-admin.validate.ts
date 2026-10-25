@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import Joi from "joi";
 
-// Quy tắc mật khẩu dùng chung
-const passwordSchema = Joi.string()
+// Quy tắc mật khẩu dùng chung (dùng cả trong scripts/create-super-admin.ts)
+export const passwordSchema = Joi.string()
   .required()
   .min(8)
   .custom((value, helpers) => {

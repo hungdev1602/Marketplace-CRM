@@ -166,6 +166,15 @@ export const editPatch = async (req: Request, res: Response) => {
       return
     }
 
+    // Chỉ Super Admin mới được sửa tài khoản Super Admin
+    if(accountDetail.isSuperAdmin && !res.locals.account.isSuperAdmin){
+      res.json({
+        code: "error",
+        message: "Bạn không có quyền sửa tài khoản Super Admin"
+      })
+      return
+    }
+
     const existEmail = await AccountAdmin.findOne({
       _id: { $ne: id }, // not equal
       email: req.body.email
@@ -216,6 +225,14 @@ export const deletePatch = async (req: Request, res: Response) => {
       res.json({
         code: "error",
         message: "Tài khoản admin không tồn tại"
+      })
+      return
+    }
+
+    if(accountDetail.isSuperAdmin){
+      res.json({
+        code: "error",
+        message: "Không thể xoá tài khoản Super Admin"
       })
       return
     }
@@ -409,6 +426,15 @@ export const changePasswordPatch = async (req: Request, res: Response) => {
       res.json({
         code: "error",
         message: "Tài khoản admin không tồn tại"
+      })
+      return
+    }
+
+    // Chỉ Super Admin mới được sửa tài khoản Super Admin
+    if(accountDetail.isSuperAdmin && !res.locals.account.isSuperAdmin){
+      res.json({
+        code: "error",
+        message: "Bạn không có quyền sửa tài khoản Super Admin"
       })
       return
     }
