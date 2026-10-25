@@ -1167,6 +1167,30 @@ if(accountAdminEditForm) {
 
 // End accountAdminEditForm
 
+// Nút con mắt ẩn/hiện mật khẩu
+// Thêm thuộc tính [button-toggle-password="#idÔMậtKhẩu"] vào nút là dùng được
+const listButtonTogglePassword = document.querySelectorAll("[button-toggle-password]");
+listButtonTogglePassword.forEach(button => {
+  const input = document.querySelector(button.getAttribute("button-toggle-password"));
+  const icon = button.querySelector("i");
+
+  button.addEventListener("click", () => {
+    const isHidden = input.type === "password";
+    const title = isHidden ? "Ẩn mật khẩu" : "Hiện mật khẩu";
+
+    // Đổi ô nhập: password (dấu chấm) <=> text (chữ thường)
+    input.type = isHidden ? "text" : "password";
+
+    // Đổi icon: mắt mở <=> mắt gạch chéo
+    icon.classList.toggle("fa-eye", !isHidden);
+    icon.classList.toggle("fa-eye-slash", isHidden);
+
+    button.title = title;
+    button.setAttribute("aria-label", title);
+  })
+})
+// End Nút con mắt ẩn/hiện mật khẩu
+
 // loginForm
 const loginForm = document.querySelector("#loginForm");
 if(loginForm) {
@@ -1221,7 +1245,9 @@ if(loginForm) {
           rule: 'required',
           errorMessage: 'Vui lòng nhập mật khẩu!',
         },
-      ])
+      ], {
+        errorsContainer: '#passwordError',
+      })
       .onSuccess((event) => {
         submitLogin(event.target)
       })

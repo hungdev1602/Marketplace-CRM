@@ -31,13 +31,24 @@ block main
                         )
                     .form-group
                       label.form-label(for="password") Mật khẩu
-                      input.form-control(
-                        id="password"
-                        type="password"
-                        name="password"
-                        placeholder="Nhập mật khẩu"
-                        autocomplete="current-password"
-                        )
+                      .input-group
+                        input.form-control(
+                          id="password"
+                          type="password"
+                          name="password"
+                          placeholder="Nhập mật khẩu"
+                          autocomplete="current-password"
+                          )
+                        //- Nút con mắt: bấm để hiện/ẩn mật khẩu
+                        button.btn.btn-outline-secondary(
+                          type="button"
+                          button-toggle-password="#password"
+                          title="Hiện mật khẩu"
+                          aria-label="Hiện mật khẩu"
+                          )
+                          i.fa-regular.fa-eye
+                      //- Chỗ hiện lỗi của ô mật khẩu (để ngoài .input-group cho khỏi lệch nút con mắt)
+                      #passwordError
                     .form-group.mt-3
                       .form-check.form-switch.form-switch-success
                         input.form-check-input(
