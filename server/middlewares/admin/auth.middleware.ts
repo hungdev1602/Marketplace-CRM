@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express"
 import jwt from "jsonwebtoken"
 import { AccountAdmin } from "../../models/account-admin.model"
-import { pathAdmin } from "../../config/variable.config"
+import { Role } from "../../models/role.models"
+import { pathAdmin, permissionList } from "../../config/variable.config"
 
 // Chưa đăng nhập / hết phiên đăng nhập
 const requireLogin = (req: Request, res: Response) => {
@@ -50,6 +51,26 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
     // - controller dùng: res.locals.account
     // - file PUG dùng: account
     res.locals.account = existAccount
+
+    // Danh sách quyền của tài khoản đang đăng nhập
+    // - Super Admin: có tất cả quyền
+    // - Tài khoản khác: gộp quyền của các nhóm quyền (đang hoạt động, chưa bị xoá) được gán cho tài khoản
+    // Lấy lại ở mỗi request, nên sửa nhóm quyền là có hiệu lực ngay, không cần đăng nhập lại
+    // - controller dùng: res.locals.permissions
+    // - file PUG dùng: permissions
+    let permissions: string[] = []
+    if(existAccount.isSuperAdmin){
+      permissions = permissionList.map(item => item.id)
+    }
+    else{
+      const roleList = await Role.find({
+        _id: { $in: existAccount.roles },
+        deleted: false,
+        status: "active"
+      })
+      permissions = [...new Set(roleList.flatMap(role => role.permissions))]
+    }
+    res.locals.permissions = permissions
 
     next()
   } catch (error) {

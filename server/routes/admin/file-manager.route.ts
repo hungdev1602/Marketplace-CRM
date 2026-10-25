@@ -1,9 +1,13 @@
 import { Router } from "express"
 import * as controller from "../../controller/admin/file-manager.controller"
+import * as permissionMiddleware from "../../middlewares/admin/permission.middleware"
 import multer from "multer"
 
 const router = Router()
 const upload = multer()
+
+// Tất cả chức năng quản lý file đều cần quyền "file-manager"
+router.use(permissionMiddleware.checkPermission("file-manager"))
 
 router.get("/", controller.index)
 

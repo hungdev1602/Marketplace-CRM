@@ -2,6 +2,10 @@ export const pathAdmin: string = "admin"
 
 export const domainFileManager: string = "http://localhost:4000"
 
+// Danh sách quyền trong trang admin
+// - id: mã quyền, dùng trong route (permissionMiddleware.checkPermission("id")) và file PUG (permissions.includes("id"))
+// - name: tên hiển thị ở trang tạo/sửa nhóm quyền
+// Lưu ý: không đổi id của quyền đã dùng, vì các nhóm quyền đã tạo đang lưu theo id
 export const permissionList = [
   {
     id: "dashboard",
@@ -25,7 +29,7 @@ export const permissionList = [
   },
   {
     id: "article-trash",
-    name: "Thùng rác bài viết"
+    name: "Thùng rác bài viết (khôi phục, xoá vĩnh viễn)"
   },
   {
     id: "article-category",
@@ -45,7 +49,7 @@ export const permissionList = [
   },
   {
     id: "article-category-trash",
-    name: "Thùng rác danh mục bài viết"
+    name: "Thùng rác danh mục bài viết (khôi phục, xoá vĩnh viễn)"
   },
   {
     id: "role-list",
@@ -65,7 +69,31 @@ export const permissionList = [
   },
   {
     id: "role-trash",
-    name: "Thùng rác nhóm quyền"
+    name: "Thùng rác nhóm quyền (khôi phục, xoá vĩnh viễn)"
+  },
+  {
+    id: "account-admin-list",
+    name: "Danh sách tài khoản admin"
+  },
+  {
+    id: "account-admin-create",
+    name: "Tạo tài khoản admin"
+  },
+  {
+    id: "account-admin-edit",
+    name: "Sửa tài khoản admin"
+  },
+  {
+    id: "account-admin-change-password",
+    name: "Đổi mật khẩu tài khoản admin"
+  },
+  {
+    id: "account-admin-delete",
+    name: "Xoá tài khoản admin"
+  },
+  {
+    id: "account-admin-trash",
+    name: "Thùng rác tài khoản admin (khôi phục, xoá vĩnh viễn)"
   },
   {
     id: "file-manager",

@@ -26,79 +26,91 @@
                 <div class="border_right"></div>
                 </small>
             span Main Menu
-          li.nav-item
-            a.nav-link(
-              href="/admin/dashboard"
-              )
-              i.iconoir-home-simple.menu-icon
-              span Trang tổng quan
+          if permissions.includes("dashboard")
+            li.nav-item
+              a.nav-link(
+                href=`/${pathAdmin}/dashboard`
+                )
+                i.iconoir-home-simple.menu-icon
+                span Trang tổng quan
           // end nav-item
-          li.nav-item
-            a.nav-link(
-              aria-controls="sidebarApplications" 
-              aria-expanded="false" 
-              role="button" 
-              data-bs-toggle="collapse" 
-              href="#sidebarArticle"
-              )
-              i.iconoir-journal-page.menu-icon
-              span Bài viết
-            #sidebarArticle.collapse
-              ul.nav.flex-column
-                li.nav-item
-                  a.nav-link(href=`/${pathAdmin}/article/create`) Tạo bài viết
-                // end nav-item
-                li.nav-item
-                  a.nav-link(href=`/${pathAdmin}/article/list`) Danh sách bài viết
-                // end nav-item
-                li.nav-item
-                  a.nav-link(href=`/${pathAdmin}/article/category`) Danh mục bài viết
-                // end nav-item
-              // end nav
-            // end sidebarArticle
+          if ["article-create", "article-list", "article-category"].some(item => permissions.includes(item))
+            li.nav-item
+              a.nav-link(
+                aria-controls="sidebarApplications" 
+                aria-expanded="false" 
+                role="button" 
+                data-bs-toggle="collapse" 
+                href="#sidebarArticle"
+                )
+                i.iconoir-journal-page.menu-icon
+                span Bài viết
+              #sidebarArticle.collapse
+                ul.nav.flex-column
+                  if permissions.includes("article-create")
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/article/create`) Tạo bài viết
+                  // end nav-item
+                  if permissions.includes("article-list")
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/article/list`) Danh sách bài viết
+                  // end nav-item
+                  if permissions.includes("article-category")
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/article/category`) Danh mục bài viết
+                  // end nav-item
+                // end nav
+              // end sidebarArticle
           // end nav-item
-          li.nav-item
-            a.nav-link(
-              aria-controls="sidebarRole" 
-              aria-expanded="false" 
-              role="button" 
-              data-bs-toggle="collapse" 
-              href="#sidebarRole"
-              )
-              i.iconoir-user-badge-check.menu-icon
-              span Nhóm quyền
-            #sidebarRole.collapse
-              ul.nav.flex-column
-                li.nav-item
-                  a.nav-link(href=`/${pathAdmin}/role/create`) Tạo nhóm quyền
-                // end nav-item
-                li.nav-item
-                  a.nav-link(href=`/${pathAdmin}/role/list`) Danh sách nhóm quyền
-                // end nav-item
-          li.nav-item
-            a.nav-link(
-              aria-controls="sidebarAccountAdmin" 
-              aria-expanded="false" 
-              role="button" 
-              data-bs-toggle="collapse" 
-              href="#sidebarAccountAdmin"
-              )
-              i.iconoir-user-crown.menu-icon
-              span Tài khoản quản trị
-            #sidebarAccountAdmin.collapse
-              ul.nav.flex-column
-                li.nav-item
-                  a.nav-link(href=`/${pathAdmin}/account-admin/create`) Tạo tài khoản
-                // end nav-item
-                li.nav-item
-                  a.nav-link(href=`/${pathAdmin}/account-admin/list`) Danh sách tài khoản
-                // end nav-item
-          li.nav-item
-            a.nav-link(
-              href=`/${pathAdmin}/file-manager/iframe`
-              )
-              i.iconoir-page-star.menu-icon
-              span Quản lý file
+          if ["role-create", "role-list"].some(item => permissions.includes(item))
+            li.nav-item
+              a.nav-link(
+                aria-controls="sidebarRole" 
+                aria-expanded="false" 
+                role="button" 
+                data-bs-toggle="collapse" 
+                href="#sidebarRole"
+                )
+                i.iconoir-user-badge-check.menu-icon
+                span Nhóm quyền
+              #sidebarRole.collapse
+                ul.nav.flex-column
+                  if permissions.includes("role-create")
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/role/create`) Tạo nhóm quyền
+                  // end nav-item
+                  if permissions.includes("role-list")
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/role/list`) Danh sách nhóm quyền
+                  // end nav-item
+          if ["account-admin-create", "account-admin-list"].some(item => permissions.includes(item))
+            li.nav-item
+              a.nav-link(
+                aria-controls="sidebarAccountAdmin" 
+                aria-expanded="false" 
+                role="button" 
+                data-bs-toggle="collapse" 
+                href="#sidebarAccountAdmin"
+                )
+                i.iconoir-user-crown.menu-icon
+                span Tài khoản quản trị
+              #sidebarAccountAdmin.collapse
+                ul.nav.flex-column
+                  if permissions.includes("account-admin-create")
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/account-admin/create`) Tạo tài khoản
+                  // end nav-item
+                  if permissions.includes("account-admin-list")
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/account-admin/list`) Danh sách tài khoản
+                  // end nav-item
+          if permissions.includes("file-manager")
+            li.nav-item
+              a.nav-link(
+                href=`/${pathAdmin}/file-manager/iframe`
+                )
+                i.iconoir-page-star.menu-icon
+                span Quản lý file
           // end nav-item
 
 .startbar-overlay.d-print-none

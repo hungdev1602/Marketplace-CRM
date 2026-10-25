@@ -11,17 +11,19 @@ block main
               h4.card-title #{pageTitle}
             // end col
             .col-auto
-              a.btn.btn-danger.me-1(
-                href=`/${pathAdmin}/account-admin/trash`
-                )
-                i.fa-solid.fa-trash.me-1
-                | Thùng rác
-              a.btn.btn-primary(
-                href=`/${pathAdmin}/account-admin/create`
-                )
-                i.fa-solid.fa-plus.me-1
-                | Tạo tài khoản
-                // end col
+              if permissions.includes("account-admin-trash")
+                a.btn.btn-danger.me-1(
+                  href=`/${pathAdmin}/account-admin/trash`
+                  )
+                  i.fa-solid.fa-trash.me-1
+                  | Thùng rác
+              if permissions.includes("account-admin-create")
+                a.btn.btn-primary(
+                  href=`/${pathAdmin}/account-admin/create`
+                  )
+                  i.fa-solid.fa-plus.me-1
+                  | Tạo tài khoản
+                  // end col
             // end col
           // end row
         // end card-header
@@ -64,26 +66,29 @@ block main
                       else if (item.status == "initial")
                         span(class="badge bg-warning") Khởi tạo
                     td.text-end
-                      a(
-                        href=`/${pathAdmin}/account-admin/edit/${item.id}` 
-                        style="margin: 5px" 
-                        title="Chỉnh sửa"
-                      )
-                        <i class="fa-solid fa-pen-to-square text-secondary" style="font-size: 1.2rem;"></i>
-                      a(
-                        href=`/${pathAdmin}/account-admin/change-password/${item.id}`
-                        style="margin: 5px"
-                        title="Đổi mật khẩu"
-                      )
-                        <i class="fa-solid fa-key text-secondary" style="font-size: 1.2rem;"></i>
-                      a(
-                        href="javascript:;" 
-                        button-api 
-                        data-method="PATCH"
-                        data-api=`/${pathAdmin}/account-admin/delete/${item.id}`
-                        style="margin: 5px"
-                        title="Xoá"
-                      )
-                        <i class="fa-solid fa-trash text-secondary" style="font-size: 1.2rem;"></i>
+                      if permissions.includes("account-admin-edit") && (!item.isSuperAdmin || account.isSuperAdmin)
+                        a(
+                          href=`/${pathAdmin}/account-admin/edit/${item.id}` 
+                          style="margin: 5px" 
+                          title="Chỉnh sửa"
+                        )
+                          <i class="fa-solid fa-pen-to-square text-secondary" style="font-size: 1.2rem;"></i>
+                      if permissions.includes("account-admin-change-password") && (!item.isSuperAdmin || account.isSuperAdmin)
+                        a(
+                          href=`/${pathAdmin}/account-admin/change-password/${item.id}`
+                          style="margin: 5px"
+                          title="Đổi mật khẩu"
+                        )
+                          <i class="fa-solid fa-key text-secondary" style="font-size: 1.2rem;"></i>
+                      if permissions.includes("account-admin-delete") && !item.isSuperAdmin
+                        a(
+                          href="javascript:;" 
+                          button-api 
+                          data-method="PATCH"
+                          data-api=`/${pathAdmin}/account-admin/delete/${item.id}`
+                          style="margin: 5px"
+                          title="Xoá"
+                        )
+                          <i class="fa-solid fa-trash text-secondary" style="font-size: 1.2rem;"></i>
           +pagination(pagination, page)
     // end col

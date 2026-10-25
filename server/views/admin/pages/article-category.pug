@@ -11,16 +11,18 @@ block main
               h4.card-title #{pageTitle}
             // end col
             .col-auto
-              a.btn.btn-danger.me-1(
-                href=`/${pathAdmin}/article/category/trash`
-                )
-                i.fa-solid.fa-trash.me-1
-                | Thùng rác
-              a.btn.btn-primary(
-                href=`/${pathAdmin}/article/category/create`
-                )
-                i.fa-solid.fa-plus.me-1
-                | Tạo danh mục
+              if permissions.includes("article-category-trash")
+                a.btn.btn-danger.me-1(
+                  href=`/${pathAdmin}/article/category/trash`
+                  )
+                  i.fa-solid.fa-trash.me-1
+                  | Thùng rác
+              if permissions.includes("article-category-create")
+                a.btn.btn-primary(
+                  href=`/${pathAdmin}/article/category/create`
+                  )
+                  i.fa-solid.fa-plus.me-1
+                  | Tạo danh mục
             // end col
           // end row
         // end card-header
@@ -61,21 +63,23 @@ block main
                         span.badge.bg-danger Tạm dừng
                     td #{item.view}
                     td.text-end
-                      a(
-                        href=`/${pathAdmin}/article/category/edit/${item.id}` 
-                        style="margin: 5px" 
-                        title="Chỉnh sửa"
-                      )
-                        <i class="fa-solid fa-pen-to-square text-secondary" style="font-size: 1.2rem;"></i>
-                      a(
-                        href="javascript:;" 
-                        button-api 
-                        data-method="PATCH"
-                        data-api=`/${pathAdmin}/article/category/delete/${item.id}`
-                        style="margin: 5px"
-                        title="Xoá"
-                      )
-                        <i class="fa-solid fa-trash text-secondary" style="font-size: 1.2rem;"></i>
+                      if permissions.includes("article-category-edit")
+                        a(
+                          href=`/${pathAdmin}/article/category/edit/${item.id}` 
+                          style="margin: 5px" 
+                          title="Chỉnh sửa"
+                        )
+                          <i class="fa-solid fa-pen-to-square text-secondary" style="font-size: 1.2rem;"></i>
+                      if permissions.includes("article-category-delete")
+                        a(
+                          href="javascript:;" 
+                          button-api 
+                          data-method="PATCH"
+                          data-api=`/${pathAdmin}/article/category/delete/${item.id}`
+                          style="margin: 5px"
+                          title="Xoá"
+                        )
+                          <i class="fa-solid fa-trash text-secondary" style="font-size: 1.2rem;"></i>
               else 
                 tr
                   td(colspan=6 class="text-center") Không tìm thấy dữ liệu
