@@ -5,6 +5,7 @@ import { Media } from "../../models/media.model";
 import moment from "moment";
 import { formatFileSize } from "../../helpers/format.helper";
 import { domainFileManager } from "../../config/variable.config";
+import { writeLog } from "../../helpers/activity-log.helper";
 
 export const index = async (req: Request, res: Response) => {
   const find: {
@@ -95,6 +96,14 @@ export const uploadPost = async (req: Request, res: Response) => {
 
     if(response.data.code === "success") {
       await Media.insertMany(response.data.saveLinks) // insertMany lưu nhiều bản ghi 1 lúc, truyền vào 1 mảng
+
+      const saveLinks: { folder: string, filename: string }[] = response.data.saveLinks
+      await writeLog(req, res, {
+        module: "file-manager",
+        action: "upload",
+        description: `Tải lên ${saveLinks.length} file vào thư mục "${saveLinks[0]?.folder || "/media"}": ${saveLinks.map(item => item.filename).join(", ")}`
+      })
+
       res.json({
         code: "success",
         message: "Upload thành công"
@@ -155,6 +164,13 @@ export const changeFileName = async (req: Request, res: Response) => {
       filename: newFileName
     })
 
+    await writeLog(req, res, {
+      module: "file-manager",
+      action: "rename",
+      description: `Đổi tên file "${existFileById.filename}" thành "${newFileName}" (thư mục "${existFileById.folder}")`,
+      targetId: id
+    })
+
     res.json({
       code: "success",
       message: "Sửa tên file thành công"
@@ -204,6 +220,13 @@ export const deleteFileDel = async(req: Request, res: Response) => {
       _id: id
     })
 
+    await writeLog(req, res, {
+      module: "file-manager",
+      action: "delete-file",
+      description: `Xoá file "${existFileById.filename}" (thư mục "${existFileById.folder}")`,
+      targetId: id
+    })
+
     res.json({
       code: "success",
       message: "Xoá file thành công!"
@@ -248,6 +271,12 @@ export const folderCreatePost = async (req: Request, res: Response) => {
       return
     }
 
+    await writeLog(req, res, {
+      module: "file-manager",
+      action: "create-folder",
+      description: `Tạo thư mục "${folderName}" trong thư mục "/media${folderPath ? `/${folderPath}` : ""}"`
+    })
+
     res.json({
       code: "success",
       message: "Tạo folder thành công"
@@ -291,6 +320,12 @@ export const folderDelete = async (req: Request, res: Response) => {
     const regexFolderPath = new RegExp(`${folderPath}`) // vì khi xoá folder cha, thì trong DB folder con cũng chứa chuỗi của folder cha
     await Media.deleteMany({
       folder: regexFolderPath
+    })
+
+    await writeLog(req, res, {
+      module: "file-manager",
+      action: "delete-folder",
+      description: `Xoá thư mục "${folderPath}" và toàn bộ file bên trong`
     })
 
     res.json({

@@ -7,6 +7,7 @@ import { fileManagerRoute } from "./file-manager.route"
 import { roleRoute } from "./role.route"
 import { accountAdminRoute } from "./account-admin.route"
 import { accountRoute } from "./account.route"
+import { activityLogRoute } from "./activity-log.route"
 import * as authMiddleware from "../../middlewares/admin/auth.middleware"
 
 export const adminRoute = (app: Express) => {
@@ -29,4 +30,6 @@ export const adminRoute = (app: Express) => {
   app.use(`/${path}/role`, roleRoute)
 
   app.use(`/${path}/account-admin`, accountAdminRoute)
+
+  app.use(`/${path}/activity-log`, activityLogRoute)
 }

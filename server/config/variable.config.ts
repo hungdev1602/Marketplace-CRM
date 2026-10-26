@@ -100,3 +100,109 @@ export const permissionList = [
     name: "Quản lý file"
   }
 ]
+
+// Nhật ký hoạt động (chỉ Super Admin xem được, nên không có trong danh sách quyền ở trên)
+// Chức năng được ghi log
+// - id: mã chức năng, dùng khi ghi log (writeLog trong helpers/activity-log.helper.ts)
+// - name: tên hiển thị ở trang nhật ký hoạt động
+export const activityLogModuleList = [
+  {
+    id: "account",
+    name: "Đăng nhập / Đăng xuất"
+  },
+  {
+    id: "article",
+    name: "Bài viết"
+  },
+  {
+    id: "article-category",
+    name: "Danh mục bài viết"
+  },
+  {
+    id: "role",
+    name: "Nhóm quyền"
+  },
+  {
+    id: "account-admin",
+    name: "Tài khoản quản trị"
+  },
+  {
+    id: "file-manager",
+    name: "Quản lý file"
+  }
+]
+
+// Hành động được ghi log
+// - color: màu nhãn hiển thị ở trang nhật ký hoạt động (class badge của bootstrap)
+export const activityLogActionList = [
+  {
+    id: "login",
+    name: "Đăng nhập",
+    color: "bg-success"
+  },
+  {
+    id: "login-failed",
+    name: "Đăng nhập thất bại",
+    color: "bg-danger"
+  },
+  {
+    id: "logout",
+    name: "Đăng xuất",
+    color: "bg-secondary"
+  },
+  {
+    id: "create",
+    name: "Tạo mới",
+    color: "bg-primary"
+  },
+  {
+    id: "edit",
+    name: "Chỉnh sửa",
+    color: "bg-info"
+  },
+  {
+    id: "change-password",
+    name: "Đổi mật khẩu",
+    color: "bg-warning"
+  },
+  {
+    id: "delete",
+    name: "Xoá (vào thùng rác)",
+    color: "bg-danger"
+  },
+  {
+    id: "undo",
+    name: "Khôi phục",
+    color: "bg-success"
+  },
+  {
+    id: "delete-permanently",
+    name: "Xoá vĩnh viễn",
+    color: "bg-danger"
+  },
+  {
+    id: "upload",
+    name: "Tải file lên",
+    color: "bg-primary"
+  },
+  {
+    id: "rename",
+    name: "Đổi tên file",
+    color: "bg-info"
+  },
+  {
+    id: "create-folder",
+    name: "Tạo thư mục",
+    color: "bg-primary"
+  },
+  {
+    id: "delete-file",
+    name: "Xoá file",
+    color: "bg-danger"
+  },
+  {
+    id: "delete-folder",
+    name: "Xoá thư mục",
+    color: "bg-danger"
+  }
+]

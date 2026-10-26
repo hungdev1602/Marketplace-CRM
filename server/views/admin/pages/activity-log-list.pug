@@ -1,0 +1,99 @@
+extends ../layouts/default.pug
+include ../mixins/pagination.pug
+
+block main
+  .row
+    .col-12
+      .card
+        .card-header
+          .row.align-items-center
+            .col
+              h4.card-title #{pageTitle}
+              p.text-muted.mb-0 Lịch sử thao tác của các tài khoản quản trị. Chỉ tài khoản Super Admin xem được, không ai sửa hay xoá được nhật ký.
+            // end col
+          // end row
+        // end card-header
+        .card-body.pt-0
+          //- Bộ lọc
+          form.row.g-2.align-items-end.mb-3(form-filter)
+            .col-md-6.col-lg-4
+              label.form-label(for="filterKeyword") Từ khoá
+              input.form-control(
+                id="filterKeyword"
+                type="text"
+                name="keyword"
+                placeholder="Họ tên, email, nội dung..."
+                value=filter.keyword
+                )
+            .col-md-6.col-lg-4
+              label.form-label(for="filterAccountId") Tài khoản
+              select.form-select(id="filterAccountId" name="accountId")
+                option(value="") -- Tất cả tài khoản --
+                each item in accountList
+                  option(value=item.id selected=(item.id == filter.accountId))
+                    | #{item.fullName} (#{item.email})#{item.deleted ? " - đã xoá" : ""}
+            .col-md-6.col-lg-4
+              label.form-label(for="filterModule") Chức năng
+              select.form-select(id="filterModule" name="module")
+                option(value="") -- Tất cả chức năng --
+                each item in moduleList
+                  option(value=item.id selected=(item.id == filter.module)) #{item.name}
+            .col-md-6.col-lg-3
+              label.form-label(for="filterAction") Hành động
+              select.form-select(id="filterAction" name="action")
+                option(value="") -- Tất cả hành động --
+                each item in actionList
+                  option(value=item.id selected=(item.id == filter.action)) #{item.name}
+            .col-md-6.col-lg-3
+              label.form-label(for="filterStartDate") Từ ngày
+              input.form-control(
+                id="filterStartDate"
+                type="date"
+                name="startDate"
+                value=filter.startDate
+                )
+            .col-md-6.col-lg-3
+              label.form-label(for="filterEndDate") Đến ngày
+              input.form-control(
+                id="filterEndDate"
+                type="date"
+                name="endDate"
+                value=filter.endDate
+                )
+            .col-md-6.col-lg-3
+              button.btn.btn-primary.me-1(type="submit")
+                i.fa-solid.fa-filter.me-1
+                | Lọc
+              a.btn.btn-secondary(href=`/${pathAdmin}/activity-log/list`) Xoá bộ lọc
+          //- End Bộ lọc
+          p.text-muted.mb-2 Tìm thấy #{pagination.totalRecord} bản ghi
+          .table-responsive
+            table.table.table-striped.mb-0
+              thead.table-light
+                tr
+                  th STT
+                  th Thời gian
+                  th Tài khoản
+                  th Chức năng
+                  th Hành động
+                  th Nội dung
+                  th IP
+              tbody
+                each item, index in logList
+                  tr
+                    td #{pagination.skip + index + 1}
+                    td.text-nowrap #{item.createdAtFormat}
+                    td
+                      div.fw-medium #{item.accountFullName}
+                      small.text-muted #{item.accountEmail}
+                    td.text-nowrap #{item.moduleName}
+                    td
+                      span(class=`badge ${item.actionColor}`) #{item.actionName}
+                    td(style="min-width: 250px;") #{item.description}
+                    //- Rê chuột vào IP để xem trình duyệt, thiết bị
+                    td.text-nowrap(title=item.userAgent) #{item.ip}
+                else
+                  tr
+                    td.text-center.text-muted(colspan="7") Chưa có nhật ký hoạt động nào
+          +pagination(pagination, page)
+    // end col

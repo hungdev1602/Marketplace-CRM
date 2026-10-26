@@ -2,6 +2,7 @@ import { Request, Response } from "express"
 import { pathAdmin, permissionList } from "../../config/variable.config"
 import slugify from "slugify"
 import { Role } from "../../models/role.models"
+import { writeLog } from "../../helpers/activity-log.helper"
 
 export const create = async (req: Request, res: Response) => {
   res.render("admin/pages/role-create", {
@@ -21,6 +22,13 @@ export const createPost = async (req: Request, res: Response) => {
 
     const newRecord = new Role(req.body)
     await newRecord.save()
+
+    await writeLog(req, res, {
+      module: "role",
+      action: "create",
+      description: `Tạo nhóm quyền "${req.body.name}"`,
+      targetId: newRecord.id
+    })
 
     res.json({
       code: "success",
@@ -143,6 +151,13 @@ export const editPatch = async (req: Request, res: Response) => {
       deleted: false
     }, req.body)
 
+    await writeLog(req, res, {
+      module: "role",
+      action: "edit",
+      description: `Chỉnh sửa nhóm quyền "${req.body.name}"`,
+      targetId: id
+    })
+
     res.json({
       code: "success",
       message: "Cập nhật nhóm quyền thành công"
@@ -179,6 +194,13 @@ export const deletePatch = async (req: Request, res: Response) => {
     }, {
       deleted: true,
       deletedAt: Date.now()
+    })
+
+    await writeLog(req, res, {
+      module: "role",
+      action: "delete",
+      description: `Xoá nhóm quyền "${checkExist.name}" vào thùng rác`,
+      targetId: id
     })
 
     res.json({
@@ -267,6 +289,13 @@ export const undo = async (req: Request, res: Response) => {
       deleted: false
     })
 
+    await writeLog(req, res, {
+      module: "role",
+      action: "undo",
+      description: `Khôi phục nhóm quyền "${checkExist.name}"`,
+      targetId: id
+    })
+
     res.json({
       code: "success",
       message: "Khôi phục nhóm quyền thành công"
@@ -298,6 +327,13 @@ export const deletePermanently = async (req: Request, res: Response) => {
 
     await Role.deleteOne({
       _id: id
+    })
+
+    await writeLog(req, res, {
+      module: "role",
+      action: "delete-permanently",
+      description: `Xoá vĩnh viễn nhóm quyền "${checkExist.name}"`,
+      targetId: id
     })
 
     res.json({
