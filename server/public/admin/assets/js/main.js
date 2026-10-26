@@ -391,6 +391,34 @@ if(formSearch) {
 }
 // ENd Form Search
 
+// Form Filter (bộ lọc gồm nhiều ô, ví dụ trang nhật ký hoạt động)
+// Ô nào có giá trị thì thêm vào URL, ô trống thì bỏ khỏi URL, giá trị đang lọc do server điền sẵn vào ô
+const formFilter = document.querySelector("[form-filter]")
+if(formFilter) {
+  formFilter.addEventListener("submit", (event) => {
+    event.preventDefault()
+
+    const url = new URL(window.location.href)
+    const formData = new FormData(formFilter)
+
+    formData.forEach((value, key) => {
+      value = value.trim()
+      if(value){
+        url.searchParams.set(key, value)
+      }
+      else{
+        url.searchParams.delete(key)
+      }
+    })
+
+    // Lọc lại thì quay về trang 1
+    url.searchParams.delete("page")
+
+    window.location.href = url.href
+  })
+}
+// End Form Filter
+
 // Pagination
 const pagination = document.querySelector("[pagination]")
 if(pagination) {

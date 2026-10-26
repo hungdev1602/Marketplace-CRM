@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import { AccountAdmin } from "../../models/account-admin.model"
 import { pathAdmin } from "../../config/variable.config"
+import { writeLog } from "../../helpers/activity-log.helper"
 
 export const login = async (req: Request, res: Response) => {
   res.render("admin/pages/account-login", {
@@ -31,6 +32,14 @@ export const loginPost = async (req: Request, res: Response) => {
 
     const isPasswordValid = await bcrypt.compare(password, `${existAccount.password}`)
     if(!isPasswordValid){
+      // Ghi lại để Super Admin biết có người đang thử đăng nhập vào tài khoản này
+      await writeLog(req, res, {
+        account: existAccount,
+        module: "account",
+        action: "login-failed",
+        description: "Đăng nhập thất bại: sai mật khẩu"
+      })
+
       res.json({
         code: "error",
         message: "Email hoặc mật khẩu không đúng"
@@ -39,6 +48,13 @@ export const loginPost = async (req: Request, res: Response) => {
     }
 
     if(existAccount.status !== "active"){
+      await writeLog(req, res, {
+        account: existAccount,
+        module: "account",
+        action: "login-failed",
+        description: "Đăng nhập thất bại: tài khoản chưa được kích hoạt hoặc đang bị tạm dừng"
+      })
+
       res.json({
         code: "error",
         message: "Tài khoản chưa được kích hoạt hoặc đang bị tạm dừng"
@@ -73,6 +89,13 @@ export const loginPost = async (req: Request, res: Response) => {
       lastLoginAt: Date.now()
     })
 
+    await writeLog(req, res, {
+      account: existAccount,
+      module: "account",
+      action: "login",
+      description: rememberPassword ? "Đăng nhập (ghi nhớ đăng nhập 30 ngày)" : "Đăng nhập"
+    })
+
     res.json({
       code: "success",
       message: "Đăng nhập thành công"
@@ -87,6 +110,26 @@ export const loginPost = async (req: Request, res: Response) => {
 }
 
 export const logout = async (req: Request, res: Response) => {
+  // Trang đăng xuất không qua middleware đăng nhập, nên tự đọc token để biết tài khoản nào đăng xuất
+  try {
+    const decoded = jwt.verify(req.cookies.token, process.env.JWT_SECRET as string) as jwt.JwtPayload
+
+    const existAccount = await AccountAdmin.findOne({
+      _id: decoded.id
+    })
+
+    if(existAccount){
+      await writeLog(req, res, {
+        account: existAccount,
+        module: "account",
+        action: "logout",
+        description: "Đăng xuất"
+      })
+    }
+  } catch (error) {
+    // Không có token hoặc token hết hạn thì không ghi log, vẫn đăng xuất bình thường
+  }
+
   res.clearCookie("token")
   res.redirect(`/${pathAdmin}/account/login`)
 }

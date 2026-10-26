@@ -4,6 +4,7 @@ import { buildCategoryTree } from "../../helpers/category.helper"
 import slugify from "slugify"
 import { pathAdmin } from "../../config/variable.config"
 import { Blog } from "../../models/blog.model"
+import { writeLog } from "../../helpers/activity-log.helper"
 
 export const category = async (req: Request, res: Response) => {
   const find: {
@@ -138,6 +139,13 @@ export const categoryCreatePost = async (req: Request, res: Response) => {
     const newRecord = new CategoryBlog(req.body)
     await newRecord.save()
 
+    await writeLog(req, res, {
+      module: "article-category",
+      action: "create",
+      description: `Tạo danh mục bài viết "${req.body.name}"`,
+      targetId: newRecord.id
+    })
+
     res.json({
       code: "success",
       message: "Tạo danh mục bài viết thành công"
@@ -199,6 +207,13 @@ export const categoryEditPatch = async (req: Request, res: Response) => {
       deleted: false
     }, req.body)
 
+    await writeLog(req, res, {
+      module: "article-category",
+      action: "edit",
+      description: `Chỉnh sửa danh mục bài viết "${req.body.name}"`,
+      targetId: id
+    })
+
     res.json({
       code: "success",
       message: "Chỉnh sửa danh mục bài viết thành công"
@@ -215,11 +230,31 @@ export const deleteCategoryPatch = async (req: Request, res: Response) =>{
   try {
     const id = req.params.id
 
+    const categoryDetail = await CategoryBlog.findOne({
+      _id: id,
+      deleted: false
+    })
+
+    if(!categoryDetail){
+      res.json({
+        code: "error",
+        message: "Danh mục bài viết không tồn tại!"
+      })
+      return
+    }
+
     await CategoryBlog.updateOne({
       _id: id
     }, {
       deleted: true,
       deletedAt: Date.now()
+    })
+
+    await writeLog(req, res, {
+      module: "article-category",
+      action: "delete",
+      description: `Xoá danh mục bài viết "${categoryDetail.name}" vào thùng rác`,
+      targetId: id
     })
 
     res.json({
@@ -238,10 +273,30 @@ export const undoCategory = async (req: Request, res: Response) => {
   try {
     const id = req.params.id
 
+    const categoryDetail = await CategoryBlog.findOne({
+      _id: id,
+      deleted: true
+    })
+
+    if(!categoryDetail){
+      res.json({
+        code: "error",
+        message: "Danh mục bài viết không tồn tại!"
+      })
+      return
+    }
+
     await CategoryBlog.updateOne({
       _id: id
     }, {
       deleted: false
+    })
+
+    await writeLog(req, res, {
+      module: "article-category",
+      action: "undo",
+      description: `Khôi phục danh mục bài viết "${categoryDetail.name}"`,
+      targetId: id
     })
 
     res.json({
@@ -260,8 +315,28 @@ export const CategoryBlogDeletePermanently = async (req: Request, res: Response)
   try {
     const id = req.params.id
 
+    const categoryDetail = await CategoryBlog.findOne({
+      _id: id,
+      deleted: true
+    })
+
+    if(!categoryDetail){
+      res.json({
+        code: "error",
+        message: "Danh mục bài viết không tồn tại!"
+      })
+      return
+    }
+
     await CategoryBlog.deleteOne({
       _id: id
+    })
+
+    await writeLog(req, res, {
+      module: "article-category",
+      action: "delete-permanently",
+      description: `Xoá vĩnh viễn danh mục bài viết "${categoryDetail.name}"`,
+      targetId: id
     })
 
     res.json({
@@ -314,6 +389,13 @@ export const createPost = async (req: Request, res: Response) => {
 
     const newRecord = new Blog(req.body)
     await newRecord.save()
+
+    await writeLog(req, res, {
+      module: "article",
+      action: "create",
+      description: `Tạo bài viết "${req.body.name}"`,
+      targetId: newRecord.id
+    })
 
     res.json({
       code: "success",
@@ -465,6 +547,13 @@ export const editPatch = async (req: Request, res: Response) => {
       deleted: false
     }, req.body)
 
+    await writeLog(req, res, {
+      module: "article",
+      action: "edit",
+      description: `Chỉnh sửa bài viết "${req.body.name}"`,
+      targetId: id
+    })
+
     res.json({
       code: "success",
       message: "Cập nhật bài viết thành công"
@@ -481,11 +570,31 @@ export const deletePatch = async (req: Request, res: Response) =>{
   try {
     const id = req.params.id
 
+    const articleDetail = await Blog.findOne({
+      _id: id,
+      deleted: false
+    })
+
+    if(!articleDetail){
+      res.json({
+        code: "error",
+        message: "Bài viết không tồn tại!"
+      })
+      return
+    }
+
     await Blog.updateOne({
       _id: id
     }, {
       deleted: true,
       deletedAt: Date.now()
+    })
+
+    await writeLog(req, res, {
+      module: "article",
+      action: "delete",
+      description: `Xoá bài viết "${articleDetail.name}" vào thùng rác`,
+      targetId: id
     })
 
     res.json({
@@ -504,10 +613,30 @@ export const undo = async (req: Request, res: Response) => {
   try {
     const id = req.params.id
 
+    const articleDetail = await Blog.findOne({
+      _id: id,
+      deleted: true
+    })
+
+    if(!articleDetail){
+      res.json({
+        code: "error",
+        message: "Bài viết không tồn tại!"
+      })
+      return
+    }
+
     await Blog.updateOne({
       _id: id
     }, {
       deleted: false
+    })
+
+    await writeLog(req, res, {
+      module: "article",
+      action: "undo",
+      description: `Khôi phục bài viết "${articleDetail.name}"`,
+      targetId: id
     })
 
     res.json({
@@ -526,8 +655,28 @@ export const deletePermanently = async (req: Request, res: Response) => {
   try {
     const id = req.params.id
 
+    const articleDetail = await Blog.findOne({
+      _id: id,
+      deleted: true
+    })
+
+    if(!articleDetail){
+      res.json({
+        code: "error",
+        message: "Bài viết không tồn tại!"
+      })
+      return
+    }
+
     await Blog.deleteOne({
       _id: id
+    })
+
+    await writeLog(req, res, {
+      module: "article",
+      action: "delete-permanently",
+      description: `Xoá vĩnh viễn bài viết "${articleDetail.name}"`,
+      targetId: id
     })
 
     res.json({

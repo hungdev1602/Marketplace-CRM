@@ -4,6 +4,8 @@ import slugify from "slugify"
 import bcrypt from "bcryptjs"
 import { AccountAdmin } from "../../models/account-admin.model"
 import { pathAdmin } from "../../config/variable.config"
+import { writeLog } from "../../helpers/activity-log.helper"
+
 export const create = async (req: Request, res: Response) => {
   const roleList = await Role.find({
     deleted: false,
@@ -42,6 +44,13 @@ export const createPost = async (req: Request, res: Response) => {
     
     const newRecord = new AccountAdmin(req.body)
     await newRecord.save()
+
+    await writeLog(req, res, {
+      module: "account-admin",
+      action: "create",
+      description: `Tạo tài khoản admin "${req.body.fullName}" (${req.body.email})`,
+      targetId: newRecord.id
+    })
 
     res.json({
       code: "success",
@@ -200,6 +209,13 @@ export const editPatch = async (req: Request, res: Response) => {
       deleted: false
     }, req.body)
 
+    await writeLog(req, res, {
+      module: "account-admin",
+      action: "edit",
+      description: `Chỉnh sửa tài khoản admin "${req.body.fullName}" (${req.body.email})`,
+      targetId: id
+    })
+
     res.json({
       code: "success",
       message: "Cập nhật thành công"
@@ -243,6 +259,13 @@ export const deletePatch = async (req: Request, res: Response) => {
     }, {
       deleted: true,
       deletedAt: Date.now()
+    })
+
+    await writeLog(req, res, {
+      module: "account-admin",
+      action: "delete",
+      description: `Xoá tài khoản admin "${accountDetail.fullName}" (${accountDetail.email}) vào thùng rác`,
+      targetId: id
     })
 
     res.json({
@@ -345,6 +368,13 @@ export const undo = async (req: Request, res: Response) => {
       deleted: false
     })
 
+    await writeLog(req, res, {
+      module: "account-admin",
+      action: "undo",
+      description: `Khôi phục tài khoản admin "${accountDetail.fullName}" (${accountDetail.email})`,
+      targetId: id
+    })
+
     res.json({
       code: "success",
       message: "Khôi phục tài khoản admin thành công"
@@ -376,6 +406,13 @@ export const deletePermanently = async (req: Request, res: Response) => {
 
     await AccountAdmin.deleteOne({
       _id: id
+    })
+
+    await writeLog(req, res, {
+      module: "account-admin",
+      action: "delete-permanently",
+      description: `Xoá vĩnh viễn tài khoản admin "${accountDetail.fullName}" (${accountDetail.email})`,
+      targetId: id
     })
 
     res.json({
@@ -447,6 +484,13 @@ export const changePasswordPatch = async (req: Request, res: Response) => {
       deleted: false
     }, {
       password: password
+    })
+
+    await writeLog(req, res, {
+      module: "account-admin",
+      action: "change-password",
+      description: `Đổi mật khẩu tài khoản admin "${accountDetail.fullName}" (${accountDetail.email})`,
+      targetId: id
     })
 
     res.json({

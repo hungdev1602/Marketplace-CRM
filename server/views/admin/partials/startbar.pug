@@ -112,5 +112,14 @@
                 i.iconoir-page-star.menu-icon
                 span Quản lý file
           // end nav-item
+          //- Nhật ký hoạt động: chỉ Super Admin xem được
+          if account.isSuperAdmin
+            li.nav-item
+              a.nav-link(
+                href=`/${pathAdmin}/activity-log/list`
+                )
+                i.iconoir-clock-rotate-right.menu-icon
+                span Nhật ký hoạt động
+          // end nav-item
 
 .startbar-overlay.d-print-none
