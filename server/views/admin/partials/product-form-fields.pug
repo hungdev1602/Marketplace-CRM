@@ -70,24 +70,25 @@
     h5.border-bottom.pb-2.mb-3.mt-2 Giá &amp; kho hàng
   .col-md-4
     .mb-3
-      label.form-label(for="price") Giá bán *
-      .input-group
-        input.form-control(id="price" type="number" name="price" min="0" step="0.01" value=product.price)
-        span.input-group-text ₽
-  .col-md-4
-    .mb-3
-      label.form-label(for="priceOld") Giá gốc (trước khuyến mãi)
-      .input-group
-        input.form-control(id="priceOld" type="number" name="priceOld" min="0" step="0.01" value=product.priceOld)
-        span.input-group-text ₽
-      small.text-muted Hiện gạch ngang bên cạnh giá bán, để trống nếu không giảm giá
-  .col-md-4
-    .mb-3
-      label.form-label(for="costPrice") Giá nhập
+      label.form-label(for="costPrice") Giá nhập (giá vốn)
       .input-group
         input.form-control(id="costPrice" type="number" name="costPrice" min="0" step="0.01" value=product.costPrice)
         span.input-group-text ₽
       small.text-muted Chỉ hiện trong trang quản trị, khách không thấy
+  .col-md-4
+    .mb-3
+      label.form-label(for="price") Giá bán *
+      .input-group
+        input.form-control(id="price" type="number" name="price" min="0" step="0.01" value=product.price)
+        span.input-group-text ₽
+      small.text-muted Giá khách trả, phải cao hơn giá nhập
+  .col-md-4
+    .mb-3
+      label.form-label(for="priceOld") Giá trước khuyến mãi
+      .input-group
+        input.form-control(id="priceOld" type="number" name="priceOld" min="0" step="0.01" value=product.priceOld)
+        span.input-group-text ₽
+      small.text-muted Chỉ nhập khi giảm giá, hiện gạch ngang: #[del 79&nbsp;₽] 59&nbsp;₽
   .col-md-4
     .mb-3
       label.form-label(for="unit") Đơn vị bán

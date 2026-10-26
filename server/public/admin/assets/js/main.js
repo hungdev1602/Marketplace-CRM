@@ -1132,6 +1132,10 @@ const addProductValidate = (validator, form) => {
       {
         validator: (value) => Number(value) >= 0,
         errorMessage: 'Giá bán không được âm!'
+      },
+      {
+        validator: (value) => form.costPrice.value === "" || Number(value) > Number(form.costPrice.value),
+        errorMessage: 'Giá bán phải cao hơn giá nhập (giá vốn)!'
       }
     ], {
       errorsContainer: form.querySelector('#price').closest('.mb-3')
@@ -1139,7 +1143,7 @@ const addProductValidate = (validator, form) => {
     .addField('#priceOld', [
       {
         validator: (value) => value === "" || Number(value) > Number(form.price.value),
-        errorMessage: 'Giá gốc phải lớn hơn giá bán (để trống nếu không giảm giá)!'
+        errorMessage: 'Giá trước khuyến mãi phải cao hơn giá bán (để trống nếu không giảm giá)!'
       }
     ], {
       errorsContainer: form.querySelector('#priceOld').closest('.mb-3')

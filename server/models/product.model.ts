@@ -18,9 +18,9 @@ const productSchema = new mongoose.Schema(
     dietTags: [String], // đặc điểm: productDietTagList (cay, chay, halal,...)
 
     // Giá & kho hàng (tiền rúp ₽)
-    price: Number, // giá bán (khách trả)
-    priceOld: Number, // giá gốc trước khuyến mãi, hiển thị gạch ngang (để trống nếu không giảm giá)
-    costPrice: Number, // giá nhập, chỉ hiện trong trang admin
+    price: Number, // giá bán (khách trả), phải cao hơn giá nhập
+    priceOld: Number, // giá trước khuyến mãi, hiển thị gạch ngang (để trống nếu không giảm giá), phải cao hơn giá bán
+    costPrice: Number, // giá nhập (giá vốn), chỉ hiện trong trang admin, giá bán phải cao hơn giá này
     vat: String, // thuế VAT (НДС): productVatList
     unit: String, // đơn vị bán: productUnitList
     stock: {

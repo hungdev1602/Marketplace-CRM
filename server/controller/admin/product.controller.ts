@@ -1,5 +1,6 @@
 import { Request, Response } from "express"
 import slugify from "slugify"
+import mongoose from "mongoose"
 import { CategoryProduct } from "../../models/category-product.model"
 import { Product } from "../../models/product.model"
 import { buildCategoryTree, getDescendantIds } from "../../helpers/category.helper"
@@ -533,6 +534,24 @@ const formatProductBody = (body: any) => {
   })
 }
 
+// Lọc danh sách id danh mục của sản phẩm trước khi lưu
+// - Chỉ giữ danh mục có thật (bỏ id lạ gửi lên)
+// - Danh mục đang nằm trong thùng rác không hiện ở form sửa, nên giữ nguyên nếu sản phẩm đã thuộc danh mục đó
+//   (khôi phục danh mục thì sản phẩm vẫn nằm trong danh mục)
+const resolveCategoryIds = async (categoryIds: string[], oldCategoryIds: string[] = []) => {
+  const categoryList = await CategoryProduct
+    .find({
+      _id: {
+        $in: [...categoryIds, ...oldCategoryIds].filter(id => mongoose.isValidObjectId(id))
+      }
+    })
+    .select("deleted")
+
+  return categoryList
+    .filter(category => category.deleted ? oldCategoryIds.includes(category.id) : categoryIds.includes(category.id))
+    .map(category => category.id)
+}
+
 // Mã SKU không được trùng với sản phẩm khác (kể cả sản phẩm trong thùng rác)
 const checkExistSku = async (sku: string, excludeId?: string) => {
   if(!sku){
@@ -593,6 +612,7 @@ export const createPost = async (req: Request, res: Response) => {
     }
 
     formatProductBody(req.body)
+    req.body.category = await resolveCategoryIds(req.body.category)
 
     // Không nhập vị trí thì xếp xuống cuối
     if(req.body.position === "" || req.body.position === undefined){
@@ -845,6 +865,7 @@ export const editPatch = async (req: Request, res: Response) => {
     }
 
     formatProductBody(req.body)
+    req.body.category = await resolveCategoryIds(req.body.category, productDetail.category)
 
     // Để trống vị trí thì giữ nguyên vị trí cũ
     if(req.body.position === ""){

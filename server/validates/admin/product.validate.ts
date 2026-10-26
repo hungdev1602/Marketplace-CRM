@@ -133,7 +133,7 @@ export const createPost = (req: Request, res: Response, next: NextFunction) => {
         "number.base": "Vui lòng nhập giá bán (là số)!",
         "any.required": "Vui lòng nhập giá bán!"
       }),
-    priceOld: optionalNumber("Giá gốc"),
+    priceOld: optionalNumber("Giá trước khuyến mãi"),
     costPrice: optionalNumber("Giá nhập"),
     vat: optionalSelect("Thuế VAT", productVatList),
     unit: optionalSelect("Đơn vị bán", productUnitList),
@@ -186,11 +186,20 @@ export const createPost = (req: Request, res: Response, next: NextFunction) => {
     return
   }
 
-  // Giá gốc (giá trước khuyến mãi) phải lớn hơn giá bán
+  // Giá bán phải cao hơn giá nhập (giá vốn)
+  if(req.body.costPrice !== "" && Number(req.body.price) <= Number(req.body.costPrice)){
+    res.json({
+      code: "error",
+      message: "Giá bán phải cao hơn giá nhập (giá vốn)!"
+    })
+    return
+  }
+
+  // Giá trước khuyến mãi (hiện gạch ngang) phải cao hơn giá bán
   if(req.body.priceOld !== "" && Number(req.body.priceOld) <= Number(req.body.price)){
     res.json({
       code: "error",
-      message: "Giá gốc phải lớn hơn giá bán (để trống nếu không giảm giá)!"
+      message: "Giá trước khuyến mãi phải cao hơn giá bán (để trống nếu không giảm giá)!"
     })
     return
   }
