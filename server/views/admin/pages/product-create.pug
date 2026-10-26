@@ -1,0 +1,19 @@
+extends ../layouts/default.pug
+include ../mixins/form-group.pug
+include ../mixins/checkbox.pug
+
+block main 
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title #{pageTitle}
+    .card-body.pt-0
+      form(id="productCreateForm")
+        - const product = {}
+        include ../partials/product-form-fields.pug
+        button.btn.btn-primary(type="submit") Tạo mới
+        a.btn.btn-danger.ms-1(href=`/${pathAdmin}/product/list`) Hủy
+
+block script
+  include ../partials/script-editor.pug

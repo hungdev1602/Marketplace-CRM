@@ -2,6 +2,7 @@ import { Express } from "express"
 import { dashboardRoute } from "./dashboard.route"
 import { pathAdmin } from "../../config/variable.config"
 import { articleRoute } from "./article.route"
+import { productRoute } from "./product.route"
 import { helperRoute } from "./helper.route"
 import { fileManagerRoute } from "./file-manager.route"
 import { roleRoute } from "./role.route"
@@ -20,6 +21,8 @@ export const adminRoute = (app: Express) => {
   app.use(`/${path}`, authMiddleware.verifyToken)
 
   app.use(`/${path}/dashboard`, dashboardRoute)
+
+  app.use(`/${path}/product`, productRoute)
 
   app.use(`/${path}/article`, articleRoute)
 

@@ -8,3 +8,10 @@ export const formatFileSize = (bytes: number): string => {
   // Nếu >= 1MB thì hiển thị đơn bị MB
   return (bytes / 1048576).toFixed(2) + " MB"
 }
+
+// Định dạng giá tiền rúp theo kiểu Nga, ví dụ: 1250.5 => "1 250,5 ₽"
+export const formatPrice = (price: number | null | undefined): string => {
+  if (price === null || price === undefined) return ""
+
+  return new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(price) + " ₽"
+}

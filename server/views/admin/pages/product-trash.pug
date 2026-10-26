@@ -1,0 +1,79 @@
+extends ../layouts/default.pug
+
+block main
+  .row
+    .col-12
+      .card
+        .card-header
+          .row.align-items-center
+            .col
+              h4.card-title #{pageTitle}
+            // end col
+            .col-auto
+              a.btn.btn-primary(
+                href=`/${pathAdmin}/product/list`
+                )
+                i.fa-solid.fa-arrow-left.me-1
+                | Quay lại danh sách
+            // end col
+          // end row
+        // end card-header
+        //- Table
+        .table-responsive
+            table.table.table-striped.mb-0
+              thead.table-light
+                tr
+                  th STT
+                  th Ảnh
+                  th Sản phẩm
+                  th Giá bán
+                  th.text-center Tồn kho
+                  th Trạng thái
+                  th.text-end Hành động
+              tbody
+                each item, index in allProduct
+                  tr
+                    td #{index + 1}
+                    td
+                      if(item.avatar)
+                        img(
+                          src=`${domainFileManager}${item.avatar}`
+                          class="thumb-md me-1 d-inline rounded"
+                        )
+                    td
+                      div.fw-medium #{item.name}
+                      if(item.nameRu)
+                        div.small.text-muted #{item.nameRu}
+                      if(item.sku)
+                        div.small.text-muted SKU: #{item.sku}
+                    td.text-nowrap #{item.priceFormat}
+                    td.text-center #{item.stock}
+                    td
+                      if (item.status == "active")
+                        span.badge.bg-success Đang bán
+                      else if (item.status == "inactive")
+                        span.badge.bg-danger Ngừng bán
+                    td.text-end.text-nowrap
+                      a(href="javascript:;"
+                        button-api
+                        data-method="PATCH"
+                        data-api=`/${pathAdmin}/product/undo/${item.id}`
+                        style="margin: 5px"
+                        title="Khôi phục"
+                      )
+                        <i class="fa-solid fa-rotate-left text-secondary" style="font-size: 1.2rem;"></i>
+                      a(
+                        href="javascript:;"
+                        button-api
+                        data-method="DELETE"
+                        data-api=`/${pathAdmin}/product/delete-permanently/${item.id}`
+                        style="margin: 5px"
+                        title="Xoá vĩnh viễn"
+                      )
+                        <i class="fa-solid fa-trash text-danger" style="font-size: 1.2rem;"></i>
+                else
+                  tr
+                    td.text-center(colspan="7") Thùng rác trống
+
+    // end col
+  // end row

@@ -1,16 +1,17 @@
-mixin checkbox-list(list = [], level = 0, listChecked = [])
+//- idPrefix: thêm vào trước id của ô checkbox, dùng khi 1 trang có nhiều danh sách để id không bị trùng
+mixin checkbox-list(list = [], level = 0, listChecked = [], idPrefix = "")
   each item in list
     - const marginLeft = `${level*20}px`
     div(class="checkbox-item" style=`margin-left: ${marginLeft}`)
       input(
         type="checkbox" 
-        id=`${item.id}` 
+        id=`${idPrefix}${item.id}` 
         value=`${item.id}`
         checked=(listChecked.includes(item.id))
       )
-      label(for=`${item.id}`) #{item.name}
+      label(for=`${idPrefix}${item.id}`) #{item.name}
     if(item.children && item.children.length > 0)
-      +checkbox-list(item.children, level + 1, listChecked)
+      +checkbox-list(item.children, level + 1, listChecked, idPrefix)
     //- div(class="checkbox-item" style="margin-left: 20px")
     //-   input(type="checkbox" id="checkbox-1")
     //-   label(for="checkbox-1") Danh muc 1-1

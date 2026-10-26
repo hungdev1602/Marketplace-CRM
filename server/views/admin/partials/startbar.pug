@@ -34,6 +34,34 @@
                 i.iconoir-home-simple.menu-icon
                 span Trang tổng quan
           // end nav-item
+          if ["product-create", "product-list", "product-category"].some(item => permissions.includes(item))
+            li.nav-item
+              a.nav-link(
+                aria-controls="sidebarProduct"
+                aria-expanded="false"
+                role="button"
+                data-bs-toggle="collapse"
+                href="#sidebarProduct"
+                )
+                i.iconoir-shopping-bag.menu-icon
+                span Sản phẩm
+              #sidebarProduct.collapse
+                ul.nav.flex-column
+                  if permissions.includes("product-create")
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/product/create`) Tạo sản phẩm
+                  // end nav-item
+                  if permissions.includes("product-list")
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/product/list`) Danh sách sản phẩm
+                  // end nav-item
+                  if permissions.includes("product-category")
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/product/category`) Danh mục sản phẩm
+                  // end nav-item
+                // end nav
+              // end sidebarProduct
+          // end nav-item
           if ["article-create", "article-list", "article-category"].some(item => permissions.includes(item))
             li.nav-item
               a.nav-link(
