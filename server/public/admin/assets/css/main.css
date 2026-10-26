@@ -54,7 +54,26 @@
   font-size: 13px;
   cursor: pointer;
 }
+
+/* Danh sách không phân cấp, nhiều lựa chọn (ví dụ chất gây dị ứng): xếp thành nhiều cột */
+.checkbox-list.checkbox-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  max-height: none;
+}
 /* End checkbox-list */
+
+/* form-group-file-multiple (album ảnh) */
+.file-multiple-item {
+  margin-bottom: 10px;
+}
+
+.file-multiple-item .preview-file {
+  width: 100px;
+  height: 100px;
+  margin-top: 6px;
+}
+/* End form-group-file-multiple */
 
 /* Logo admin */
 /* Logo ngang: hiện khi menu trái mở rộng */

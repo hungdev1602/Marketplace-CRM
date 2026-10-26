@@ -1,0 +1,293 @@
+//- Các ô nhập của form sản phẩm, dùng chung cho trang tạo (product-create.pug) và sửa (product-edit.pug)
+//- Trang include file này phải khai báo trước biến "product" (trang tạo: {}, trang sửa: productDetail)
+//- Cần include mixins: form-group.pug, checkbox.pug
+
+//- ===== Thông tin cơ bản =====
+.row
+  .col-12
+    h5.border-bottom.pb-2.mb-3.mt-2 Thông tin cơ bản
+  .col-md-6
+    .mb-3
+      label.form-label(for="name") Tên sản phẩm *
+      input.form-control(id="name" type="text" name="name" value=product.name placeholder="Ví dụ: Mì Hảo Hảo tôm chua cay 75g")
+  .col-md-6
+    .mb-3
+      label.form-label(for="nameRu") Tên tiếng Nga
+      input.form-control(id="nameRu" type="text" name="nameRu" value=product.nameRu placeholder="Ví dụ: Лапша быстрого приготовления Hao Hao")
+      small.text-muted Tên in trên nhãn phụ tiếng Nga, khách Nga tìm kiếm bằng tên này
+  .col-md-6
+    .mb-3
+      label.form-label(for="slug") Đường dẫn *
+      .input-group
+        span.btn.btn-outline-info(
+          btn-generate-slug
+          from="name"
+          to="slug"
+          model="Product"
+        ) Tự động
+        input.form-control(id="slug" type="text" name="slug" value=product.slug)
+  .col-md-3
+    .mb-3
+      label.form-label(for="sku") Mã sản phẩm (SKU)
+      input.form-control(id="sku" type="text" name="sku" maxlength="50" value=product.sku placeholder="Ví dụ: MI-HAOHAO-75")
+  .col-md-3
+    .mb-3
+      label.form-label(for="barcode") Mã vạch (штрихкод)
+      input.form-control(id="barcode" type="text" name="barcode" inputmode="numeric" maxlength="14" value=product.barcode placeholder="EAN-13")
+  .col-md-4
+    .mb-3
+      label.form-label(for="brand") Thương hiệu
+      input.form-control(id="brand" type="text" name="brand" value=product.brand placeholder="Ví dụ: Acecook, Nongshim, Cholimex")
+  .col-md-4
+    .mb-3
+      label.form-label(for="origin") Xuất xứ
+      select.form-select(id="origin" name="origin")
+        option(value="") -- Chọn xuất xứ --
+        each item in options.originList
+          option(value=item.id selected=(item.id == product.origin)) #{item.name}
+  .col-md-4
+    .mb-3
+      label.form-label(for="manufacturer") Nhà sản xuất
+      input.form-control(id="manufacturer" type="text" name="manufacturer" value=product.manufacturer placeholder="Tên, địa chỉ nhà sản xuất")
+  .col-md-12
+    .mb-3
+      label.form-label(for="importer") Nhà nhập khẩu tại Nga (импортёр)
+      input.form-control(id="importer" type="text" name="importer" value=product.importer placeholder="Tên công ty, địa chỉ tại Nga (bắt buộc ghi trên nhãn hàng nhập khẩu)")
+  .col-md-6
+    .mb-3
+      label.form-label Danh mục
+      div(class="checkbox-list" checkbox-list="category")
+        +checkbox-list(categoryList, 0, product.category || [])
+  .col-md-6
+    .mb-3
+      label.form-label Đặc điểm
+      div(class="checkbox-list" checkbox-list="dietTags")
+        +checkbox-list(options.dietTagList, 0, product.dietTags || [], "dietTag-")
+
+//- ===== Giá & kho hàng =====
+.row
+  .col-12
+    h5.border-bottom.pb-2.mb-3.mt-2 Giá &amp; kho hàng
+  .col-md-4
+    .mb-3
+      label.form-label(for="costPrice") Giá nhập (giá vốn)
+      .input-group
+        input.form-control(id="costPrice" type="number" name="costPrice" min="0" step="0.01" value=product.costPrice)
+        span.input-group-text ₽
+      small.text-muted Chỉ hiện trong trang quản trị, khách không thấy
+  .col-md-4
+    .mb-3
+      label.form-label(for="price") Giá bán *
+      .input-group
+        input.form-control(id="price" type="number" name="price" min="0" step="0.01" value=product.price)
+        span.input-group-text ₽
+      small.text-muted Giá khách trả, phải cao hơn giá nhập
+  .col-md-4
+    .mb-3
+      label.form-label(for="priceOld") Giá trước khuyến mãi
+      .input-group
+        input.form-control(id="priceOld" type="number" name="priceOld" min="0" step="0.01" value=product.priceOld)
+        span.input-group-text ₽
+      small.text-muted Chỉ nhập khi giảm giá, hiện gạch ngang: #[del 79&nbsp;₽] 59&nbsp;₽
+  .col-md-4
+    .mb-3
+      label.form-label(for="unit") Đơn vị bán
+      select.form-select(id="unit" name="unit")
+        option(value="") -- Chọn đơn vị --
+        each item in options.unitList
+          option(value=item.id selected=(item.id == product.unit)) #{item.name}
+  .col-md-4
+    .mb-3
+      label.form-label(for="stock") Tồn kho
+      input.form-control(id="stock" type="number" name="stock" min="0" step="1" value=product.stock placeholder="0")
+  .col-md-4
+    .mb-3
+      label.form-label(for="vat") Thuế VAT (НДС)
+      select.form-select(id="vat" name="vat")
+        option(value="") -- Chọn mức thuế --
+        each item in options.vatList
+          option(value=item.id selected=(item.id == product.vat)) #{item.name}
+
+//- ===== Thông tin thực phẩm =====
+.row
+  .col-12
+    h5.border-bottom.pb-2.mb-3.mt-2 Thông tin thực phẩm
+  .col-md-4
+    .mb-3
+      label.form-label(for="netWeight") Khối lượng tịnh / thể tích
+      .input-group
+        input.form-control(id="netWeight" type="number" name="netWeight" min="0" step="0.01" value=product.netWeight placeholder="Ví dụ: 75")
+        select.form-select(id="netWeightUnit" name="netWeightUnit" style="max-width: 90px;")
+          each item in options.netWeightUnitList
+            option(value=item.id selected=(item.id == product.netWeightUnit)) #{item.name}
+  .col-md-4
+    .mb-3
+      label.form-label(for="shelfLife") Hạn sử dụng
+      .input-group
+        input.form-control(id="shelfLife" type="number" name="shelfLife" min="0" step="1" value=product.shelfLife placeholder="Ví dụ: 6")
+        select.form-select(id="shelfLifeUnit" name="shelfLifeUnit" style="max-width: 110px;")
+          each item in options.shelfLifeUnitList
+            //- Sản phẩm mới mặc định chọn "Tháng"
+            option(value=item.id selected=(product.shelfLifeUnit ? item.id == product.shelfLifeUnit : item.id == "month")) #{item.name}
+      small.text-muted Tính từ ngày sản xuất
+  .col-md-4
+    .mb-3
+      label.form-label(for="storageType") Điều kiện bảo quản
+      select.form-select(id="storageType" name="storageType")
+        option(value="") -- Chọn điều kiện bảo quản --
+        each item in options.storageList
+          option(value=item.id selected=(item.id == product.storageType)) #{item.name}
+  .col-md-12
+    .mb-3
+      label.form-label(for="storageNote") Hướng dẫn bảo quản thêm
+      input.form-control(id="storageNote" type="text" name="storageNote" value=product.storageNote placeholder="Ví dụ: Sau khi mở nắp bảo quản trong tủ lạnh, dùng trong 30 ngày")
+  .col-md-12
+    .mb-3
+      label.form-label(for="ingredients") Thành phần (состав)
+      textarea.form-control(id="ingredients" name="ingredients" rows="3" placeholder="Ví dụ: Bột mì, dầu cọ, muối, đường, bột ngọt...") #{product.ingredients}
+  .col-md-12
+    .mb-3
+      label.form-label Chất gây dị ứng
+      div(class="checkbox-list checkbox-list-grid" checkbox-list="allergens")
+        +checkbox-list(options.allergenList, 0, product.allergens || [], "allergen-")
+      small.text-muted Bắt buộc ghi trên nhãn theo quy chuẩn ЕАЭС ТР ТС 022/2011
+  .col-12
+    label.form-label Giá trị dinh dưỡng trên 100g / 100ml (КБЖУ)
+  .col-6.col-md-3
+    .mb-3
+      .input-group
+        span.input-group-text Năng lượng
+        input.form-control(id="calories" type="number" name="calories" min="0" step="0.1" value=product.calories aria-label="Năng lượng")
+        span.input-group-text kcal
+  .col-6.col-md-3
+    .mb-3
+      .input-group
+        span.input-group-text Đạm
+        input.form-control(id="protein" type="number" name="protein" min="0" step="0.1" value=product.protein aria-label="Chất đạm")
+        span.input-group-text g
+  .col-6.col-md-3
+    .mb-3
+      .input-group
+        span.input-group-text Béo
+        input.form-control(id="fat" type="number" name="fat" min="0" step="0.1" value=product.fat aria-label="Chất béo")
+        span.input-group-text g
+  .col-6.col-md-3
+    .mb-3
+      .input-group
+        span.input-group-text Carb
+        input.form-control(id="carbohydrate" type="number" name="carbohydrate" min="0" step="0.1" value=product.carbohydrate aria-label="Carbohydrate")
+        span.input-group-text g
+  .col-md-12
+    .mb-3
+      label.form-label(for="usageInstructions") Hướng dẫn sử dụng / cách chế biến
+      textarea.form-control(id="usageInstructions" name="usageInstructions" rows="3" placeholder="Ví dụ: Cho mì vào bát, chế 400ml nước sôi, đậy nắp 3 phút") #{product.usageInstructions}
+
+//- ===== Pháp lý tại Nga =====
+.row
+  .col-12
+    h5.border-bottom.pb-2.mb-3.mt-2 Pháp lý tại Nga
+  .col-md-8
+    .mb-3
+      label.form-label(for="certificateNumber") Số tờ khai / giấy chứng nhận hợp chuẩn ЕАЭС
+      input.form-control(id="certificateNumber" type="text" name="certificateNumber" value=product.certificateNumber placeholder="Ví dụ: ЕАЭС N RU Д-VN.РА01.В.12345/24")
+      small.text-muted Декларация / сертификат о соответствии
+  .col-md-4
+    .mb-3
+      label.form-label.d-block Mã Честный знак
+      .form-check.form-switch.mt-2
+        input.form-check-input(id="markingRequired" type="checkbox" name="markingRequired" checked=product.markingRequired)
+        label.form-check-label(for="markingRequired") Hàng bắt buộc dán mã Честный знак
+
+//- ===== Vận chuyển =====
+.row
+  .col-12
+    h5.border-bottom.pb-2.mb-3.mt-2 Vận chuyển
+    p.text-muted.small.mb-2 Dùng để tính phí giao hàng (СДЭК, Почта России, Яндекс Доставка...)
+  .col-6.col-md-3
+    .mb-3
+      label.form-label(for="grossWeight") Khối lượng cả bao bì
+      .input-group
+        input.form-control(id="grossWeight" type="number" name="grossWeight" min="0" step="1" value=product.grossWeight)
+        span.input-group-text g
+  .col-6.col-md-3
+    .mb-3
+      label.form-label(for="packageLength") Dài
+      .input-group
+        input.form-control(id="packageLength" type="number" name="packageLength" min="0" step="0.1" value=product.packageLength)
+        span.input-group-text cm
+  .col-6.col-md-3
+    .mb-3
+      label.form-label(for="packageWidth") Rộng
+      .input-group
+        input.form-control(id="packageWidth" type="number" name="packageWidth" min="0" step="0.1" value=product.packageWidth)
+        span.input-group-text cm
+  .col-6.col-md-3
+    .mb-3
+      label.form-label(for="packageHeight") Cao
+      .input-group
+        input.form-control(id="packageHeight" type="number" name="packageHeight" min="0" step="0.1" value=product.packageHeight)
+        span.input-group-text cm
+
+//- ===== Hình ảnh & mô tả =====
+.row
+  .col-12
+    h5.border-bottom.pb-2.mb-3.mt-2 Hình ảnh &amp; mô tả
+  .col-md-6
+    .mb-3
+      +form-group-file(
+        "Ảnh đại diện",
+        "avatar",
+        "avatar",
+        product.avatar,
+        "Đường dẫn file..."
+      )
+  .col-md-6
+    .mb-3
+      +form-group-file-multiple(
+        "Album ảnh",
+        "images",
+        product.images || []
+      )
+  .col-md-12
+    .mb-3
+      label.form-label(for="description") Mô tả ngắn
+      textarea(id="description" name="description" textarea-editor) #{product.description}
+  .col-md-12
+    .mb-3
+      label.form-label(for="content") Mô tả chi tiết
+      textarea(id="content" name="content" textarea-editor) #{product.content}
+
+//- ===== Hiển thị & SEO =====
+.row
+  .col-12
+    h5.border-bottom.pb-2.mb-3.mt-2 Hiển thị &amp; SEO
+  .col-md-4
+    .mb-3
+      label.form-label(for="status") Trạng thái
+      select.form-select(id="status" name="status")
+        option(value="active" selected=(product.status != "inactive")) Đang bán
+        option(value="inactive" selected=(product.status == "inactive")) Ngừng bán
+  .col-md-4
+    .mb-3
+      label.form-label(for="position") Vị trí
+      input.form-control(id="position" type="number" name="position" min="0" step="1" value=product.position placeholder="Tự động")
+      small.text-muted Số nhỏ hiển thị trước, để trống thì xếp cuối
+  .col-md-4
+    .mb-3
+      label.form-label.d-block Nhãn
+      .form-check.form-switch.mt-2
+        input.form-check-input(id="featured" type="checkbox" name="featured" checked=product.featured)
+        label.form-check-label(for="featured") Sản phẩm nổi bật
+      .form-check.form-switch
+        input.form-check-input(id="newArrival" type="checkbox" name="newArrival" checked=product.newArrival)
+        label.form-check-label(for="newArrival") Hàng mới về
+  .col-md-6
+    .mb-3
+      label.form-label(for="metaTitle") Tiêu đề SEO
+      input.form-control(id="metaTitle" type="text" name="metaTitle" maxlength="70" value=product.metaTitle placeholder="Để trống thì dùng tên sản phẩm")
+      small.text-muted Tối đa 70 ký tự
+  .col-md-6
+    .mb-3
+      label.form-label(for="metaDescription") Mô tả SEO
+      textarea.form-control(id="metaDescription" name="metaDescription" rows="2" maxlength="200") #{product.metaDescription}
+      small.text-muted Tối đa 200 ký tự

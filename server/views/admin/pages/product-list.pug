@@ -1,0 +1,177 @@
+extends ../layouts/default.pug
+include ../mixins/pagination.pug
+include ../mixins/options.pug
+
+block main
+  .row
+    .col-12
+      .card
+        .card-header
+          .row.align-items-center
+            .col
+              h4.card-title #{pageTitle}
+            // end col
+            .col-auto
+              if permissions.includes("product-trash")
+                a.btn.btn-danger.me-1(
+                  href=`/${pathAdmin}/product/trash`
+                  )
+                  i.fa-solid.fa-trash.me-1
+                  | Thùng rác
+              if permissions.includes("product-create")
+                a.btn.btn-primary(
+                  href=`/${pathAdmin}/product/create`
+                  )
+                  i.fa-solid.fa-plus.me-1
+                  | Tạo sản phẩm
+            // end col
+          // end row
+        // end card-header
+        .card-body.pt-0
+          //- Bộ lọc
+          form.row.g-2.align-items-end.mb-3(form-filter)
+            .col-md-6.col-lg-4
+              label.form-label(for="filterKeyword") Từ khoá
+              input.form-control(
+                id="filterKeyword"
+                type="text"
+                name="keyword"
+                placeholder="Tên (Việt / Nga), SKU, mã vạch, thương hiệu..."
+                value=filter.keyword
+                )
+            .col-md-6.col-lg-4
+              label.form-label(for="filterCategory") Danh mục
+              select.form-select(id="filterCategory" name="category")
+                option(value="") -- Tất cả danh mục --
+                +options(categoryTree, 0, filter.category)
+            .col-md-6.col-lg-4
+              label.form-label(for="filterStatus") Trạng thái
+              select.form-select(id="filterStatus" name="status")
+                option(value="") -- Tất cả trạng thái --
+                option(value="active" selected=(filter.status == "active")) Đang bán
+                option(value="inactive" selected=(filter.status == "inactive")) Ngừng bán
+            .col-md-6.col-lg-3
+              label.form-label(for="filterOrigin") Xuất xứ
+              select.form-select(id="filterOrigin" name="origin")
+                option(value="") -- Tất cả xuất xứ --
+                each item in options.originList
+                  option(value=item.id selected=(item.id == filter.origin)) #{item.name}
+            .col-md-6.col-lg-3
+              label.form-label(for="filterStorageType") Bảo quản
+              select.form-select(id="filterStorageType" name="storageType")
+                option(value="") -- Tất cả --
+                each item in options.storageList
+                  option(value=item.id selected=(item.id == filter.storageType)) #{item.name}
+            .col-md-6.col-lg-2
+              label.form-label(for="filterStock") Tồn kho
+              select.form-select(id="filterStock" name="stock")
+                option(value="") -- Tất cả --
+                each item in stockFilterList
+                  option(value=item.id selected=(item.id == filter.stock)) #{item.name}
+            .col-md-6.col-lg-2
+              label.form-label(for="filterSort") Sắp xếp
+              select.form-select(id="filterSort" name="sort")
+                each item in sortList
+                  option(value=item.id selected=(item.id == filter.sort)) #{item.name}
+            .col-md-12.col-lg-2
+              button.btn.btn-primary.me-1(type="submit")
+                i.fa-solid.fa-filter.me-1
+                | Lọc
+              a.btn.btn-secondary(href=`/${pathAdmin}/product/list`) Xoá lọc
+          //- End Bộ lọc
+          p.text-muted.mb-2 Tìm thấy #{pagination.totalRecord} sản phẩm
+        // Table
+        .table-responsive
+          table.table.table-striped.mb-0
+            thead.table-light
+              tr
+                th STT
+                th Ảnh
+                th Sản phẩm
+                th Danh mục
+                th Giá bán
+                th.text-center Tồn kho
+                th Bảo quản
+                th Trạng thái
+                th.text-end Hành động
+            tbody
+              if(allProduct.length > 0)
+                each item, index in allProduct
+                  tr
+                    td #{pagination.skip + index + 1}
+                    td
+                      if(item.avatar)
+                        img(
+                          src=`${domainFileManager}${item.avatar}`
+                          class="thumb-md me-1 d-inline rounded"
+                        )
+                    td(style="min-width: 220px;")
+                      div.fw-medium #{item.name}
+                      if(item.nameRu)
+                        div.small.text-muted #{item.nameRu}
+                      div.small.text-muted
+                        if(item.sku)
+                          span.me-2 SKU: #{item.sku}
+                        if(item.netWeight)
+                          span.me-2 #{item.netWeight} #{item.netWeightUnit}
+                        if(item.originName)
+                          span #{item.originName}
+                    td(style="min-width: 140px;") #{item.categoryName.join(", ") || "--"}
+                    td.text-nowrap
+                      div.fw-medium
+                        | #{item.priceFormat}
+                        if(item.unitName)
+                          span.small.text-muted  / #{item.unitName}
+                      if(item.discountPercent)
+                        div.small
+                          del.text-muted.me-1 #{item.priceOldFormat}
+                          span.badge.bg-danger -#{item.discountPercent}%
+                    td.text-center
+                      if(!(item.stock > 0))
+                        span.badge.bg-danger Hết hàng
+                      else if(item.stock <= lowStockThreshold)
+                        span.badge.bg-warning(title="Sắp hết hàng") #{item.stock}
+                      else
+                        span #{item.stock}
+                      div.small.text-muted Đã bán: #{item.sold}
+                    td
+                      if(item.storage)
+                        span(class=`badge ${item.storage.color} text-wrap text-start`) #{item.storage.name}
+                    td
+                      if (item.status == "active")
+                        span.badge.bg-success Đang bán
+                      else if (item.status == "inactive")
+                        span.badge.bg-danger Ngừng bán
+                      if(item.featured)
+                        div
+                          span.badge.bg-warning.mt-1 Nổi bật
+                      if(item.newArrival)
+                        div
+                          span.badge.bg-info.mt-1 Hàng mới
+                      if(item.markingRequired)
+                        div
+                          span.badge.bg-dark.mt-1(title="Hàng bắt buộc dán mã Честный знак") Честный знак
+                    td.text-end.text-nowrap
+                      if permissions.includes("product-edit")
+                        a(
+                          href=`/${pathAdmin}/product/edit/${item.id}`
+                          style="margin: 5px"
+                          title="Chỉnh sửa"
+                        )
+                          <i class="fa-solid fa-pen-to-square text-secondary" style="font-size: 1.2rem;"></i>
+                      if permissions.includes("product-delete")
+                        a(
+                          href="javascript:;"
+                          button-api
+                          data-method="PATCH"
+                          data-api=`/${pathAdmin}/product/delete/${item.id}`
+                          style="margin: 5px"
+                          title="Xoá"
+                        )
+                          <i class="fa-solid fa-trash text-secondary" style="font-size: 1.2rem;"></i>
+              else
+                tr
+                  td(colspan=9 class="text-center") Không tìm thấy dữ liệu
+          +pagination(pagination, page)
+    // end col
+  // end row

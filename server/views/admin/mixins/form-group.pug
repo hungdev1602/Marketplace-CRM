@@ -9,3 +9,31 @@ mixin form-group-file(label="", name="", id="", value="", placeholder="")
       input.form-control(id=id type="text" name=name value=value placeholder=placeholder input-file)
     .preview-file(preview-file)
       img
+
+//- Chọn nhiều file (ví dụ album ảnh sản phẩm), mỗi file 1 dòng, bấm "Thêm ảnh" để thêm dòng
+//- Lấy danh sách đường dẫn bằng getFileMultipleList(name) trong main.js
+mixin form-group-file-multiple(label="", name="", values=[])
+  div(form-group-file-multiple=name)
+    label.form-label #{label}
+    div(file-multiple-list)
+      each value in values
+        +file-multiple-item(value)
+    span.btn.btn-outline-secondary.btn-sm(button-add-file)
+      i.fa-solid.fa-plus.me-1
+      | Thêm ảnh
+    //- Mẫu 1 dòng, JS sẽ copy khi bấm "Thêm ảnh"
+    template(file-multiple-template)
+      +file-multiple-item("")
+
+mixin file-multiple-item(value="")
+  .file-multiple-item(file-multiple-item)
+    .input-group
+      span.btn.btn-outline-info(
+        data-bs-toggle="modal" 
+        data-bs-target="#modalFileManager"
+      ) Chọn file
+      input.form-control(type="text" value=value placeholder="Đường dẫn file..." input-file)
+      span.btn.btn-outline-danger(button-remove-file title="Xoá ảnh")
+        i.fa-solid.fa-xmark
+    .preview-file(preview-file)
+      img

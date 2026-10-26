@@ -306,6 +306,87 @@ if(articleEditCategoryForm) {
 }
 // End article edit Category Form
 
+// productCreateCategoryForm, productEditCategoryForm
+const getProductCategoryFormData = (form) => {
+  const formData = new FormData()
+  formData.append("name", form.name.value)
+  formData.append("nameRu", form.nameRu.value)
+  formData.append("slug", form.slug.value)
+  formData.append("avatar", form.avatar.value)
+  formData.append("parent", form.parent.value)
+  formData.append("position", form.position.value)
+  formData.append("status", form.status.value)
+  formData.append("description", getEditorContent("description"))
+  formData.append("metaTitle", form.metaTitle.value)
+  formData.append("metaDescription", form.metaDescription.value)
+  return formData
+}
+
+const addProductCategoryValidate = (validator) => {
+  return validator
+    .addField('#name', [
+      {
+        rule: 'required',
+        errorMessage: 'Vui lòng nhập tên danh mục!'
+      }
+    ])
+    .addField('#slug', [
+      {
+        rule: 'required',
+        errorMessage: 'Vui lòng nhập đường dẫn!'
+      }
+    ])
+}
+
+const productCreateCategoryForm = document.querySelector("#productCreateCategoryForm")
+if(productCreateCategoryForm) {
+  const validator = new JustValidate('#productCreateCategoryForm')
+
+  addProductCategoryValidate(validator)
+    .onSuccess((event) => {
+      fetch(`/${pathAdmin}/product/category/create`, {
+        method: "POST",
+        body: getProductCategoryFormData(event.target)
+      })
+        .then(res => res.json())
+        .then(data => {
+          if(data.code === "error") {
+            notyf.error(data.message)
+          }
+
+          if(data.code === "success") {
+            drawNotify(data.code, data.message)
+          }
+        })
+    })
+}
+
+const productEditCategoryForm = document.querySelector("#productEditCategoryForm")
+if(productEditCategoryForm) {
+  const validator = new JustValidate('#productEditCategoryForm')
+
+  addProductCategoryValidate(validator)
+    .onSuccess((event) => {
+      const id = event.target.id.value
+
+      fetch(`/${pathAdmin}/product/category/edit/${id}`, {
+        method: "PATCH",
+        body: getProductCategoryFormData(event.target)
+      })
+        .then(res => res.json())
+        .then(data => {
+          if(data.code === "error") {
+            notyf.error(data.message)
+          }
+
+          if(data.code === "success") {
+            drawNotify(data.code, data.message)
+          }
+        })
+    })
+}
+// End productCreateCategoryForm, productEditCategoryForm
+
 // button API
 const listButtonApi = document.querySelectorAll("[button-api]")
 if(listButtonApi.length > 0){
@@ -776,11 +857,10 @@ if(listButtonDeleteFolder.length > 0){
 // End Delete Folder
 
 // form-group-file
-const formGroupFile = document.querySelector("[form-group-file]")
-if(formGroupFile){
-  const inputFile = formGroupFile.querySelector("[input-file]")
-  const previewFile = formGroupFile.querySelector("[preview-file]")
-  
+// Nhập đường dẫn file thì hiện ảnh xem trước, dùng cho cả ô chọn 1 file và từng dòng của ô chọn nhiều file
+const initFormGroupFile = (element) => {
+  const inputFile = element.querySelector("[input-file]")
+  const previewFile = element.querySelector("[preview-file]")
 
   inputFile.addEventListener("input", () => {
     const value = inputFile.value
@@ -799,7 +879,50 @@ if(formGroupFile){
     previewFile.querySelector("img").src = `${domainFileManager}${inputFile.value}`
   }
 }
+
+const listFormGroupFile = document.querySelectorAll("[form-group-file]")
+listFormGroupFile.forEach(formGroupFile => initFormGroupFile(formGroupFile))
 // End form-group-file
+
+// form-group-file-multiple (chọn nhiều file, ví dụ album ảnh sản phẩm)
+const listFormGroupFileMultiple = document.querySelectorAll("[form-group-file-multiple]")
+listFormGroupFileMultiple.forEach(formGroupFileMultiple => {
+  const fileList = formGroupFileMultiple.querySelector("[file-multiple-list]")
+  const template = formGroupFileMultiple.querySelector("[file-multiple-template]")
+  const buttonAddFile = formGroupFileMultiple.querySelector("[button-add-file]")
+
+  const initItem = (item) => {
+    initFormGroupFile(item)
+
+    item.querySelector("[button-remove-file]").addEventListener("click", () => {
+      item.remove()
+    })
+  }
+
+  fileList.querySelectorAll("[file-multiple-item]").forEach(item => initItem(item))
+
+  buttonAddFile.addEventListener("click", () => {
+    const item = template.content.firstElementChild.cloneNode(true)
+    fileList.appendChild(item)
+    initItem(item)
+    item.querySelector("[input-file]").focus()
+  })
+})
+
+// Lấy danh sách đường dẫn file (bỏ dòng trống) của ô chọn nhiều file
+const getFileMultipleList = (name) => {
+  const formGroupFileMultiple = document.querySelector(`[form-group-file-multiple="${name}"]`)
+  const inputList = formGroupFileMultiple.querySelectorAll("[file-multiple-list] [input-file]")
+  const fileList = []
+  inputList.forEach(input => {
+    const value = input.value.trim()
+    if(value){
+      fileList.push(value)
+    }
+  })
+  return fileList
+}
+// End form-group-file-multiple
 
 // Modal File Manager
 // iframe quản lý file chỉ được tải khi mở modal lần đầu (không tải ngầm ở mọi trang)
@@ -944,6 +1067,137 @@ if(articleEditForm) {
     })
 }
 // End articleEditForm
+
+// productCreateForm, productEditForm
+const getProductFormData = (form) => {
+  const formData = new FormData()
+
+  // Ô nhập chữ, số, ô chọn
+  const fieldList = [
+    "name", "nameRu", "slug", "sku", "barcode", "brand", "origin", "manufacturer", "importer",
+    "price", "priceOld", "costPrice", "unit", "stock", "vat",
+    "netWeight", "netWeightUnit", "shelfLife", "shelfLifeUnit", "storageType", "storageNote",
+    "ingredients", "calories", "protein", "fat", "carbohydrate", "usageInstructions",
+    "certificateNumber", "grossWeight", "packageLength", "packageWidth", "packageHeight",
+    "avatar", "status", "position", "metaTitle", "metaDescription"
+  ]
+  fieldList.forEach(field => {
+    formData.append(field, form.querySelector(`[name="${field}"]`).value.trim())
+  })
+
+  // Công tắc bật/tắt
+  const switchList = ["markingRequired", "featured", "newArrival"]
+  switchList.forEach(field => {
+    formData.append(field, form.querySelector(`[name="${field}"]`).checked)
+  })
+
+  // Ô chọn nhiều
+  formData.append("category", JSON.stringify(getCheckboxList("category")))
+  formData.append("dietTags", JSON.stringify(getCheckboxList("dietTags")))
+  formData.append("allergens", JSON.stringify(getCheckboxList("allergens")))
+  formData.append("images", JSON.stringify(getFileMultipleList("images")))
+
+  // Trình soạn thảo
+  formData.append("description", getEditorContent("description"))
+  formData.append("content", getEditorContent("content"))
+
+  return formData
+}
+
+const addProductValidate = (validator, form) => {
+  return validator
+    .addField('#name', [
+      {
+        rule: 'required',
+        errorMessage: 'Vui lòng nhập tên sản phẩm!'
+      }
+    ])
+    .addField('#slug', [
+      {
+        rule: 'required',
+        errorMessage: 'Vui lòng nhập đường dẫn!'
+      }
+    ])
+    .addField('#barcode', [
+      {
+        validator: (value) => value.trim() === "" || /^\d{8,14}$/.test(value.trim()),
+        errorMessage: 'Mã vạch chỉ gồm 8 đến 14 chữ số!'
+      }
+    ])
+    .addField('#price', [
+      {
+        rule: 'required',
+        errorMessage: 'Vui lòng nhập giá bán!'
+      },
+      {
+        validator: (value) => Number(value) >= 0,
+        errorMessage: 'Giá bán không được âm!'
+      },
+      {
+        validator: (value) => form.costPrice.value === "" || Number(value) > Number(form.costPrice.value),
+        errorMessage: 'Giá bán phải cao hơn giá nhập (giá vốn)!'
+      }
+    ], {
+      errorsContainer: form.querySelector('#price').closest('.mb-3')
+    })
+    .addField('#priceOld', [
+      {
+        validator: (value) => value === "" || Number(value) > Number(form.price.value),
+        errorMessage: 'Giá trước khuyến mãi phải cao hơn giá bán (để trống nếu không giảm giá)!'
+      }
+    ], {
+      errorsContainer: form.querySelector('#priceOld').closest('.mb-3')
+    })
+}
+
+const productCreateForm = document.querySelector("#productCreateForm")
+if(productCreateForm) {
+  const validator = new JustValidate('#productCreateForm')
+
+  addProductValidate(validator, productCreateForm)
+    .onSuccess((event) => {
+      fetch(`/${pathAdmin}/product/create`, {
+        method: "POST",
+        body: getProductFormData(event.target)
+      })
+        .then(res => res.json())
+        .then(data => {
+          if(data.code === "error") {
+            notyf.error(data.message)
+          }
+
+          if(data.code === "success") {
+            drawNotify(data.code, data.message)
+          }
+        })
+    })
+}
+
+const productEditForm = document.querySelector("#productEditForm")
+if(productEditForm) {
+  const validator = new JustValidate('#productEditForm')
+
+  addProductValidate(validator, productEditForm)
+    .onSuccess((event) => {
+      const id = event.target.id.value
+
+      fetch(`/${pathAdmin}/product/edit/${id}`, {
+        method: "PATCH",
+        body: getProductFormData(event.target)
+      })
+        .then(res => res.json())
+        .then(data => {
+          if(data.code === "error") {
+            notyf.error(data.message)
+          }
+
+          if(data.code === "success") {
+            drawNotify(data.code, data.message)
+          }
+        })
+    })
+}
+// End productCreateForm, productEditForm
 
 // roleCreateForm
 const roleCreateForm = document.querySelector("#roleCreateForm")

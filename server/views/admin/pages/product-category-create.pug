@@ -1,0 +1,79 @@
+extends ../layouts/default.pug
+include ../mixins/options.pug
+include ../mixins/form-group.pug
+
+block main
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title #{pageTitle}
+    .card-body.pt-0
+      form(id="productCreateCategoryForm")
+        .row
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="name") Tên danh mục *
+              input.form-control(id="name" type="text" name="name" placeholder="Ví dụ: Mì - Bún - Phở khô")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="nameRu") Tên tiếng Nga
+              input.form-control(id="nameRu" type="text" name="nameRu" placeholder="Ví dụ: Лапша и вермишель")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="slug") Đường dẫn *
+              .input-group
+                span.btn.btn-outline-info(
+                  btn-generate-slug
+                  from="name"
+                  to="slug"
+                  model="CategoryProduct"
+                ) Tự động
+                input.form-control(id="slug" type="text" name="slug")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="parent") Danh mục cha
+              select.form-select(id="parent" name="parent")
+                option(value="") ---
+                +options(categoryTree, 0)
+          .col-md-6.col-lg-6
+            .mb-3
+              +form-group-file(
+                "Ảnh đại diện",
+                "avatar",
+                "avatar",
+                "",
+                "Đường dẫn file..."
+              )
+          .col-md-3.col-lg-3
+            .mb-3
+              label.form-label(for="position") Vị trí
+              input.form-control(id="position" type="number" name="position" min="0" step="1" placeholder="Tự động")
+              small.text-muted Số nhỏ hiển thị trước, để trống thì xếp cuối
+          .col-md-3.col-lg-3
+            .mb-3
+              label.form-label(for="status") Trạng thái
+              select.form-select(id="status" name="status")
+                option(value="active") Hoạt động
+                option(value="inactive") Tạm dừng
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label(for="description") Mô tả
+              textarea.form-control(id="description" name="description" textarea-editor)
+          .col-12
+            h5.border-bottom.pb-2.mb-3.mt-2 SEO (Google, Yandex)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="metaTitle") Tiêu đề SEO
+              input.form-control(id="metaTitle" type="text" name="metaTitle" maxlength="70" placeholder="Để trống thì dùng tên danh mục")
+              small.text-muted Tối đa 70 ký tự
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="metaDescription") Mô tả SEO
+              textarea.form-control(id="metaDescription" name="metaDescription" rows="2" maxlength="200")
+              small.text-muted Tối đa 200 ký tự
+        button.btn.btn-primary(type="submit") Tạo mới
+        a.btn.btn-danger.ms-1(href=`/${pathAdmin}/product/category`) Hủy
+
+block script
+  include ../partials/script-editor.pug
