@@ -7,6 +7,7 @@ import { domainFileManager, pathAdmin } from './config/variable.config';
 import dotenv from "dotenv"
 import cookieParser from "cookie-parser"
 import { connectDB } from './config/database.config';
+import { scheduleDeleteOldLogs } from './helpers/activity-log.helper';
 
 // Load biến môi trường env
 dotenv.config()
@@ -14,8 +15,10 @@ dotenv.config()
 const app: Express = express()
 const port: number = 3000
 
-// Kết nối database
-connectDB()
+// Kết nối database, kết nối xong thì bật tự động xoá nhật ký hoạt động cũ
+connectDB().then(() => {
+  scheduleDeleteOldLogs()
+})
 
 // Cho phép gửi data lên dạng json
 app.use(express.json())

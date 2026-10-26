@@ -1,6 +1,8 @@
 import { Request, Response } from "express"
 import slugify from "slugify"
+import moment from "moment"
 import { ActivityLog } from "../models/activity-log.model"
+import { activityLogRetentionMonths } from "../config/variable.config"
 
 // Ghi nhật ký hoạt động của tài khoản admin, gọi trong controller sau khi thao tác thành công, ví dụ:
 // await writeLog(req, res, {
@@ -46,4 +48,28 @@ export const writeLog = async (req: Request, res: Response, data: {
     console.log("Ghi nhật ký hoạt động thất bại")
     console.log(error)
   }
+}
+
+// Xoá nhật ký cũ hơn số tháng lưu (activityLogRetentionMonths trong config/variable.config.ts)
+export const deleteOldLogs = async () => {
+  try {
+    const result = await ActivityLog.deleteMany({
+      createdAt: {
+        $lt: moment().subtract(activityLogRetentionMonths, "months").toDate()
+      }
+    })
+
+    if(result.deletedCount > 0){
+      console.log(`Đã xoá ${result.deletedCount} nhật ký hoạt động cũ hơn ${activityLogRetentionMonths} tháng`)
+    }
+  } catch (error) {
+    console.log("Xoá nhật ký hoạt động cũ thất bại")
+    console.log(error)
+  }
+}
+
+// Tự động xoá nhật ký cũ: chạy ngay khi khởi động server, sau đó cứ 1 tiếng chạy lại 1 lần
+export const scheduleDeleteOldLogs = () => {
+  deleteOldLogs()
+  setInterval(deleteOldLogs, 60 * 60 * 1000)
 }

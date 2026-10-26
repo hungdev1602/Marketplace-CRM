@@ -3,7 +3,7 @@ import slugify from "slugify"
 import moment from "moment"
 import { ActivityLog } from "../../models/activity-log.model"
 import { AccountAdmin } from "../../models/account-admin.model"
-import { activityLogActionList, activityLogModuleList } from "../../config/variable.config"
+import { activityLogActionList, activityLogModuleList, activityLogRetentionMonths } from "../../config/variable.config"
 
 export const list = async (req: Request, res: Response) => {
   const find: {
@@ -104,6 +104,7 @@ export const list = async (req: Request, res: Response) => {
     accountList: accountList,
     moduleList: activityLogModuleList,
     actionList: activityLogActionList,
+    retentionMonths: activityLogRetentionMonths,
     filter: {
       accountId: req.query.accountId || "",
       module: req.query.module || "",

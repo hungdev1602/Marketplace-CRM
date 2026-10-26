@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 // Nhật ký hoạt động của tài khoản admin (chỉ Super Admin xem được)
 // Chỉ thêm mới, không sửa/xoá, để không ai xoá được dấu vết thao tác của mình
+// Nhật ký quá số tháng lưu (activityLogRetentionMonths) được server tự động xoá (helpers/activity-log.helper.ts)
 const schema = new mongoose.Schema(
   {
     accountId: String, // id tài khoản thực hiện thao tác

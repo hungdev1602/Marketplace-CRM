@@ -102,6 +102,10 @@ export const permissionList = [
 ]
 
 // Nhật ký hoạt động (chỉ Super Admin xem được, nên không có trong danh sách quyền ở trên)
+// Số tháng lưu nhật ký, nhật ký cũ hơn sẽ tự động bị xoá (1 năm = 12, 6 tháng = 6)
+// Sửa số này rồi khởi động lại server là có hiệu lực, áp dụng cho cả nhật ký đã ghi trước đó
+export const activityLogRetentionMonths: number = 12
+
 // Chức năng được ghi log
 // - id: mã chức năng, dùng khi ghi log (writeLog trong helpers/activity-log.helper.ts)
 // - name: tên hiển thị ở trang nhật ký hoạt động
