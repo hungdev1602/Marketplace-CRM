@@ -8,6 +8,7 @@ import dotenv from "dotenv"
 import cookieParser from "cookie-parser"
 import { connectDB } from './config/database.config';
 import { scheduleDeleteOldLogs } from './helpers/activity-log.helper';
+import { deleteOldProductImports, stopInterruptedProductImports } from './helpers/product-import.helper';
 
 // Load biến môi trường env
 dotenv.config()
@@ -15,9 +16,13 @@ dotenv.config()
 const app: Express = express()
 const port: number = 3000
 
-// Kết nối database, kết nối xong thì bật tự động xoá nhật ký hoạt động cũ
+// Kết nối database, kết nối xong thì:
+// - bật tự động xoá nhật ký hoạt động cũ
+// - lượt nhập sản phẩm từ Excel đang xử lý dở (server bị tắt giữa chừng) chuyển thành thất bại, xoá lịch sử nhập file cũ
 connectDB().then(() => {
   scheduleDeleteOldLogs()
+  stopInterruptedProductImports()
+  deleteOldProductImports()
 })
 
 // Cho phép gửi data lên dạng json

@@ -1199,6 +1199,276 @@ if(productEditForm) {
 }
 // End productCreateForm, productEditForm
 
+// Xuất sản phẩm ra Excel (trang danh sách sản phẩm)
+// Giữ nguyên bộ lọc, sắp xếp đang chọn trên URL, thêm phạm vi xuất (scope) và nhóm thông tin cần xuất (groups)
+const productExportForm = document.querySelector("#productExportForm")
+if(productExportForm) {
+  productExportForm.addEventListener("submit", (event) => {
+    event.preventDefault()
+
+    const groupList = [...productExportForm.querySelectorAll("[name='groups']:checked")].map(input => input.value)
+    if(groupList.length === 0) {
+      notyf.error("Vui lòng chọn ít nhất 1 nhóm thông tin cần xuất!")
+      return
+    }
+
+    const scope = productExportForm.scope.value
+    const url = new URL(`/${pathAdmin}/product/export`, window.location.origin)
+    if(scope === "filter") {
+      new URL(window.location.href).searchParams.forEach((value, key) => {
+        if(key !== "page") {
+          url.searchParams.set(key, value)
+        }
+      })
+    }
+    url.searchParams.set("scope", scope)
+    url.searchParams.set("groups", groupList.join(","))
+
+    // Server trả về file nên trình duyệt chỉ tải file xuống, vẫn ở trang hiện tại
+    window.location.href = url.href
+
+    bootstrap.Modal.getOrCreateInstance(document.querySelector("#modalProductExport")).hide()
+    notyf.success("Đang tạo file Excel, file sẽ tự động tải xuống...")
+  })
+}
+// End Xuất sản phẩm ra Excel
+
+// Nhập sản phẩm từ Excel
+// Đổi ký tự đặc biệt HTML, dùng khi hiện dữ liệu trong file người dùng tải lên
+const escapeHtml = (text) => {
+  const div = document.createElement("div")
+  div.textContent = text
+  return div.innerHTML
+}
+
+// Gọi API trả về file (ví dụ file lỗi) rồi tải xuống; API trả về JSON là bị lỗi
+const downloadFileFromApi = (api, formData) => {
+  return fetch(api, {
+    method: "POST",
+    body: formData
+  })
+    .then(async (res) => {
+      if((res.headers.get("Content-Type") || "").includes("application/json")) {
+        const data = await res.json()
+        notyf.error(data.message)
+        return
+      }
+
+      // Tên file trong header Content-Disposition
+      const disposition = res.headers.get("Content-Disposition") || ""
+      const match = disposition.match(/filename\*=UTF-8''([^;]+)/i) || disposition.match(/filename="?([^";]+)"?/i)
+
+      const link = document.createElement("a")
+      link.href = URL.createObjectURL(await res.blob())
+      link.download = match ? decodeURIComponent(match[1]) : "file.xlsx"
+      link.click()
+      setTimeout(() => URL.revokeObjectURL(link.href), 10000)
+    })
+}
+
+const productImportForm = document.querySelector("#productImportForm")
+if(productImportForm) {
+  const previewBox = document.querySelector("[import-preview]")
+  const progressBox = document.querySelector("[import-progress]")
+  const buttonCheck = productImportForm.querySelector("[button-import-check]")
+  const buttonConfirm = previewBox.querySelector("[button-import-confirm]")
+  const buttonErrorFile = previewBox.querySelector("[button-import-error-file]")
+  let summary = null // kết quả kiểm tra file
+
+  // Dữ liệu gửi lên: file và chế độ nhập
+  const getImportFormData = () => {
+    const formData = new FormData()
+    formData.append("file", productImportForm.file.files[0])
+    formData.append("mode", productImportForm.mode.value)
+    return formData
+  }
+
+  // Đổi file hoặc chế độ nhập thì phải kiểm tra lại
+  productImportForm.addEventListener("change", () => {
+    previewBox.classList.add("d-none")
+  })
+
+  // Hiện kết quả kiểm tra file
+  const renderImportPreview = (data) => {
+    summary = data.summary
+
+    previewBox.querySelector("[import-total]").textContent = summary.totalRows
+    previewBox.querySelector("[import-create]").textContent = summary.createCount
+    previewBox.querySelector("[import-update]").textContent = summary.updateCount
+    previewBox.querySelector("[import-error]").textContent = summary.errorCount
+    previewBox.querySelector("[import-columns]").textContent = `Các cột đọc được (${data.columnList.length}): ${data.columnList.join(", ")}`
+
+    const ignoredBox = previewBox.querySelector("[import-ignored]")
+    ignoredBox.classList.toggle("d-none", data.ignoredHeaders.length === 0)
+    ignoredBox.textContent = `Các cột sau không khớp tên cột của file mẫu nên bị bỏ qua: ${data.ignoredHeaders.join(", ")}`
+
+    const imageBox = previewBox.querySelector("[import-images]")
+    imageBox.classList.toggle("d-none", summary.imageCount === 0)
+    imageBox.textContent = `Có ${summary.imageCount} ảnh từ link ngoài sẽ được tải về Quản lý file, quá trình nhập có thể mất vài phút.`
+
+    // Danh sách dòng lỗi
+    previewBox.querySelector("[import-error-box]").classList.toggle("d-none", summary.errorCount === 0)
+    previewBox.querySelector("[import-error-list]").innerHTML = data.errorList.map(item => `
+      <tr>
+        <td>${item.row}</td>
+        <td>${escapeHtml(item.sku)}</td>
+        <td>${escapeHtml(item.name)}</td>
+        <td class="text-danger">${item.messages.map(message => escapeHtml(message)).join("<br>")}</td>
+      </tr>
+    `).join("")
+
+    const errorMore = previewBox.querySelector("[import-error-more]")
+    errorMore.classList.toggle("d-none", summary.errorCount <= data.errorList.length)
+    errorMore.textContent = `Đang hiện ${data.errorList.length}/${summary.errorCount} dòng lỗi, tải file lỗi để xem tất cả.`
+
+    const validCount = summary.createCount + summary.updateCount
+    buttonConfirm.disabled = validCount === 0
+    buttonConfirm.innerHTML = `<i class="fa-solid fa-file-import me-1"></i> Xác nhận nhập ${validCount} dòng hợp lệ`
+
+    previewBox.classList.remove("d-none")
+    previewBox.scrollIntoView({ behavior: "smooth" })
+  }
+
+  // Bước 2: Kiểm tra file
+  productImportForm.addEventListener("submit", (event) => {
+    event.preventDefault()
+
+    if(!productImportForm.file.files[0]) {
+      notyf.error("Vui lòng chọn file Excel!")
+      return
+    }
+
+    buttonCheck.disabled = true
+    fetch(`/${pathAdmin}/product/import/preview`, {
+      method: "POST",
+      body: getImportFormData()
+    })
+      .then(res => res.json())
+      .then(data => {
+        if(data.code === "error") {
+          notyf.error(data.message)
+          previewBox.classList.add("d-none")
+          return
+        }
+
+        renderImportPreview(data)
+      })
+      .catch(() => notyf.error("Không kết nối được máy chủ, vui lòng thử lại!"))
+      .finally(() => {
+        buttonCheck.disabled = false
+      })
+  })
+
+  // Tải file lỗi (các dòng lỗi kèm cột "Lỗi", sửa xong nhập lại file này)
+  buttonErrorFile.addEventListener("click", () => {
+    buttonErrorFile.disabled = true
+    downloadFileFromApi(`/${pathAdmin}/product/import/preview-error-file`, getImportFormData())
+      .catch(() => notyf.error("Không tải được file lỗi, vui lòng thử lại!"))
+      .finally(() => {
+        buttonErrorFile.disabled = false
+      })
+  })
+
+  // Theo dõi tiến độ nhập file, xong thì tải lại trang để xem kết quả ở lịch sử nhập file
+  const trackImportProgress = (importId) => {
+    progressBox.classList.remove("d-none")
+    buttonCheck.disabled = true
+
+    const progressBar = progressBox.querySelector("[import-progress-bar]")
+    const progressText = progressBox.querySelector("[import-progress-text]")
+
+    const checkStatus = () => {
+      fetch(`/${pathAdmin}/product/import/status/${importId}`)
+        .then(res => res.json())
+        .then(data => {
+          if(data.code === "error") {
+            notyf.error(data.message)
+            return
+          }
+
+          const item = data.importRecord
+          const percent = item.totalRows > 0 ? Math.floor(item.processedRows * 100 / item.totalRows) : 0
+          progressBar.style.width = `${percent}%`
+          progressBar.textContent = `${percent}%`
+          progressText.textContent = `Đã xử lý ${item.processedRows}/${item.totalRows} dòng: thêm mới ${item.createdCount}, cập nhật ${item.updatedCount}, lỗi ${item.failedCount}`
+
+          if(item.status === "done") {
+            drawNotify("success", `Nhập file xong: thêm mới ${item.createdCount}, cập nhật ${item.updatedCount}, lỗi ${item.failedCount} dòng`)
+            return
+          }
+
+          if(item.status === "failed") {
+            drawNotify("error", item.message || "Nhập file thất bại!")
+            return
+          }
+
+          setTimeout(checkStatus, 1500)
+        })
+        .catch(() => setTimeout(checkStatus, 3000)) // mất kết nối thì thử lại
+    }
+
+    checkStatus()
+  }
+
+  // Bước 3: Xác nhận nhập
+  const startImport = () => {
+    buttonConfirm.disabled = true
+    buttonCheck.disabled = true
+
+    fetch(`/${pathAdmin}/product/import`, {
+      method: "POST",
+      body: getImportFormData()
+    })
+      .then(res => res.json())
+      .then(data => {
+        if(data.code === "error") {
+          notyf.error(data.message)
+          buttonConfirm.disabled = false
+          buttonCheck.disabled = false
+          return
+        }
+
+        previewBox.classList.add("d-none")
+        trackImportProgress(data.importId)
+      })
+      .catch(() => {
+        notyf.error("Không kết nối được máy chủ, vui lòng thử lại!")
+        buttonConfirm.disabled = false
+        buttonCheck.disabled = false
+      })
+  }
+
+  buttonConfirm.addEventListener("click", () => {
+    const message = `Thêm mới ${summary.createCount} và cập nhật ${summary.updateCount} sản phẩm. Các dòng lỗi sẽ bị bỏ qua.`
+
+    if(typeof Swal === "undefined") {
+      if(confirm(message)) {
+        startImport()
+      }
+      return
+    }
+
+    Swal.fire({
+      title: "Xác nhận nhập file?",
+      text: message,
+      showCancelButton: true,
+      confirmButtonText: "Nhập",
+      cancelButtonText: "Huỷ"
+    }).then((result) => {
+      if(result.isConfirmed) {
+        startImport()
+      }
+    })
+  })
+
+  // Đang có lượt nhập chưa xong (ví dụ tải lại trang khi đang nhập) thì tiếp tục theo dõi
+  const processingImportId = progressBox.getAttribute("data-import-id")
+  if(processingImportId) {
+    trackImportProgress(processingImportId)
+  }
+}
+// End Nhập sản phẩm từ Excel
+
 // roleCreateForm
 const roleCreateForm = document.querySelector("#roleCreateForm")
 if(roleCreateForm){
