@@ -32,6 +32,14 @@ export const permissionList = [
     name: "Thùng rác sản phẩm (khôi phục, xoá vĩnh viễn)"
   },
   {
+    id: "product-import",
+    name: "Nhập sản phẩm từ Excel (thêm mới, cập nhật hàng loạt)"
+  },
+  {
+    id: "product-export",
+    name: "Xuất danh sách sản phẩm ra Excel"
+  },
+  {
     id: "product-category",
     name: "Danh mục sản phẩm"
   },
@@ -256,6 +264,16 @@ export const activityLogActionList = [
     id: "delete-folder",
     name: "Xoá thư mục",
     color: "bg-danger"
+  },
+  {
+    id: "import",
+    name: "Nhập file Excel",
+    color: "bg-primary"
+  },
+  {
+    id: "export",
+    name: "Xuất file Excel",
+    color: "bg-secondary"
   }
 ]
 // ===== Sản phẩm (thực phẩm châu Á bán tại Nga) =====
@@ -364,3 +382,19 @@ export const productVatList = [
   { id: "10", name: "10% (thực phẩm thiết yếu)" },
   { id: "22", name: "22%" }
 ]
+
+// ===== Nhập / xuất sản phẩm bằng Excel =====
+// Số dòng sản phẩm tối đa trong 1 file nhập
+export const productImportMaxRows: number = 5000
+
+// Dung lượng tối đa của file nhập (MB)
+export const productImportMaxFileSize: number = 10
+
+// Số ngày lưu lịch sử nhập file (kèm danh sách dòng lỗi), cũ hơn sẽ tự động bị xoá
+export const productImportRetentionDays: number = 30
+
+// Thư mục (trong Quản lý file) lưu ảnh được tải về từ link ngoài khi nhập file, ví dụ link ảnh trên web nhà cung cấp
+export const productImportImageFolder: string = "nhap-excel"
+
+// Dung lượng tối đa của 1 ảnh tải về từ link ngoài (MB)
+export const productImportImageMaxSize: number = 5

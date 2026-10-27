@@ -1,0 +1,186 @@
+extends ../layouts/default.pug
+
+block main
+  .row
+    .col-12
+      //- Bước 1: Tải file mẫu
+      .card
+        .card-header
+          .row.align-items-center
+            .col
+              h4.card-title #{pageTitle}
+              p.text-muted.mb-0 Thêm mới hoặc cập nhật hàng loạt sản phẩm bằng file Excel (.xlsx).
+            // end col
+            .col-auto
+              if permissions.includes("product-list")
+                a.btn.btn-secondary(href=`/${pathAdmin}/product/list`)
+                  i.fa-solid.fa-list.me-1
+                  | Danh sách sản phẩm
+            // end col
+          // end row
+        // end card-header
+        .card-body.pt-0
+          h5.mb-2 Bước 1: Chuẩn bị file
+          .row.g-3
+            .col-lg-6
+              .border.rounded.p-3.h-100
+                h6
+                  i.fa-solid.fa-file-circle-plus.me-1.text-success
+                  | Thêm sản phẩm mới
+                p.small.text-muted.mb-2 Tải file mẫu, mỗi dòng nhập 1 sản phẩm. File mẫu có sẵn danh sách thả xuống (danh mục, xuất xứ, đơn vị...) và sheet "Hướng dẫn" giải thích từng cột.
+                a.btn.btn-success.btn-sm(href=`/${pathAdmin}/product/import/template`)
+                  i.fa-solid.fa-download.me-1
+                  | Tải file mẫu
+            .col-lg-6
+              .border.rounded.p-3.h-100
+                h6
+                  i.fa-solid.fa-file-pen.me-1.text-info
+                  | Cập nhật hàng loạt sản phẩm đã có
+                p.small.text-muted.mb-2 Vào Danh sách sản phẩm, lọc sản phẩm cần sửa rồi bấm "Xuất Excel". Sửa giá, tồn kho... trong file đó rồi tải lên lại. Ô để trống giữ nguyên giá trị cũ, muốn xoá giá trị thì nhập dấu gạch ngang -
+                if permissions.includes("product-export") && permissions.includes("product-list")
+                  a.btn.btn-info.btn-sm(href=`/${pathAdmin}/product/list`)
+                    i.fa-solid.fa-file-export.me-1
+                    | Đến trang xuất Excel
+          ul.small.text-muted.mt-3.mb-0
+            li Mỗi lần nhập tối đa #{maxRows} dòng, file .xlsx không quá #{maxFileSize}MB.
+            li Ảnh: dán đường dẫn copy ở trang Quản lý file (/media/...) hoặc link ảnh trên mạng (https://...). Ảnh từ link ngoài được tự động tải về thư mục "#{imageFolder}" trong Quản lý file.
+            li Dòng bị lỗi sẽ không được nhập, các dòng hợp lệ vẫn được nhập bình thường. Tải file lỗi để xem lỗi từng dòng, sửa rồi nhập lại file đó.
+
+      //- Bước 2: Tải file lên và kiểm tra
+      .card
+        .card-body
+          h5.mb-3 Bước 2: Tải file lên
+          form#productImportForm
+            .row.g-3
+              .col-lg-5
+                label.form-label(for="importFile") File Excel (.xlsx)
+                input.form-control(
+                  id="importFile"
+                  type="file"
+                  name="file"
+                  accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                  )
+              .col-lg-7
+                label.form-label Chế độ nhập
+                each mode, index in modeList
+                  .form-check
+                    input.form-check-input(
+                      id=`importMode-${mode.id}`
+                      type="radio"
+                      name="mode"
+                      value=mode.id
+                      checked=(index === 0)
+                      )
+                    label.form-check-label(for=`importMode-${mode.id}`)
+                      span.fw-medium #{mode.name}
+                      span.small.text-muted  - #{mode.description}
+            button.btn.btn-primary.mt-3(type="submit" button-import-check)
+              i.fa-solid.fa-magnifying-glass.me-1
+              | Kiểm tra file
+
+      //- Bước 3: Kết quả kiểm tra (JS hiện ra sau khi kiểm tra file)
+      .card.d-none(import-preview)
+        .card-body
+          h5.mb-3 Bước 3: Kiểm tra và xác nhận
+          .row.g-2.mb-3.text-center
+            .col-6.col-md
+              .border.rounded.p-2
+                .fs-4.fw-semibold(import-total) 0
+                .small.text-muted Tổng số dòng
+            .col-6.col-md
+              .border.rounded.p-2
+                .fs-4.fw-semibold.text-success(import-create) 0
+                .small.text-muted Thêm mới
+            .col-6.col-md
+              .border.rounded.p-2
+                .fs-4.fw-semibold.text-info(import-update) 0
+                .small.text-muted Cập nhật
+            .col-6.col-md
+              .border.rounded.p-2
+                .fs-4.fw-semibold.text-danger(import-error) 0
+                .small.text-muted Dòng lỗi (bỏ qua)
+          p.small.text-muted.mb-1(import-columns)
+          .alert.alert-warning.small.py-2.d-none(import-ignored)
+          .alert.alert-info.small.py-2.d-none(import-images)
+          .d-none(import-error-box)
+            .d-flex.align-items-center.justify-content-between.mb-2
+              h6.mb-0.text-danger Danh sách dòng lỗi
+              button.btn.btn-outline-danger.btn-sm(type="button" button-import-error-file)
+                i.fa-solid.fa-download.me-1
+                | Tải file lỗi
+            p.small.text-muted.mb-2.d-none(import-error-more)
+            .table-responsive(style="max-height: 400px;")
+              table.table.table-sm.table-striped.mb-0
+                thead.table-light
+                  tr
+                    th Dòng
+                    th Mã SKU
+                    th Tên sản phẩm
+                    th Lỗi
+                tbody(import-error-list)
+          .mt-3
+            button.btn.btn-success(type="button" button-import-confirm)
+              i.fa-solid.fa-file-import.me-1
+              | Xác nhận nhập
+            span.small.text-muted.ms-2 Chỉ nhập các dòng hợp lệ.
+
+      //- Tiến độ nhập file (JS hiện ra khi đang nhập)
+      .card.d-none(
+        import-progress
+        data-import-id=(processingImport ? processingImport.id : "")
+        )
+        .card-body
+          h5.mb-2
+            span.spinner-border.spinner-border-sm.me-2
+            | Đang nhập file, vui lòng không tắt server...
+          .progress.mb-2(style="height: 20px;")
+            .progress-bar.progress-bar-striped.progress-bar-animated(import-progress-bar style="width: 0%") 0%
+          p.small.text-muted.mb-0(import-progress-text)
+
+      //- Lịch sử nhập file
+      .card
+        .card-header
+          h4.card-title Lịch sử nhập file
+          p.text-muted.mb-0 Lưu #{retentionDays} ngày gần nhất.
+        .card-body.pt-0
+          .table-responsive
+            table.table.table-striped.mb-0
+              thead.table-light
+                tr
+                  th Thời gian
+                  th Người nhập
+                  th Tên file
+                  th Chế độ
+                  th Trạng thái
+                  th.text-center Thêm mới
+                  th.text-center Cập nhật
+                  th.text-center Lỗi
+                  th.text-end Hành động
+              tbody
+                if(importList.length > 0)
+                  each item in importList
+                    tr
+                      td.text-nowrap #{item.createdAtFormat}
+                      td #{item.accountFullName}
+                      td(style="max-width: 260px;") #{item.fileName}
+                      td.text-nowrap #{item.modeName}
+                      td
+                        if(item.statusInfo)
+                          span(class=`badge ${item.statusInfo.color}`) #{item.statusInfo.name}
+                        if(item.status == "processing")
+                          div.small.text-muted #{item.processedRows}/#{item.totalRows} dòng
+                        if(item.message)
+                          div.small.text-danger #{item.message}
+                      td.text-center.text-success #{item.createdCount}
+                      td.text-center.text-info #{item.updatedCount}
+                      td.text-center.text-danger #{item.failedCount}
+                      td.text-end.text-nowrap
+                        if(item.failedCount > 0 && item.status != "processing")
+                          a.btn.btn-outline-danger.btn-sm(href=`/${pathAdmin}/product/import/error-file/${item.id}`)
+                            i.fa-solid.fa-download.me-1
+                            | File lỗi
+                else
+                  tr
+                    td(colspan=9 class="text-center") Chưa có lượt nhập file nào
+    // end col
+  // end row

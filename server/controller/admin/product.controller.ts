@@ -6,6 +6,7 @@ import { Product } from "../../models/product.model"
 import { buildCategoryTree, getDescendantIds } from "../../helpers/category.helper"
 import { formatPrice } from "../../helpers/format.helper"
 import { writeLog } from "../../helpers/activity-log.helper"
+import { productExcelGroupList } from "../../helpers/product-excel.helper"
 import {
   pathAdmin,
   productAllergenList,
@@ -641,8 +642,8 @@ export const createPost = async (req: Request, res: Response) => {
   }
 }
 
-// Kiểu sắp xếp ở trang danh sách sản phẩm
-const productSortList = [
+// Kiểu sắp xếp ở trang danh sách sản phẩm (dùng chung cho xuất Excel)
+export const productSortList = [
   { id: "", name: "Mới nhất", sort: { createdAt: "desc" } },
   { id: "oldest", name: "Cũ nhất", sort: { createdAt: "asc" } },
   { id: "price-asc", name: "Giá tăng dần", sort: { price: "asc" } },
@@ -660,7 +661,10 @@ const productStockFilterList = [
   { id: "out", name: "Hết hàng" }
 ]
 
-export const list = async (req: Request, res: Response) => {
+// Điều kiện lọc theo bộ lọc ở trang danh sách sản phẩm (dùng chung cho xuất Excel)
+// - query: req.query
+// - allCategory: danh sách danh mục chưa xoá (để lọc cả sản phẩm thuộc danh mục con)
+export const buildProductFind = (query: any, allCategory: any[]) => {
   const find: {
     deleted: boolean,
     search?: RegExp,
@@ -673,43 +677,49 @@ export const list = async (req: Request, res: Response) => {
     deleted: false
   }
 
-  if(req.query.keyword){
-    find.search = keywordToRegex(`${req.query.keyword}`)
+  if(query.keyword){
+    find.search = keywordToRegex(`${query.keyword}`)
   }
 
-  const allCategory = await CategoryProduct.find({
-    deleted: false
-  })
-
   // Lọc theo danh mục: lấy cả sản phẩm thuộc danh mục con
-  if(req.query.category){
-    const categoryId = `${req.query.category}`
+  if(query.category){
+    const categoryId = `${query.category}`
     find.category = {
       $in: [categoryId, ...getDescendantIds(allCategory, categoryId)]
     }
   }
 
-  if(req.query.status){
-    find.status = `${req.query.status}`
+  if(query.status){
+    find.status = `${query.status}`
   }
 
-  if(req.query.origin){
-    find.origin = `${req.query.origin}`
+  if(query.origin){
+    find.origin = `${query.origin}`
   }
 
-  if(req.query.storageType){
-    find.storageType = `${req.query.storageType}`
+  if(query.storageType){
+    find.storageType = `${query.storageType}`
   }
 
-  if(req.query.stock === "in"){
+  if(query.stock === "in"){
     find.stock = { $gt: 0 }
   }
-  else if(req.query.stock === "low"){
+  else if(query.stock === "low"){
     find.stock = { $gt: 0, $lte: productLowStockThreshold }
   }
-  else if(req.query.stock === "out"){
+  else if(query.stock === "out"){
     find.stock = { $not: { $gt: 0 } } // gồm cả sản phẩm chưa nhập tồn kho
   }
+
+  return find
+}
+
+export const list = async (req: Request, res: Response) => {
+  const allCategory = await CategoryProduct.find({
+    deleted: false
+  })
+
+  const find = buildProductFind(req.query, allCategory)
 
   const sortItem = productSortList.find(item => item.id === req.query.sort) || productSortList[0]
 
@@ -762,6 +772,7 @@ export const list = async (req: Request, res: Response) => {
     sortList: productSortList,
     stockFilterList: productStockFilterList,
     lowStockThreshold: productLowStockThreshold,
+    excelGroupList: productExcelGroupList,
     filter: {
       keyword: req.query.keyword || "",
       category: req.query.category || "",

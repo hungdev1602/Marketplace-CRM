@@ -34,7 +34,7 @@
                 i.iconoir-home-simple.menu-icon
                 span Trang tổng quan
           // end nav-item
-          if ["product-create", "product-list", "product-category"].some(item => permissions.includes(item))
+          if ["product-create", "product-list", "product-category", "product-import"].some(item => permissions.includes(item))
             li.nav-item
               a.nav-link(
                 aria-controls="sidebarProduct"
@@ -58,6 +58,10 @@
                   if permissions.includes("product-category")
                     li.nav-item
                       a.nav-link(href=`/${pathAdmin}/product/category`) Danh mục sản phẩm
+                  // end nav-item
+                  if permissions.includes("product-import")
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/product/import`) Nhập sản phẩm từ Excel
                   // end nav-item
                 // end nav
               // end sidebarProduct

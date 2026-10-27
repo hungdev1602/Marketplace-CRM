@@ -18,6 +18,20 @@ block main
                   )
                   i.fa-solid.fa-trash.me-1
                   | Thùng rác
+              if permissions.includes("product-import")
+                a.btn.btn-outline-success.me-1(
+                  href=`/${pathAdmin}/product/import`
+                  )
+                  i.fa-solid.fa-file-import.me-1
+                  | Nhập Excel
+              if permissions.includes("product-export")
+                button.btn.btn-success.me-1(
+                  type="button"
+                  data-bs-toggle="modal"
+                  data-bs-target="#modalProductExport"
+                  )
+                  i.fa-solid.fa-file-export.me-1
+                  | Xuất Excel
               if permissions.includes("product-create")
                 a.btn.btn-primary(
                   href=`/${pathAdmin}/product/create`
@@ -175,3 +189,33 @@ block main
           +pagination(pagination, page)
     // end col
   // end row
+
+  //- Cửa sổ xuất Excel
+  if permissions.includes("product-export")
+    .modal.fade#modalProductExport(tabindex="-1" aria-hidden="true")
+      .modal-dialog
+        form.modal-content#productExportForm
+          .modal-header
+            h5.modal-title Xuất sản phẩm ra Excel
+            button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+          .modal-body
+            label.form-label.fw-medium Sản phẩm cần xuất
+            .form-check
+              input.form-check-input(id="exportScopeFilter" type="radio" name="scope" value="filter" checked)
+              label.form-check-label(for="exportScopeFilter") Theo bộ lọc đang chọn (#{pagination.totalRecord} sản phẩm)
+            .form-check
+              input.form-check-input(id="exportScopeAll" type="radio" name="scope" value="all")
+              label.form-check-label(for="exportScopeAll") Tất cả sản phẩm (không tính thùng rác)
+            label.form-label.fw-medium.mt-3 Thông tin cần xuất
+            p.small.text-muted.mb-2 Cột ID sản phẩm, Mã SKU, Tên sản phẩm luôn được xuất để nhập lại cập nhật được sản phẩm. Chỉ cần sửa giá và tồn kho thì chọn "Giá & kho hàng".
+            each group in excelGroupList
+              .form-check
+                input.form-check-input(id=`exportGroup-${group.id}` type="checkbox" name="groups" value=group.id checked)
+                label.form-check-label(for=`exportGroup-${group.id}`)
+                  span #{group.name}
+                  span.small.text-muted  - #{group.description}
+          .modal-footer
+            button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Huỷ
+            button.btn.btn-success(type="submit")
+              i.fa-solid.fa-download.me-1
+              | Tải file Excel
