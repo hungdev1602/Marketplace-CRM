@@ -1,0 +1,16 @@
+extends ../layouts/default.pug
+include ../mixins/checkbox.pug
+
+block main
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title #{pageTitle}
+    .card-body.pt-0
+      form(id="couponCreateForm")
+        - const coupon = { discountType: "percent", applyTo: "all", status: "active", startAtInput: defaultStartAt }
+        - const selectedProducts = []
+        include ../partials/coupon-form-fields.pug
+        button.btn.btn-primary(type="submit") Tạo mới
+        a.btn.btn-danger.ms-1(href=`/${pathAdmin}/coupon/list`) Hủy

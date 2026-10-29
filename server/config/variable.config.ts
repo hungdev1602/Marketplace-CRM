@@ -60,6 +60,26 @@ export const permissionList = [
     name: "Thùng rác danh mục sản phẩm (khôi phục, xoá vĩnh viễn)"
   },
   {
+    id: "coupon-list",
+    name: "Danh sách mã giảm giá"
+  },
+  {
+    id: "coupon-create",
+    name: "Tạo mã giảm giá"
+  },
+  {
+    id: "coupon-edit",
+    name: "Sửa mã giảm giá (kể cả tạm dừng / bật lại)"
+  },
+  {
+    id: "coupon-delete",
+    name: "Xoá mã giảm giá"
+  },
+  {
+    id: "coupon-trash",
+    name: "Thùng rác mã giảm giá (khôi phục, xoá vĩnh viễn)"
+  },
+  {
     id: "article-list",
     name: "Danh sách bài viết"
   },
@@ -169,6 +189,10 @@ export const activityLogModuleList = [
   {
     id: "product-category",
     name: "Danh mục sản phẩm"
+  },
+  {
+    id: "coupon",
+    name: "Mã giảm giá"
   },
   {
     id: "article",
@@ -398,3 +422,24 @@ export const productImportImageFolder: string = "nhap-excel"
 
 // Dung lượng tối đa của 1 ảnh tải về từ link ngoài (MB)
 export const productImportImageMaxSize: number = 5
+
+// ===== Mã giảm giá =====
+// Múi giờ của cửa hàng: giờ Moscow (UTC+3, Nga không đổi giờ mùa hè/mùa đông)
+// Thời gian bắt đầu / kết thúc mã giảm giá nhập ở trang admin và hiển thị trong danh sách đều theo múi giờ này,
+// không phụ thuộc múi giờ của máy chủ (máy chủ đặt ở nước khác vẫn chạy đúng giờ Moscow)
+export const shopUtcOffset: string = "+03:00"
+
+// Loại giảm giá
+// - id: giá trị lưu trong database, không đổi id đã dùng
+export const couponTypeList = [
+  { id: "percent", name: "Giảm theo %" },
+  { id: "fixed", name: "Giảm số tiền cố định (₽)" },
+  { id: "free-shipping", name: "Miễn phí giao hàng" }
+]
+
+// Phạm vi áp dụng (sản phẩm nào trong giỏ hàng được giảm giá)
+export const couponApplyToList = [
+  { id: "all", name: "Tất cả sản phẩm" },
+  { id: "category", name: "Sản phẩm thuộc danh mục được chọn" },
+  { id: "product", name: "Sản phẩm được chọn" }
+]

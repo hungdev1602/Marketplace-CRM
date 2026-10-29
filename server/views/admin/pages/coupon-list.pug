@@ -1,0 +1,156 @@
+extends ../layouts/default.pug
+include ../mixins/pagination.pug
+
+block main
+  .row
+    .col-12
+      .card
+        .card-header
+          .row.align-items-center
+            .col
+              h4.card-title #{pageTitle}
+            // end col
+            .col-auto
+              if permissions.includes("coupon-trash")
+                a.btn.btn-danger.me-1(
+                  href=`/${pathAdmin}/coupon/trash`
+                  )
+                  i.fa-solid.fa-trash.me-1
+                  | Thùng rác
+              if permissions.includes("coupon-create")
+                a.btn.btn-primary(
+                  href=`/${pathAdmin}/coupon/create`
+                  )
+                  i.fa-solid.fa-plus.me-1
+                  | Tạo mã giảm giá
+            // end col
+          // end row
+        // end card-header
+        .card-body.pt-0
+          //- Bộ lọc
+          form.row.g-2.align-items-end.mb-3(form-filter)
+            .col-md-6.col-lg-4
+              label.form-label(for="filterKeyword") Từ khoá
+              input.form-control(
+                id="filterKeyword"
+                type="text"
+                name="keyword"
+                placeholder="Mã giảm giá, tên chương trình..."
+                value=filter.keyword
+                )
+            .col-md-6.col-lg-3
+              label.form-label(for="filterStatus") Trạng thái
+              select.form-select(id="filterStatus" name="status")
+                option(value="") -- Tất cả trạng thái --
+                each item in options.statusList
+                  option(value=item.id selected=(item.id == filter.status)) #{item.name}
+            .col-md-6.col-lg-3
+              label.form-label(for="filterDiscountType") Loại giảm giá
+              select.form-select(id="filterDiscountType" name="discountType")
+                option(value="") -- Tất cả --
+                each item in options.typeList
+                  option(value=item.id selected=(item.id == filter.discountType)) #{item.name}
+            .col-md-6.col-lg-2
+              button.btn.btn-primary.me-1(type="submit")
+                i.fa-solid.fa-filter.me-1
+                | Lọc
+              a.btn.btn-secondary(href=`/${pathAdmin}/coupon/list`) Xoá lọc
+          //- End Bộ lọc
+          p.text-muted.mb-2 Tìm thấy #{pagination.totalRecord} mã giảm giá
+        // Table
+        .table-responsive
+          table.table.table-striped.mb-0
+            thead.table-light
+              tr
+                th STT
+                th Mã giảm giá
+                th Mức giảm
+                th Điều kiện
+                th Thời gian (giờ Moscow)
+                th.text-center Lượt dùng
+                th Trạng thái
+                th.text-end Hành động
+            tbody
+              if(couponList.length > 0)
+                each item, index in couponList
+                  tr
+                    td #{pagination.skip + index + 1}
+                    td(style="min-width: 200px;")
+                      div
+                        span.fw-bold.font-monospace.fs-6.me-1 #{item.code}
+                        a(
+                          href="javascript:;"
+                          button-copy
+                          content-copy=item.code
+                          title="Copy mã"
+                        )
+                          i.fa-regular.fa-copy.text-secondary
+                      div.small #{item.name}
+                      if(item.description)
+                        div.small.text-muted #{item.description}
+                    td.text-nowrap #{item.discountText}
+                    td(style="min-width: 200px;")
+                      div.small
+                        if(item.minOrderValue)
+                          | Đơn từ #{item.minOrderValueFormat}
+                        else
+                          span.text-muted Không yêu cầu đơn tối thiểu
+                      div.small
+                        if(item.applyTo == "category")
+                          | Danh mục: #{item.applyToNameList.join(", ")}
+                        else if(item.applyTo == "product")
+                          | Sản phẩm: #{item.applyToNameList.slice(0, 3).join(", ")}
+                          if(item.applyToNameList.length > 3)
+                            span.text-muted  và #{item.applyToNameList.length - 3} sản phẩm khác
+                        else if(item.discountType != "free-shipping")
+                          span.text-muted Tất cả sản phẩm
+                    td.small.text-nowrap
+                      div Từ: #{item.startAtFormat}
+                      if(item.endAt)
+                        div Đến: #{item.endAtFormat}
+                      else
+                        div.text-muted Không hết hạn
+                    td.text-center.text-nowrap
+                      div
+                        span.fw-medium #{item.usedCount}
+                        span.text-muted  / #{item.usageLimit || "∞"}
+                      if(item.usageLimitPerCustomer)
+                        div.small.text-muted Mỗi khách: #{item.usageLimitPerCustomer} lần
+                    td
+                      span(class=`badge ${item.statusInfo.color}`) #{item.statusInfo.name}
+                    td.text-end.text-nowrap
+                      if permissions.includes("coupon-edit")
+                        a(
+                          href="javascript:;"
+                          button-api
+                          data-method="PATCH"
+                          data-api=`/${pathAdmin}/coupon/change-status/${item.id}`
+                          style="margin: 5px"
+                          title=(item.status == "active" ? "Tạm dừng" : "Bật lại")
+                        )
+                          if(item.status == "active")
+                            <i class="fa-solid fa-pause text-secondary" style="font-size: 1.2rem;"></i>
+                          else
+                            <i class="fa-solid fa-play text-success" style="font-size: 1.2rem;"></i>
+                        a(
+                          href=`/${pathAdmin}/coupon/edit/${item.id}`
+                          style="margin: 5px"
+                          title="Chỉnh sửa"
+                        )
+                          <i class="fa-solid fa-pen-to-square text-secondary" style="font-size: 1.2rem;"></i>
+                      if permissions.includes("coupon-delete")
+                        a(
+                          href="javascript:;"
+                          button-api
+                          data-method="PATCH"
+                          data-api=`/${pathAdmin}/coupon/delete/${item.id}`
+                          style="margin: 5px"
+                          title="Xoá"
+                        )
+                          <i class="fa-solid fa-trash text-secondary" style="font-size: 1.2rem;"></i>
+              else
+                tr
+                  td(colspan=8 class="text-center") Không tìm thấy dữ liệu
+          +pagination(pagination, page)
+    // end col
+  // end row

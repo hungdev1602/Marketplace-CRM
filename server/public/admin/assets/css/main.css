@@ -112,3 +112,10 @@
   min-height: 250px;
 }
 /* End Trình soạn thảo Quill */
+
+/* Chọn sản phẩm áp dụng mã giảm giá (kết quả tìm kiếm, sản phẩm đã chọn) */
+.coupon-product-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+/* End Chọn sản phẩm áp dụng mã giảm giá */
