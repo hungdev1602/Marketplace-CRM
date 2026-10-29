@@ -1469,6 +1469,337 @@ if(productImportForm) {
 }
 // End Nhập sản phẩm từ Excel
 
+// couponCreateForm, couponEditForm
+// Chọn sản phẩm áp dụng mã giảm giá: tìm sản phẩm rồi bấm "Chọn", trả về hàm lấy danh sách id đã chọn
+const initCouponProductPicker = (picker) => {
+  const searchInput = picker.querySelector("[product-search-input]")
+  const searchButton = picker.querySelector("[product-search-button]")
+  const resultBox = picker.querySelector("[product-search-result]")
+  const selectedBox = picker.querySelector("[product-selected-list]")
+  const selectedCount = picker.querySelector("[product-selected-count]")
+
+  // Sản phẩm đã chọn (trang sửa: server điền sẵn vào data-products)
+  let selectedList = JSON.parse(selectedBox.getAttribute("data-products") || "[]")
+  let resultList = []
+
+  // Ảnh, tên, SKU, giá của 1 sản phẩm
+  const productInfoHtml = (product) => `
+    <div class="d-flex align-items-center gap-2 flex-grow-1">
+      ${product.avatar
+        ? `<img src="${escapeHtml(domainFileManager + product.avatar)}" class="thumb-md rounded" style="object-fit: contain;">`
+        : `<span class="thumb-md rounded bg-light d-inline-block"></span>`}
+      <div>
+        <div class="fw-medium">
+          ${escapeHtml(product.name || "")}
+          ${product.deleted ? `<span class="badge bg-danger ms-1">Trong thùng rác</span>` : ""}
+          ${product.status === "inactive" ? `<span class="badge bg-secondary ms-1">Ngừng bán</span>` : ""}
+        </div>
+        <div class="small text-muted">
+          ${product.sku ? `SKU: ${escapeHtml(product.sku)} · ` : ""}${escapeHtml(product.priceFormat || "")}
+        </div>
+      </div>
+    </div>
+  `
+
+  const renderSelected = () => {
+    selectedCount.textContent = selectedList.length
+
+    if(selectedList.length === 0){
+      selectedBox.innerHTML = `<div class="list-group-item text-muted small">Chưa chọn sản phẩm nào, hãy tìm sản phẩm ở ô bên trên rồi bấm "Chọn"</div>`
+      return
+    }
+
+    selectedBox.innerHTML = selectedList.map(product => `
+      <div class="list-group-item d-flex align-items-center gap-2">
+        ${productInfoHtml(product)}
+        <span class="btn btn-sm btn-outline-danger" button-remove-product="${escapeHtml(product.id)}" title="Bỏ chọn">
+          <i class="fa-solid fa-xmark"></i>
+        </span>
+      </div>
+    `).join("")
+
+    selectedBox.querySelectorAll("[button-remove-product]").forEach(button => {
+      button.addEventListener("click", () => {
+        const id = button.getAttribute("button-remove-product")
+        selectedList = selectedList.filter(product => product.id !== id)
+        renderSelected()
+        renderResult()
+      })
+    })
+  }
+
+  const renderResult = () => {
+    if(resultList.length === 0){
+      resultBox.innerHTML = ""
+      return
+    }
+
+    resultBox.innerHTML = resultList.map(product => {
+      const isSelected = selectedList.some(item => item.id === product.id)
+      return `
+        <div class="list-group-item d-flex align-items-center gap-2">
+          ${productInfoHtml(product)}
+          ${isSelected
+            ? `<span class="btn btn-sm btn-success disabled"><i class="fa-solid fa-check me-1"></i>Đã chọn</span>`
+            : `<span class="btn btn-sm btn-outline-primary" button-choose-product="${escapeHtml(product.id)}">Chọn</span>`}
+        </div>
+      `
+    }).join("")
+
+    resultBox.querySelectorAll("[button-choose-product]").forEach(button => {
+      button.addEventListener("click", () => {
+        const id = button.getAttribute("button-choose-product")
+        const product = resultList.find(item => item.id === id)
+        if(product && !selectedList.some(item => item.id === id)){
+          selectedList.push(product)
+        }
+        renderSelected()
+        renderResult()
+      })
+    })
+  }
+
+  const search = () => {
+    const keyword = searchInput.value.trim()
+
+    fetch(`/${pathAdmin}/coupon/product-search?keyword=${encodeURIComponent(keyword)}`)
+      .then(res => res.json())
+      .then(data => {
+        if(data.code === "error") {
+          notyf.error(data.message)
+          return
+        }
+
+        resultList = data.productList
+        renderResult()
+
+        if(resultList.length === 0){
+          resultBox.innerHTML = `<div class="list-group-item text-muted small">Không tìm thấy sản phẩm nào</div>`
+        }
+      })
+      .catch(() => {
+        notyf.error("Tìm sản phẩm thất bại, vui lòng tải lại trang và thử lại!")
+      })
+  }
+
+  searchButton.addEventListener("click", search)
+
+  // Nhấn Enter ở ô tìm kiếm thì tìm sản phẩm (không gửi form)
+  searchInput.addEventListener("keydown", (event) => {
+    if(event.key === "Enter"){
+      event.preventDefault()
+      search()
+    }
+  })
+
+  renderSelected()
+
+  return () => selectedList.map(product => product.id)
+}
+
+const initCouponForm = (form) => {
+  // Dùng getAttribute vì form sửa có ô tên "id", nên form.id là ô nhập đó chứ không phải id của form
+  const formId = form.getAttribute("id")
+
+  // Ẩn/hiện ô nhập theo loại giảm giá và phạm vi áp dụng
+  const isFieldVisible = (field) => !form.querySelector(`[coupon-field="${field}"]`).classList.contains("d-none")
+
+  // Lời nhắc dưới ô "Giảm tối đa" (loại giảm theo %): đơn từ bao nhiêu thì được giảm đủ mức tối đa
+  // Ví dụ giảm 15% tối đa 500 ₽: đơn từ 3 334 ₽ mới được giảm đủ 500 ₽, đơn 300 ₽ chỉ được giảm 45 ₽
+  const maxDiscountHint = form.querySelector("[max-discount-hint]")
+
+  // Định dạng tiền rúp kiểu Nga giống trang danh sách, ví dụ: 3334 => "3 334 ₽", 49.95 => "49,95 ₽"
+  const formatRub = (price) => new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(price) + " ₽"
+
+  const updateMaxDiscountHint = () => {
+    const percent = Number(form.querySelector(`[name="discountValue"]`).value)
+    const maxDiscountValue = form.querySelector(`[name="maxDiscount"]`).value.trim()
+    const minOrderValue = form.querySelector(`[name="minOrderValue"]`).value.trim()
+    const maxDiscount = Number(maxDiscountValue)
+
+    // Chưa nhập đủ số % hoặc giảm tối đa thì ẩn lời nhắc
+    if(!isFieldVisible("maxDiscount") || maxDiscountValue === "" || !(maxDiscount > 0) || !(percent > 0 && percent <= 100)){
+      maxDiscountHint.classList.add("d-none")
+      return
+    }
+
+    // Đơn nhỏ nhất được giảm đủ mức tối đa, làm tròn lên đến rúp (toFixed để bỏ sai số khi chia số thập phân)
+    const fullDiscountOrder = Math.ceil(Number((maxDiscount * 100 / percent).toFixed(2)))
+    let hint = `Đơn từ ${formatRub(fullDiscountOrder)} mới được giảm đủ ${formatRub(maxDiscount)}, đơn nhỏ hơn được giảm ${percent}%.`
+
+    const minOrder = Number(minOrderValue)
+    if(minOrderValue !== "" && minOrder > 0){
+      const minOrderDiscount = minOrder * percent / 100
+      hint = minOrderDiscount >= maxDiscount
+        ? `Đơn tối thiểu ${formatRub(minOrder)} đã được giảm đủ ${formatRub(maxDiscount)}, nên mọi đơn dùng mã đều được giảm đúng ${formatRub(maxDiscount)}.`
+        : `${hint} Ví dụ đơn ${formatRub(minOrder)} (tối thiểu) được giảm ${formatRub(minOrderDiscount)}.`
+    }
+
+    maxDiscountHint.textContent = hint
+    maxDiscountHint.classList.remove("d-none")
+  }
+
+  const updateCouponFields = () => {
+    const discountType = form.querySelector(`[name="discountType"]`).value
+    const applyTo = form.querySelector(`[name="applyTo"]`).value
+
+    const fieldVisible = {
+      discountValue: discountType !== "free-shipping",
+      maxDiscount: discountType === "percent",
+      freeShippingNote: discountType === "free-shipping",
+      applyTo: discountType !== "free-shipping",
+      categories: discountType !== "free-shipping" && applyTo === "category",
+      products: discountType !== "free-shipping" && applyTo === "product"
+    }
+    for (const field in fieldVisible) {
+      form.querySelector(`[coupon-field="${field}"]`).classList.toggle("d-none", !fieldVisible[field])
+    }
+
+    form.querySelector("[discount-unit]").textContent = discountType === "percent" ? "%" : "₽"
+
+    updateMaxDiscountHint()
+  }
+
+  form.querySelector(`[name="discountType"]`).addEventListener("change", updateCouponFields)
+  form.querySelector(`[name="applyTo"]`).addEventListener("change", updateCouponFields)
+  updateCouponFields()
+
+  // Nhập số % giảm, giảm tối đa, đơn tối thiểu thì tính lại lời nhắc
+  const hintFieldList = ["discountValue", "maxDiscount", "minOrderValue"]
+  hintFieldList.forEach(field => {
+    form.querySelector(`[name="${field}"]`).addEventListener("input", updateMaxDiscountHint)
+  })
+
+  // Tạo mã ngẫu nhiên 8 ký tự (bỏ các ký tự dễ nhầm: 0 - O, 1 - I - L)
+  form.querySelector("[button-random-code]").addEventListener("click", () => {
+    const characters = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+    let code = ""
+    for (let i = 0; i < 8; i++) {
+      code += characters[Math.floor(Math.random() * characters.length)]
+    }
+    form.querySelector(`[name="code"]`).value = code
+  })
+
+  const getProductIds = initCouponProductPicker(form.querySelector("[coupon-product-picker]"))
+
+  // Dữ liệu gửi lên, ô đang ẩn gửi giá trị trống
+  const getCouponFormData = () => {
+    const formData = new FormData()
+
+    const fieldList = [
+      "code", "name", "description", "discountType", "discountValue", "maxDiscount",
+      "minOrderValue", "applyTo", "usageLimit", "usageLimitPerCustomer", "startAt", "endAt", "status"
+    ]
+    fieldList.forEach(field => {
+      formData.append(field, form.querySelector(`[name="${field}"]`).value.trim())
+    })
+
+    // Mã luôn là chữ in hoa
+    formData.set("code", formData.get("code").toUpperCase())
+
+    // Miễn phí giao hàng không có mức giảm, áp dụng cho cả đơn hàng; giảm tối đa chỉ dùng cho loại giảm theo %
+    if(!isFieldVisible("discountValue")) formData.set("discountValue", "")
+    if(!isFieldVisible("maxDiscount")) formData.set("maxDiscount", "")
+    if(!isFieldVisible("applyTo")) formData.set("applyTo", "all")
+
+    formData.append("categories", JSON.stringify(isFieldVisible("categories") ? getCheckboxList("categories") : []))
+    formData.append("products", JSON.stringify(isFieldVisible("products") ? getProductIds() : []))
+
+    return formData
+  }
+
+  const validator = new JustValidate(`#${formId}`)
+
+  validator
+    .addField('#code', [
+      {
+        rule: 'required',
+        errorMessage: 'Vui lòng nhập mã giảm giá!'
+      },
+      {
+        validator: (value) => /^[A-Za-z0-9_-]{3,30}$/.test(value.trim()),
+        errorMessage: 'Mã gồm 3 - 30 ký tự: chữ cái Latin không dấu, chữ số, dấu - hoặc _ (không có khoảng trắng)!'
+      }
+    ], {
+      errorsContainer: form.querySelector('#code').closest('.mb-3')
+    })
+    .addField('#name', [
+      {
+        rule: 'required',
+        errorMessage: 'Vui lòng nhập tên chương trình!'
+      }
+    ])
+    .addField('#discountValue', [
+      {
+        validator: (value) => !isFieldVisible("discountValue") || value !== "",
+        errorMessage: 'Vui lòng nhập mức giảm!'
+      },
+      {
+        validator: (value) => {
+          if(!isFieldVisible("discountValue")) return true
+          const discountType = form.querySelector(`[name="discountType"]`).value
+          return discountType === "percent" ? Number(value) > 0 && Number(value) <= 100 : Number(value) > 0
+        },
+        errorMessage: 'Mức giảm phải lớn hơn 0 (giảm theo % thì không quá 100)!'
+      }
+    ], {
+      errorsContainer: form.querySelector('#discountValue').closest('.mb-3')
+    })
+    .addField('#startAt', [
+      {
+        rule: 'required',
+        errorMessage: 'Vui lòng chọn thời gian bắt đầu!'
+      }
+    ])
+    .addField('#endAt', [
+      {
+        validator: (value) => value === "" || value > form.querySelector(`[name="startAt"]`).value,
+        errorMessage: 'Thời gian kết thúc phải sau thời gian bắt đầu!'
+      }
+    ])
+    .onSuccess(() => {
+      if(isFieldVisible("categories") && getCheckboxList("categories").length === 0){
+        notyf.error("Vui lòng chọn ít nhất 1 danh mục được áp dụng mã!")
+        return
+      }
+
+      if(isFieldVisible("products") && getProductIds().length === 0){
+        notyf.error("Vui lòng chọn ít nhất 1 sản phẩm được áp dụng mã!")
+        return
+      }
+
+      const api = formId === "couponEditForm"
+        ? `/${pathAdmin}/coupon/edit/${form.querySelector(`[name="id"]`).value}`
+        : `/${pathAdmin}/coupon/create`
+
+      fetch(api, {
+        method: formId === "couponEditForm" ? "PATCH" : "POST",
+        body: getCouponFormData()
+      })
+        .then(res => res.json())
+        .then(data => {
+          if(data.code === "error") {
+            notyf.error(data.message)
+          }
+
+          if(data.code === "success") {
+            drawNotify(data.code, data.message)
+          }
+        })
+    })
+}
+
+const couponCreateForm = document.querySelector("#couponCreateForm")
+if(couponCreateForm) {
+  initCouponForm(couponCreateForm)
+}
+
+const couponEditForm = document.querySelector("#couponEditForm")
+if(couponEditForm) {
+  initCouponForm(couponEditForm)
+}
+// End couponCreateForm, couponEditForm
+
 // roleCreateForm
 const roleCreateForm = document.querySelector("#roleCreateForm")
 if(roleCreateForm){

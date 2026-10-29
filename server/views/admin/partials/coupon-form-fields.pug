@@ -1,0 +1,141 @@
+//- Các ô nhập của form mã giảm giá, dùng chung cho trang tạo (coupon-create.pug) và sửa (coupon-edit.pug)
+//- Trang include file này phải khai báo trước biến "coupon" (trang tạo: giá trị mặc định, trang sửa: couponDetail)
+//- và "selectedProducts" (sản phẩm đã chọn, trang tạo: [])
+//- Cần include mixins: checkbox.pug
+//- Ô có thuộc tính [coupon-field] được ẩn/hiện theo loại giảm giá và phạm vi áp dụng (main.js)
+
+//- ===== Thông tin mã =====
+.row
+  .col-12
+    h5.border-bottom.pb-2.mb-3.mt-2 Thông tin mã
+  .col-md-6
+    .mb-3
+      label.form-label(for="code") Mã giảm giá *
+      .input-group
+        input.form-control.text-uppercase(id="code" type="text" name="code" maxlength="30" value=coupon.code placeholder="Ví dụ: TET2027, FREESHIP" autocomplete="off")
+        span.btn.btn-outline-info(button-random-code title="Tạo mã ngẫu nhiên 8 ký tự")
+          i.fa-solid.fa-shuffle.me-1
+          | Tạo ngẫu nhiên
+      small.text-muted Khách nhập mã này khi thanh toán. Gồm 3 - 30 ký tự: chữ cái Latin không dấu (A-Z), chữ số, dấu - hoặc _. Khách nhập chữ thường vẫn được.
+  .col-md-6
+    .mb-3
+      label.form-label(for="name") Tên chương trình *
+      input.form-control(id="name" type="text" name="name" maxlength="200" value=coupon.name placeholder="Ví dụ: Khuyến mãi Tết 2027")
+      small.text-muted Chỉ hiện trong trang quản trị, để dễ tìm và phân biệt các mã
+  .col-12
+    .mb-3
+      label.form-label(for="description") Mô tả cho khách
+      input.form-control(id="description" type="text" name="description" maxlength="500" value=coupon.description placeholder="Ví dụ: Giảm 10% cho đơn hàng từ 2 000 ₽, tối đa 500 ₽")
+
+//- ===== Mức giảm =====
+.row
+  .col-12
+    h5.border-bottom.pb-2.mb-3.mt-2 Mức giảm
+  .col-md-4
+    .mb-3
+      label.form-label(for="discountType") Loại giảm giá *
+      select.form-select(id="discountType" name="discountType")
+        each item in options.typeList
+          option(value=item.id selected=(item.id == coupon.discountType)) #{item.name}
+  .col-md-4(coupon-field="discountValue")
+    .mb-3
+      label.form-label(for="discountValue") Mức giảm *
+      .input-group
+        input.form-control(id="discountValue" type="number" name="discountValue" min="0" step="0.01" value=coupon.discountValue)
+        span.input-group-text(discount-unit) %
+  .col-md-4(coupon-field="maxDiscount")
+    .mb-3
+      label.form-label(for="maxDiscount") Giảm tối đa
+      .input-group
+        input.form-control(id="maxDiscount" type="number" name="maxDiscount" min="1" step="0.01" value=coupon.maxDiscount placeholder="Không giới hạn")
+        span.input-group-text ₽
+      small.text-muted Ví dụ giảm 10% nhưng không quá 500 ₽. Để trống nếu không giới hạn
+      //- Lời nhắc đơn từ bao nhiêu thì được giảm đủ mức tối đa, JS tính theo số đang nhập
+      .small.text-info.mt-1.d-none(max-discount-hint)
+  .col-md-8(coupon-field="freeShippingNote")
+    .alert.alert-info.mb-3
+      i.fa-solid.fa-truck-fast.me-1
+      | Khách được miễn phí giao hàng cho cả đơn hàng (không giảm tiền hàng).
+
+//- ===== Điều kiện áp dụng =====
+.row
+  .col-12
+    h5.border-bottom.pb-2.mb-3.mt-2 Điều kiện áp dụng
+  .col-md-4
+    .mb-3
+      label.form-label(for="minOrderValue") Giá trị đơn hàng tối thiểu
+      .input-group
+        input.form-control(id="minOrderValue" type="number" name="minOrderValue" min="0" step="0.01" value=coupon.minOrderValue placeholder="Không yêu cầu")
+        span.input-group-text ₽
+      small.text-muted Tổng tiền hàng tối thiểu để dùng được mã. Để trống nếu không yêu cầu
+  .col-md-8(coupon-field="applyTo")
+    .mb-3
+      label.form-label(for="applyTo") Phạm vi áp dụng
+      select.form-select(id="applyTo" name="applyTo")
+        each item in options.applyToList
+          option(value=item.id selected=(item.id == coupon.applyTo)) #{item.name}
+      small.text-muted Chỉ giảm giá cho các sản phẩm trong phạm vi này
+  .col-12(coupon-field="categories")
+    .mb-3
+      label.form-label Danh mục được áp dụng *
+      div(class="checkbox-list" checkbox-list="categories")
+        +checkbox-list(categoryTree, 0, coupon.categories || [])
+      small.text-muted Tính cả sản phẩm thuộc danh mục con của danh mục được chọn
+  .col-12(coupon-field="products")
+    .mb-3(coupon-product-picker)
+      label.form-label(for="productSearchInput") Sản phẩm được áp dụng *
+      .input-group.mb-2
+        input.form-control(id="productSearchInput" type="text" placeholder="Tìm theo tên (Việt / Nga), SKU, mã vạch, thương hiệu..." product-search-input)
+        span.btn.btn-outline-secondary(product-search-button)
+          i.fa-solid.fa-magnifying-glass.me-1
+          | Tìm
+      .list-group.coupon-product-list.mb-3(product-search-result)
+      label.form-label
+        | Đã chọn
+        span.badge.bg-primary.ms-1(product-selected-count) 0
+      //- Sản phẩm đã chọn: JS hiển thị từ data-products
+      .list-group.coupon-product-list(
+        product-selected-list
+        data-products=JSON.stringify(selectedProducts.map(product => ({ id: product.id, name: product.name, nameRu: product.nameRu, sku: product.sku, avatar: product.avatar, priceFormat: product.priceFormat, deleted: product.deleted })))
+      )
+
+//- ===== Giới hạn lượt dùng =====
+.row
+  .col-12
+    h5.border-bottom.pb-2.mb-3.mt-2 Giới hạn lượt dùng
+  .col-md-4
+    .mb-3
+      label.form-label(for="usageLimit") Tổng số lượt dùng
+      input.form-control(id="usageLimit" type="number" name="usageLimit" min="1" step="1" value=coupon.usageLimit placeholder="Không giới hạn")
+      small.text-muted
+        | Ví dụ chỉ 100 đơn hàng đầu tiên được dùng mã. Để trống nếu không giới hạn
+        if coupon.usedCount
+          br
+          b Đã dùng: #{coupon.usedCount} lượt
+  .col-md-4
+    .mb-3
+      label.form-label(for="usageLimitPerCustomer") Số lần mỗi khách được dùng
+      input.form-control(id="usageLimitPerCustomer" type="number" name="usageLimitPerCustomer" min="1" step="1" value=coupon.usageLimitPerCustomer placeholder="Không giới hạn")
+      small.text-muted Thường đặt là 1. Để trống nếu không giới hạn
+
+//- ===== Thời gian áp dụng =====
+.row
+  .col-12
+    h5.border-bottom.pb-2.mb-3.mt-2 Thời gian áp dụng
+    p.text-muted.small.mb-2 Tính theo giờ Moscow (UTC#{options.utcOffset})
+  .col-md-4
+    .mb-3
+      label.form-label(for="startAt") Bắt đầu *
+      input.form-control(id="startAt" type="datetime-local" name="startAt" value=coupon.startAtInput)
+  .col-md-4
+    .mb-3
+      label.form-label(for="endAt") Kết thúc
+      input.form-control(id="endAt" type="datetime-local" name="endAt" value=coupon.endAtInput)
+      small.text-muted Để trống nếu mã không hết hạn
+  .col-md-4
+    .mb-3
+      label.form-label(for="status") Trạng thái
+      select.form-select(id="status" name="status")
+        option(value="active" selected=(coupon.status != "inactive")) Hoạt động
+        option(value="inactive" selected=(coupon.status == "inactive")) Tạm dừng
+      small.text-muted Tạm dừng thì khách không dùng được mã, bật lại lúc nào cũng được

@@ -27,11 +27,15 @@ const denyAccess = (req: Request, res: Response) => {
 // Kiểm tra tài khoản đang đăng nhập có quyền hay không (danh sách quyền ở config/variable.config.ts)
 // Dùng trong route, đặt sau middleware đăng nhập (auth.middleware.ts), ví dụ:
 // router.get("/create", permissionMiddleware.checkPermission("article-create"), controller.create)
-export const checkPermission = (permission: string) => {
+// Truyền vào mảng thì chỉ cần có 1 trong các quyền, ví dụ:
+// router.get("/product-search", permissionMiddleware.checkPermission(["coupon-create", "coupon-edit"]), controller.productSearch)
+export const checkPermission = (permission: string | string[]) => {
+  const permissionRequired = Array.isArray(permission) ? permission : [permission]
+
   return (req: Request, res: Response, next: NextFunction) => {
     const permissions: string[] = res.locals.permissions
 
-    if(permissions.includes(permission)){
+    if(permissionRequired.some(item => permissions.includes(item))){
       next()
       return
     }

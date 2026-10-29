@@ -11,8 +11,8 @@ import {
   productVatList
 } from "../../config/variable.config"
 
-// Thông báo lỗi tiếng Việt dùng chung, {{#label}} là tên trường (đặt bằng .label("..."))
-const messages = {
+// Thông báo lỗi tiếng Việt dùng chung (cả validate mã giảm giá), {{#label}} là tên trường (đặt bằng .label("..."))
+export const messages = {
   "number.base": "{{#label}} phải là số!",
   "number.min": "{{#label}} không được nhỏ hơn {{#limit}}!",
   "number.max": "{{#label}} không được lớn hơn {{#limit}}!",
@@ -24,7 +24,7 @@ const messages = {
 }
 
 // Số không âm, được để trống
-const optionalNumber = (label: string) => Joi.number().min(0).allow("").label(label)
+export const optionalNumber = (label: string) => Joi.number().min(0).allow("").label(label)
 
 // Chỉ được chọn giá trị có trong danh sách (config/variable.config.ts), được để trống
 const optionalSelect = (label: string, list: { id: string }[]) => {
@@ -32,7 +32,7 @@ const optionalSelect = (label: string, list: { id: string }[]) => {
 }
 
 // Mảng gửi lên dạng chuỗi JSON (ví dụ: '["gluten","soy"]'), list: chỉ được chọn giá trị có trong danh sách
-const jsonArray = (label: string, list?: { id: string }[]) => {
+export const jsonArray = (label: string, list?: { id: string }[]) => {
   return Joi.string().allow("").label(label).custom((value, helpers) => {
     if(value === ""){
       return value
@@ -57,7 +57,7 @@ const jsonArray = (label: string, list?: { id: string }[]) => {
   })
 }
 
-const sendError = (res: Response, error: Joi.ValidationError) => {
+export const sendError = (res: Response, error: Joi.ValidationError) => {
   res.json({
     code: "error",
     message: error.details[0].message

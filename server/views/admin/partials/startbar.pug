@@ -66,6 +66,30 @@
                 // end nav
               // end sidebarProduct
           // end nav-item
+          if ["coupon-create", "coupon-list"].some(item => permissions.includes(item))
+            li.nav-item
+              a.nav-link(
+                aria-controls="sidebarCoupon"
+                aria-expanded="false"
+                role="button"
+                data-bs-toggle="collapse"
+                href="#sidebarCoupon"
+                )
+                i.iconoir-percentage-circle.menu-icon
+                span Mã giảm giá
+              #sidebarCoupon.collapse
+                ul.nav.flex-column
+                  if permissions.includes("coupon-create")
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/coupon/create`) Tạo mã giảm giá
+                  // end nav-item
+                  if permissions.includes("coupon-list")
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/coupon/list`) Danh sách mã giảm giá
+                  // end nav-item
+                // end nav
+              // end sidebarCoupon
+          // end nav-item
           if ["article-create", "article-list", "article-category"].some(item => permissions.includes(item))
             li.nav-item
               a.nav-link(

@@ -32,9 +32,9 @@ const productOptions = {
   vatList: productVatList
 }
 
-// Chuyển từ khoá tìm kiếm thành RegExp
+// Chuyển từ khoá tìm kiếm thành RegExp (dùng chung cho trang mã giảm giá)
 // slugify để tìm không dấu (tiếng Việt) và tìm được bằng tiếng Nga (chữ Nga được chuyển thành chữ Latin giống lúc lưu)
-const keywordToRegex = (keyword: string) => {
+export const keywordToRegex = (keyword: string) => {
   const keywordSlug = slugify(keyword, {
     replacement: " ",
     lower: true
@@ -535,11 +535,11 @@ const formatProductBody = (body: any) => {
   })
 }
 
-// Lọc danh sách id danh mục của sản phẩm trước khi lưu
+// Lọc danh sách id danh mục của sản phẩm trước khi lưu (dùng chung cho danh mục áp dụng mã giảm giá)
 // - Chỉ giữ danh mục có thật (bỏ id lạ gửi lên)
 // - Danh mục đang nằm trong thùng rác không hiện ở form sửa, nên giữ nguyên nếu sản phẩm đã thuộc danh mục đó
 //   (khôi phục danh mục thì sản phẩm vẫn nằm trong danh mục)
-const resolveCategoryIds = async (categoryIds: string[], oldCategoryIds: string[] = []) => {
+export const resolveCategoryIds = async (categoryIds: string[], oldCategoryIds: string[] = []) => {
   const categoryList = await CategoryProduct
     .find({
       _id: {
