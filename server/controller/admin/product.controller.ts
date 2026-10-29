@@ -661,6 +661,31 @@ const productStockFilterList = [
   { id: "out", name: "Hết hàng" }
 ]
 
+// Thông tin sản phẩm nên có khi bán thực phẩm nhập khẩu tại Nga
+// Dùng cho bộ lọc "Còn thiếu" ở danh sách sản phẩm và mục "Thông tin sản phẩm còn thiếu" ở trang tổng quan
+export const productMissingInfoList = [
+  { id: "avatar", name: "Ảnh đại diện" },
+  { id: "category", name: "Danh mục" },
+  { id: "nameRu", name: "Tên tiếng Nga" },
+  { id: "barcode", name: "Mã vạch" },
+  { id: "costPrice", name: "Giá nhập" },
+  { id: "ingredients", name: "Thành phần" },
+  { id: "shelfLife", name: "Hạn sử dụng" },
+  { id: "importer", name: "Nhà nhập khẩu" },
+  { id: "certificateNumber", name: "Số chứng nhận ЕАЭС" }
+]
+
+// Điều kiện tìm sản phẩm còn thiếu 1 thông tin trong productMissingInfoList
+// - category: không thuộc danh mục nào, hoặc chỉ thuộc danh mục đang nằm trong thùng rác
+// - allCategory: danh sách danh mục chưa xoá
+export const buildMissingInfoFind = (id: string, allCategory: any[]): any => {
+  if(id === "category"){
+    return { category: { $nin: allCategory.map(category => category.id) } }
+  }
+
+  return { [id]: { $in: [null, ""] } }
+}
+
 // Điều kiện lọc theo bộ lọc ở trang danh sách sản phẩm (dùng chung cho xuất Excel)
 // - query: req.query
 // - allCategory: danh sách danh mục chưa xoá (để lọc cả sản phẩm thuộc danh mục con)
@@ -672,7 +697,8 @@ export const buildProductFind = (query: any, allCategory: any[]) => {
     status?: string,
     origin?: string,
     storageType?: string,
-    stock?: any
+    stock?: any,
+    $and?: any[]
   } = {
     deleted: false
   }
@@ -709,6 +735,11 @@ export const buildProductFind = (query: any, allCategory: any[]) => {
   }
   else if(query.stock === "out"){
     find.stock = { $not: { $gt: 0 } } // gồm cả sản phẩm chưa nhập tồn kho
+  }
+
+  // Lọc sản phẩm còn thiếu thông tin (đặt trong $and để không ghi đè điều kiện lọc theo danh mục ở trên)
+  if(productMissingInfoList.some(item => item.id === query.missing)){
+    find.$and = [buildMissingInfoFind(`${query.missing}`, allCategory)]
   }
 
   return find
@@ -771,6 +802,7 @@ export const list = async (req: Request, res: Response) => {
     options: productOptions,
     sortList: productSortList,
     stockFilterList: productStockFilterList,
+    missingInfoList: productMissingInfoList,
     lowStockThreshold: productLowStockThreshold,
     excelGroupList: productExcelGroupList,
     filter: {
@@ -780,6 +812,7 @@ export const list = async (req: Request, res: Response) => {
       origin: req.query.origin || "",
       storageType: req.query.storageType || "",
       stock: req.query.stock || "",
+      missing: req.query.missing || "",
       sort: sortItem.id
     },
     pagination: pagination,

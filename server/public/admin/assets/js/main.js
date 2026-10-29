@@ -2217,3 +2217,93 @@ if(accountAdminChangePasswordForm) {
   ;
 }
 // End accountAdminChangePasswordForm
+
+// Biểu đồ trang tổng quan
+// Mỗi ô [dashboard-chart] là 1 biểu đồ cột ngang (ApexCharts, chỉ nhúng ở trang tổng quan)
+// Dữ liệu do server điền vào data-chart: { labels: ["Mì - Bún - Phở", ...], values: [12, ...] }
+const listDashboardChart = document.querySelectorAll("[dashboard-chart]")
+if(listDashboardChart.length > 0) {
+  // Màu theo giao diện sáng / tối đang chọn
+  const isDarkTheme = document.documentElement.getAttribute("data-bs-theme") === "dark"
+  const chartTextColor = getComputedStyle(document.body).getPropertyValue("--bs-secondary-color").trim() || "#8997bd"
+  const chartBarColor = isDarkTheme ? "#3987e5" : "#2a78d6"
+
+  listDashboardChart.forEach(element => {
+    const { labels, values } = JSON.parse(element.getAttribute("data-chart"))
+
+    if(values.length === 0) {
+      element.innerHTML = `<p class="text-muted text-center my-4">Chưa có sản phẩm</p>`
+      return
+    }
+
+    // Không tải được thư viện biểu đồ thì hiện dạng danh sách
+    if(typeof ApexCharts === "undefined") {
+      element.innerHTML = labels.map((label, index) => `
+        <div class="d-flex justify-content-between border-bottom py-1">
+          <span>${escapeHtml(label)}</span><span class="fw-semibold">${values[index]}</span>
+        </div>
+      `).join("")
+      return
+    }
+
+    const chart = new ApexCharts(element, {
+      chart: {
+        type: "bar",
+        height: labels.length * 36 + 30, // mỗi cột cao khoảng 36px
+        toolbar: { show: false },
+        fontFamily: "inherit",
+        foreColor: chartTextColor,
+        background: "transparent"
+      },
+      series: [{
+        name: "Số sản phẩm",
+        data: values
+      }],
+      colors: [chartBarColor],
+      plotOptions: {
+        bar: {
+          horizontal: true,
+          barHeight: "60%",
+          borderRadius: 4,
+          borderRadiusApplication: "end",
+          dataLabels: { position: "top" }
+        }
+      },
+      // Số sản phẩm ở cuối mỗi cột
+      dataLabels: {
+        enabled: true,
+        offsetX: 22,
+        style: {
+          colors: [chartTextColor],
+          fontWeight: 500
+        }
+      },
+      // Số đã hiện ở cuối mỗi cột nên ẩn trục số, chừa 20% bên phải để số không đè lên cột dài nhất
+      xaxis: {
+        categories: labels,
+        max: Math.max(...values) * 1.2,
+        labels: { show: false },
+        axisBorder: { show: false },
+        axisTicks: { show: false }
+      },
+      yaxis: {
+        labels: { maxWidth: 160 }
+      },
+      grid: {
+        xaxis: { lines: { show: false } },
+        yaxis: { lines: { show: false } },
+        padding: { top: -10, bottom: -10 }
+      },
+      tooltip: {
+        theme: isDarkTheme ? "dark" : "light",
+        y: {
+          formatter: (value) => `${value} sản phẩm`
+        }
+      },
+      legend: { show: false }
+    })
+
+    chart.render()
+  })
+}
+// End Biểu đồ trang tổng quan

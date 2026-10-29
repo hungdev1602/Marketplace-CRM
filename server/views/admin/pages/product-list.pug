@@ -64,13 +64,13 @@ block main
                 option(value="") -- Tất cả trạng thái --
                 option(value="active" selected=(filter.status == "active")) Đang bán
                 option(value="inactive" selected=(filter.status == "inactive")) Ngừng bán
-            .col-md-6.col-lg-3
+            .col-md-6.col-lg-2
               label.form-label(for="filterOrigin") Xuất xứ
               select.form-select(id="filterOrigin" name="origin")
                 option(value="") -- Tất cả xuất xứ --
                 each item in options.originList
                   option(value=item.id selected=(item.id == filter.origin)) #{item.name}
-            .col-md-6.col-lg-3
+            .col-md-6.col-lg-2
               label.form-label(for="filterStorageType") Bảo quản
               select.form-select(id="filterStorageType" name="storageType")
                 option(value="") -- Tất cả --
@@ -82,6 +82,12 @@ block main
                 option(value="") -- Tất cả --
                 each item in stockFilterList
                   option(value=item.id selected=(item.id == filter.stock)) #{item.name}
+            .col-md-6.col-lg-2
+              label.form-label(for="filterMissing") Còn thiếu
+              select.form-select(id="filterMissing" name="missing")
+                option(value="") -- Không lọc --
+                each item in missingInfoList
+                  option(value=item.id selected=(item.id == filter.missing)) #{item.name}
             .col-md-6.col-lg-2
               label.form-label(for="filterSort") Sắp xếp
               select.form-select(id="filterSort" name="sort")

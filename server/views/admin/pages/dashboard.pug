@@ -1,690 +1,265 @@
 extends ../layouts/default.pug
 
-block main 
-  .row
-    .col-md-12.col-lg-12.col-xl-4
-      .row
-        .col-md-12.col-lg-6.col-xl-12
-          .card
-            .card-body.border-dashed-bottom.pb-3
-              .row.d-flex.justify-content-between
-                .col-auto
-                  .d-flex.justify-content-center.align-items-center.thumb-xl.border.border-secondary.rounded-circle
-                    i.icofont-money-bag.h1.align-self-center.mb-0.text-secondary
-                  h5.mt-2.mb-0.fs-14 Total Revenue
-                // end col
-                .col.align-self-center
-                  #line-1.apex-charts.float-end
-                // end col
-              // end row
-            // end card-body
-            .card-body
-              .row.d-flex.justify-content-center
-                .col-12.col-md-6
-                  h2.fs-22.mt-0.mb-1.fw-bold $8365.00
-                  p.mb-0.text-truncate.text-muted
-                    span.text-success
-                      i.mdi.mdi-trending-up
-                      | 8.5%
-                    | New Sessions
-                    |   Today
-                // end col
-                .col-12.col-md-6.align-self-center.text-start.text-md-end
-                  button.btn.btn-primary.btn-sm.px-2.mt-2.mt-md-0(type="button")
-                    | View
-                    |   Report
-                // end col
-              // end row
-            // end card-body
-          // end card
-        // end col
-        .col-md-12.col-lg-6.col-xl-12
-          .card
-            .card-body.border-dashed-bottom.pb-3
-              .row.d-flex.justify-content-between
-                .col-auto
-                  .d-flex.justify-content-center.align-items-center.thumb-xl.border.border-secondary.rounded-circle
-                    i.icofont-opencart.h1.align-self-center.mb-0.text-secondary
-                  h5.mt-2.mb-0.fs-14 New Order
-                // end col
-                .col.align-self-center
-                  #line-2.apex-charts.float-end
-                // end col
-              // end row
-            // end card-body
-            .card-body
-              .row.d-flex.justify-content-center
-                .col-12.col-md-6
-                  h2.fs-22.mt-0.mb-1.fw-bold 722
-                  p.mb-0.text-truncate.text-muted
-                    span.text-success
-                      i.mdi.mdi-trending-up
-                      | 8.5%
-                    | New Sessions
-                    |   Today
-                // end col
-                .col-12.col-md-6.align-self-center.text-start.text-md-end
-                  button.btn.btn-outline-secondary.btn-sm.px-2.mt-2.mt-md-0(type="button")
-                    | View
-                    |   Report
-                // end col
-              // end row
-            // end card-body
-          // end card
-        // end col
-      // end row
-    // end col
-    .col-md-12.col-lg-12.col-xl-8
-      .card
-        .card-header
-          .row.align-items-center
-            .col
-              h4.card-title Monthly Avg. Income
-            // end col
-            .col-auto
-              .dropdown
-                a.btn.bt.btn-light.dropdown-toggle(
-                  aria-expanded="false" 
-                  aria-haspopup="true" 
-                  data-bs-toggle="dropdown" 
-                  href="#"
-                  )
-                  i.icofont-calendar.fs-5.me-1
-                  | This Year
-                  i.las.la-angle-down.ms-1
-                .dropdown-menu.dropdown-menu-end
-                  a.dropdown-item(href="#") Today
-                  a.dropdown-item(href="#") Last Week
-                  a.dropdown-item(href="#") Last Month
-                  a.dropdown-item(href="#") This Year
-            // end col
-          // end row
-        // end card-header
-        .card-body.pt-0
-          .apex-charts(id="monthly_income")
-          .row
-            .col-md-6.col-lg-3
-              .card.shadow-none.border.mb-3.mb-lg-0
-                .card-body
-                  .row.align-items-center
-                    .col.text-center
-                      span.fs-18.fw-semibold $24,500
-                      h6.text-uppercase.text-muted.mt-2.m-0 Today's Revenue
-                    // end col
-                  // end row
-                // end card-body
-              // end card-body
-            // end col
-            .col-md-6.col-lg-3
-              .card.shadow-none.border.mb-3.mb-lg-0
-                .card-body
-                  .row.align-items-center
-                    .col.text-center
-                      span.fs-18.fw-semibold 82.8%
-                      h6.text-uppercase.text-muted.mt-2.m-0 Conversion Rate
-                    // end col
-                  // end row
-                // end card-body
-              // end card-body
-            // end col
-            .col-md-6.col-lg-3
-              .card.shadow-none.border.mb-3.mb-lg-0
-                .card-body
-                  .row.align-items-center
-                    .col.text-center
-                      span.fs-18.fw-semibold $9982.00
-                      h6.text-uppercase.text-muted.mt-2.m-0 Total Expenses
-                    // end col
-                  // end row
-                // end card-body
-              // end card
-            // end col
-            .col-md-6.col-lg-3
-              .card.shadow-none.border.mb-3.mb-lg-0
-                .card-body
-                  .row.align-items-center
-                    .col.text-center
-                      span.fs-18.fw-semibold $80.5
-                      h6.text-uppercase.text-muted.mt-2.m-0 Avg. Value
-                    // end col
-                  // end row
-                // end card-body
-              // end card-body
-            // end col
-          // end row
-        // end card-body
-      // end card
-    // end col
-  // end row
-  .row.justify-content-center
-    .col-md-6.col-lg-8
-      .card
-        .card-header
-          .row.align-items-center
-            .col
-              h4.card-title Popular Products
-            // end col
-            .col-auto
-              .dropdown
-                a.btn.bt.btn-light.dropdown-toggle(
-                  aria-expanded="false" 
-                  aria-haspopup="true" 
-                  data-bs-toggle="dropdown" 
-                  href="#"
-                  )
-                  i.icofont-calendar.fs-5.me-1
-                  | This Year
-                  i.las.la-angle-down.ms-1
-                .dropdown-menu.dropdown-menu-end
-                  a.dropdown-item(href="#") Today
-                  a.dropdown-item(href="#") Last Week
-                  a.dropdown-item(href="#") Last Month
-                  a.dropdown-item(href="#") This Year
-            // end col
-          // end row
-        // end card-header
-        .card-body.pt-0
-          .table-responsive
-            table.table.mb-0
-              thead.table-light
-                tr
-                  th.border-top-0 Product
-                  th.border-top-0 Price
-                  th.border-top-0 Sell
-                  th.border-top-0 Status
-                  th.border-top-0 Action
-                // end tr
-              tbody
-                tr
-                  td
-                    .d-flex.align-items-center
-                      img.me-3.align-self-center.rounded(
-                        alt="..." 
-                        height="40" 
-                        src="/admin/assets/images/products/01.png"
-                        )
-                      .flex-grow-1.text-truncate
-                        h6.m-0 History Book
-                        a.fs-12.text-primary(href="#") ID: A3652
-                      // end media body
-                  td
-                    | $50
-                    del.text-muted.fs-10 $70
-                  td
-                    | 450
-                    small.text-muted (550)
-                  td
-                    span.badge.bg-primary-subtle.text-primary.px-2 Stock
-                  td
-                    a(href="#")
-                      i.las.la-pen.text-secondary.fs-18
-                    a(href="#")
-                      i.las.la-trash-alt.text-secondary.fs-18
-                // end tr
-                tr
-                  td
-                    .d-flex.align-items-center
-                      img.me-3.align-self-center.rounded(
-                        alt="..." 
-                        height="40" 
-                        src="/admin/assets/images/products/02.png"
-                        )
-                      .flex-grow-1.text-truncate
-                        h6.m-0 Colorful Pots
-                        a.fs-12.text-primary(href="#") ID: A5002
-                      // end media body
-                  td
-                    | $99
-                    del.text-muted.fs-10 $150
-                  td
-                    | 750
-                    small.text-muted (00)
-                  td
-                    span.badge.bg-danger-subtle.text-danger.px-2
-                      | Out of
-                      |   Stock
-                  td
-                    a(href="#")
-                      i.las.la-pen.text-secondary.fs-18
-                    a(href="#")
-                      i.las.la-trash-alt.text-secondary.fs-18
-                // end tr
-                tr
-                  td
-                    .d-flex.align-items-center
-                      img.me-3.align-self-center.rounded(
-                        alt="..." 
-                        height="40" 
-                        src="/admin/assets/images/products/04.png"
-                        )
-                      .flex-grow-1.text-truncate
-                        h6.m-0 Pearl Bracelet
-                        a.fs-12.text-primary(href="#") ID: A6598
-                      // end media body
-                  td
-                    | $199
-                    del.text-muted.fs-10 $250
-                  td
-                    | 280
-                    small.text-muted (220)
-                  td
-                    span.badge.bg-primary-subtle.text-primary.px-2 Stock
-                  td
-                    a(href="#")
-                      i.las.la-pen.text-secondary.fs-18
-                    a(href="#")
-                      i.las.la-trash-alt.text-secondary.fs-18
-                // end tr
-                tr
-                  td
-                    .d-flex.align-items-center
-                      img.me-3.align-self-center.rounded(
-                        alt="..." 
-                        height="40" 
-                        src="/admin/assets/images/products/06.png"
-                        )
-                      .flex-grow-1.text-truncate
-                        h6.m-0 Dancing Man
-                        a.fs-12.text-primary(href="#") ID: A9547
-                      // end media body
-                  td
-                    | $40
-                    del.text-muted.fs-10 $49
-                  td
-                    | 500
-                    small.text-muted (1000)
-                  td
-                    span.badge.bg-danger-subtle.text-danger.px-2
-                      | Out of
-                      |   Stock
-                  td
-                    a(href="#")
-                      i.las.la-pen.text-secondary.fs-18
-                    a(href="#")
-                      i.las.la-trash-alt.text-secondary.fs-18
-                // end tr
-                tr
-                  td
-                    .d-flex.align-items-center
-                      img.me-3.align-self-center.rounded(
-                        alt="..." 
-                        height="40" 
-                        src="/admin/assets/images/products/05.png"
-                        )
-                      .flex-grow-1.text-truncate
-                        h6.m-0 Fire Lamp
-                        a.fs-12.text-primary(href="#") ID: A2047
-                      // end media body
-                  td
-                    | $80
-                    del.text-muted.fs-10 $59
-                  td
-                    | 800
-                    small.text-muted (2000)
-                  td
-                    span.badge.bg-danger-subtle.text-danger.px-2
-                      | Out of
-                      |   Stock
-                  td
-                    a(href="#")
-                      i.las.la-pen.text-secondary.fs-18
-                    a(href="#")
-                      i.las.la-trash-alt.text-secondary.fs-18
-                // end tr
-            // end table
-          // end /div
-        // end card-body
-      // end card
-    // end col
-    .col-md-6.col-lg-4
-      .card
-        .card-header
-          .row.align-items-center
-            .col
-              h4.card-title Customers
-            // end col
-            .col-auto
-              .img-group.d-flex
-                a.user-avatar.position-relative.d-inline-block(href="#")
-                  img.thumb-md.shadow-sm.rounded-circle(
-                    alt="avatar" 
-                    src="/admin/assets/images/users/avatar-1.jpg"
-                    )
-                a.user-avatar.position-relative.d-inline-block.ms-n2(href="#")
-                  img.thumb-md.shadow-sm.rounded-circle(
-                    alt="avatar" 
-                    src="/admin/assets/images/users/avatar-2.jpg"
-                    )
-                a.user-avatar.position-relative.d-inline-block.ms-n2(href="#")
-                  img.thumb-md.shadow-sm.rounded-circle(
-                    alt="avatar" 
-                    src="/admin/assets/images/users/avatar-4.jpg"
-                    )
-                a.user-avatar.position-relative.d-inline-block.ms-n2(href="#")
-                  img.thumb-md.shadow-sm.rounded-circle(
-                    alt="avatar" 
-                    src="/admin/assets/images/users/avatar-3.jpg"
-                    )
-                a.user-avatar.position-relative.d-inline-block.ms-1(href="#")
-                  span.thumb-md.shadow-sm.justify-content-center.d-flex.align-items-center.bg-info-subtle.rounded-circle.fw-semibold.fs-6 +6
-            // end col
-          // end row
-        .card-body.pt-0
-          #customers.apex-charts
-          .bg-light.py-3.px-2.mb-0.mt-3.text-center.rounded
-            h6.mb-0
-              i.icofont-calendar.fs-5.me-1
-              | 01 January 2024 to 31
-              |   December 2024
-          p.text-secondary.text-truncate.mb-0.rounded.mt-2.text-center
-            | To review the new
-            |   order by Jems.
-            a.text-primary.text-decoration-underline(href="#") detail
-        // end card-body
-      // end card
-    // end col
-  // end row
-  .row.justify-content-center
-    .col-md-6.col-lg-4
-      .card
-        .card-header
-          .row.align-items-center
-            .col
-              h4.card-title Top Selling by Country
-            // end col
-            .col-auto
-              .dropdown
-                a.btn.bt.btn-light.dropdown-toggle(
-                  aria-expanded="false" 
-                  aria-haspopup="true" 
-                  data-bs-toggle="dropdown" 
-                  href="#"
-                  )
-                  i.icofont-calendar.fs-5.me-1
-                  | This Month
-                  i.las.la-angle-down.ms-1
-                .dropdown-menu.dropdown-menu-end
-                  a.dropdown-item(href="#") Today
-                  a.dropdown-item(href="#") Last Week
-                  a.dropdown-item(href="#") Last Month
-                  a.dropdown-item(href="#") This Year
-            // end col
-          // end row
-        // end card-header
-        .card-body.pt-0
-          .table-responsive
-            table.table.mb-0
-              tbody
-                tr
-                  td.px-0
-                    .d-flex.align-items-center
-                      img.me-2.align-self-center.thumb-md.rounded-circle(
-                        alt="..." 
-                        src="/admin/assets/images/flags/us_flag.jpg"
-                        )
-                      .flex-grow-1.text-truncate
-                        h6.m-0.text-truncate USA
-                        .d-flex.align-items-center
-                          .progress.bg-primary-subtle.w-100(
-                            aria-valuemax="100" 
-                            aria-valuemin="0" 
-                            aria-valuenow="25" 
-                            aria-label="Success example" 
-                            role="progressbar" 
-                            style="height:5px;"
-                            )
-                            .progress-bar.bg-primary(style="width: 85%")
-                          small.flex-shrink-1.ms-1 85%
-                      // end media body
-                    // end media
-                  td.px-0.text-end
-                    span.text-body.ps-2.align-self-center.text-end $5860.00
-                // end tr
-                tr
-                  td.px-0
-                    .d-flex.align-items-center
-                      img.me-2.align-self-center.thumb-md.rounded-circle(
-                        alt="..." 
-                        src="/admin/assets/images/flags/spain_flag.jpg"
-                        )
-                      .flex-grow-1.text-truncate
-                        h6.m-0.text-truncate Spain
-                        .d-flex.align-items-center
-                          .progress.bg-primary-subtle.w-100(
-                            aria-valuemax="100" 
-                            aria-valuemin="0" 
-                            aria-valuenow="25" 
-                            aria-label="Success example" 
-                            role="progressbar" 
-                            style="height:5px;"
-                            )
-                            .progress-bar.bg-primary(style="width: 78%")
-                          small.flex-shrink-1.ms-1 78%
-                      // end media body
-                    // end media
-                  td.px-0.text-end
-                    span.text-body.ps-2.align-self-center.text-end $5422.00
-                // end tr
-                tr
-                  td.px-0
-                    .d-flex.align-items-center
-                      img.me-2.align-self-center.thumb-md.rounded-circle(
-                        alt="..." 
-                        src="/admin/assets/images/flags/french_flag.jpg"
-                        )
-                      .flex-grow-1.text-truncate
-                        h6.m-0.text-truncate French
-                        .d-flex.align-items-center
-                          .progress.bg-primary-subtle.w-100(
-                            aria-valuemax="100" 
-                            aria-valuemin="0" 
-                            aria-valuenow="25" 
-                            aria-label="Success example" 
-                            role="progressbar" 
-                            style="height:5px;"
-                            )
-                            .progress-bar.bg-primary(style="width: 71%")
-                          small.flex-shrink-1.ms-1 71%
-                      // end media body
-                    // end media
-                  td.px-0.text-end
-                    span.text-body.ps-2.align-self-center.text-end $4587.00
-                // end tr
-                tr
-                  td.px-0
-                    .d-flex.align-items-center
-                      img.me-2.align-self-center.thumb-md.rounded-circle(
-                        alt="..." 
-                        src="/admin/assets/images/flags/germany_flag.jpg"
-                        )
-                      .flex-grow-1.text-truncate
-                        h6.m-0.text-truncate Germany
-                        .d-flex.align-items-center
-                          .progress.bg-primary-subtle.w-100(
-                            aria-valuemax="100" 
-                            aria-valuemin="0" 
-                            aria-valuenow="25" 
-                            aria-label="Success example" 
-                            role="progressbar" 
-                            style="height:5px;"
-                            )
-                            .progress-bar.bg-primary(style="width: 65%")
-                          small.flex-shrink-1.ms-1 65%
-                      // end media body
-                    // end media
-                  td.px-0.text-end
-                    span.text-body.ps-2.align-self-center.text-end $3655.00
-                // end tr
-                tr
-                  td.px-0
-                    .d-flex.align-items-center
-                      img.me-2.align-self-center.thumb-md.rounded-circle(
-                        alt="..." 
-                        src="/admin/assets/images/flags/baha_flag.jpg"
-                        )
-                      .flex-grow-1.text-truncate
-                        h6.m-0.text-truncate Bahamas
-                        .d-flex.align-items-center
-                          .progress.bg-primary-subtle.w-100(
-                            aria-valuemax="100" 
-                            aria-valuemin="0" 
-                            aria-valuenow="25" 
-                            aria-label="Success example" 
-                            role="progressbar" 
-                            style="height:5px;"
-                            )
-                            .progress-bar.bg-primary(style="width: 48%")
-                          small.flex-shrink-1.ms-1 48%
-                      // end media body
-                    // end media
-                  td.px-0.text-end
-                    span.text-body.ps-2.align-self-center.text-end $3325.00
-                // end tr
-            // end table
-          // end /div
-        // end card-body
-      // end card
-    // end col
-    .col-md-6.col-lg-4
-      .card
-        .card-header
-          .row.align-items-center
-            .col
-              h4.card-title Categories Data
-            // end col
-            .col-auto
-              .text-center
-                h6.text-uppercase.text-muted.mt-1.m-0
-                  span.fs-16.fw-semibold 24+
-                  | Categories
-            // end col
-          // end row
-        .card-body.pt-0
-          #categories.apex-charts.mt-n2
-          .text-center
-            button.btn.btn-primary.mx-auto(type="button")
-              | More Detail
-              i.fa-solid.fa-arrow-right-long
-        // end card-body
-      // end card
-    // end col
-    .col-md-6.col-lg-4
-      .card
-        .card-header
-          .row.align-items-center
-            .col
-              h4.card-title Recents Order
-            // end col
-            .col-auto
-              .dropdown
-                a.btn.bt.btn-light.dropdown-toggle(
-                  aria-expanded="false" 
-                  aria-haspopup="true" 
-                  data-bs-toggle="dropdown" 
-                  href="#"
-                  )
-                  i.icofont-calendar.fs-5.me-1
-                  | This Month
-                  i.las.la-angle-down.ms-1
-                .dropdown-menu.dropdown-menu-end
-                  a.dropdown-item(href="#") Today
-                  a.dropdown-item(href="#") Last Week
-                  a.dropdown-item(href="#") Last Month
-                  a.dropdown-item(href="#") This Year
-            // end col
-          // end row
-        // end card-header
-        .card-body.pt-0
-          .table-responsive
-            table.table.mb-0
-              tbody
-                tr
-                  td.px-0
-                    .d-flex.align-items-center
-                      img.me-2.align-self-center.rounded(
-                        alt="..." 
-                        height="36" 
-                        src="/admin/assets/images/users/avatar-1.jpg"
-                        )
-                      .flex-grow-1.text-truncate
-                        h6.m-0.text-truncate Scott Holland
-                        a.font-12.text-muted.text-decoration-underline(href="#") #3652
-                      // end media body
-                    // end media
-                  td.px-0.text-end
-                    span.text-primary.ps-2.align-self-center.text-end $3325.00
-                // end tr
-                tr
-                  td.px-0
-                    .d-flex.align-items-center
-                      img.me-2.align-self-center.rounded(
-                        alt="..." 
-                        height="36" 
-                        src="/admin/assets/images/users/avatar-2.jpg"
-                        )
-                      .flex-grow-1.text-truncate
-                        h6.m-0.text-truncate Karen Savage
-                        a.font-12.text-muted.text-decoration-underline(href="#") #4789
-                      // end media body
-                    // end media
-                  td.px-0.text-end
-                    span.text-primary.ps-2.align-self-center.text-end $2548.00
-                // end tr
-                tr
-                  td.px-0
-                    .d-flex.align-items-center
-                      img.me-2.align-self-center.rounded(
-                        alt="..." 
-                        height="36" 
-                        src="/admin/assets/images/users/avatar-3.jpg"
-                        )
-                      .flex-grow-1.text-truncate
-                        h6.m-0.text-truncate Steven Sharp
-                        a.font-12.text-muted.text-decoration-underline(href="#") #4521
-                      // end media body
-                    // end media
-                  td.px-0.text-end
-                    span.text-primary.ps-2.align-self-center.text-end $2985.00
-                // end tr
-                tr
-                  td.px-0
-                    .d-flex.align-items-center
-                      img.me-2.align-self-center.rounded(
-                        alt="..." 
-                        height="36" 
-                        src="/admin/assets/images/users/avatar-4.jpg"
-                        )
-                      .flex-grow-1.text-truncate
-                        h6.m-0.text-truncate Teresa Himes
-                        a.font-12.text-muted.text-decoration-underline(href="#") #3269
-                      // end media body
-                    // end media
-                  td.px-0.text-end
-                    span.text-primary.ps-2.align-self-center.text-end $1845.00
-                // end tr
-                tr
-                  td.px-0
-                    .d-flex.align-items-center
-                      img.me-2.align-self-center.rounded(
-                        alt="..." 
-                        height="36" 
-                        src="/admin/assets/images/users/avatar-5.jpg"
-                        )
-                      .flex-grow-1.text-truncate
-                        h6.m-0.text-truncate Ralph Denton
-                        a.font-12.text-muted.text-decoration-underline(href="#") #4521
-                      // end media body
-                    // end media
-                  td.px-0.text-end
-                    span.text-primary.ps-2.align-self-center.text-end $1422.00
-                // end tr
-            // end table
-          // end /div
-        // end card-body
-      // end card
-    // end col
-  // end row
+//- Ô số liệu: biểu tượng, tên, con số, dòng mô tả; có link thì bấm vào cả ô để xem chi tiết
+mixin stat-card(label, value, note, icon, iconColor, link)
+  .card.dashboard-stat-card.flex-fill
+    .card-body
+      .d-flex.align-items-center
+        .flex-grow-1
+          p.text-muted.mb-1 #{label}
+          h3.fw-bold.mb-1 #{value}
+          if note
+            p.small.text-muted.mb-0 #{note}
+        .d-flex.justify-content-center.align-items-center.thumb-lg.rounded-circle.bg-light.ms-2
+          i(class=`${icon} fs-4 ${iconColor}`)
+      if link
+        a.stretched-link(href=link aria-label=label)
 
-block script 
+block main
+  //- Tiêu đề, thời gian lấy số liệu, nút thao tác nhanh
+  .row.align-items-center.mb-3
+    .col
+      h4.mb-1 #{pageTitle}
+      p.text-muted.small.mb-0 Số liệu lúc #{updatedAt} (giờ Moscow). Tải lại trang để cập nhật.
+    .col-auto.mt-2.mt-md-0
+      if permissions.includes("product-create")
+        a.btn.btn-primary.btn-sm.me-1.mb-1(href=`/${pathAdmin}/product/create`)
+          i.fa-solid.fa-plus.me-1
+          | Tạo sản phẩm
+      if permissions.includes("product-import")
+        a.btn.btn-outline-success.btn-sm.me-1.mb-1(href=`/${pathAdmin}/product/import`)
+          i.fa-solid.fa-file-import.me-1
+          | Nhập Excel
+      if permissions.includes("coupon-create")
+        a.btn.btn-outline-primary.btn-sm.me-1.mb-1(href=`/${pathAdmin}/coupon/create`)
+          i.fa-solid.fa-ticket.me-1
+          | Tạo mã giảm giá
+      if permissions.includes("article-create")
+        a.btn.btn-outline-secondary.btn-sm.mb-1(href=`/${pathAdmin}/article/create`)
+          i.fa-solid.fa-pen.me-1
+          | Viết bài
+
+  if !productStats && !couponStats && !articleStats && !activityList
+    .card
+      .card-body.text-center.text-muted.py-5
+        | Tài khoản chưa được cấp quyền xem chức năng nào để hiện số liệu. Vui lòng liên hệ quản trị viên.
+
+  //- ===== Sản phẩm =====
+  if productStats
+    .row
+      .col-md-6.col-xl-3.d-flex
+        +stat-card(
+          "Sản phẩm",
+          formatNumber(productStats.totalCount),
+          `${formatNumber(productStats.activeCount)} đang bán · ${formatNumber(productStats.inactiveCount)} ngừng bán`,
+          "iconoir-shopping-bag",
+          "text-primary",
+          `/${pathAdmin}/product/list`
+        )
+      .col-md-6.col-xl-3.d-flex
+        +stat-card(
+          "Hết hàng",
+          formatNumber(productStats.outOfStockCount),
+          "Sản phẩm đang bán, tồn kho bằng 0",
+          "iconoir-warning-triangle",
+          productStats.outOfStockCount > 0 ? "text-danger" : "text-success",
+          `/${pathAdmin}/product/list?status=active&stock=out`
+        )
+      .col-md-6.col-xl-3.d-flex
+        +stat-card(
+          "Sắp hết hàng",
+          formatNumber(productStats.lowStockCount),
+          `Sản phẩm đang bán, tồn kho từ 1 đến ${lowStockThreshold}`,
+          "iconoir-box-iso",
+          productStats.lowStockCount > 0 ? "text-warning" : "text-success",
+          `/${pathAdmin}/product/list?status=active&stock=low`
+        )
+      .col-md-6.col-xl-3.d-flex
+        +stat-card(
+          "Giá trị hàng tồn kho (giá nhập)",
+          productStats.stockCostValueFormat,
+          `Theo giá bán: ${productStats.stockPriceValueFormat}` + (productStats.missingCostPriceCount ? ` · ${formatNumber(productStats.missingCostPriceCount)} sản phẩm còn hàng chưa nhập giá nhập` : ""),
+          "iconoir-coins",
+          "text-info",
+          ""
+        )
+
+    .row
+      .col-lg-5.d-flex
+        .card.flex-fill
+          .card-header
+            h4.card-title Sản phẩm theo danh mục
+            p.small.text-muted.mb-0 Tính cả danh mục con, 1 sản phẩm có thể thuộc nhiều danh mục
+          .card-body.pt-0
+            div(dashboard-chart data-chart=JSON.stringify(productStats.categoryChart))
+      .col-lg-4.d-flex
+        .card.flex-fill
+          .card-header
+            h4.card-title Sản phẩm theo xuất xứ
+          .card-body.pt-0
+            div(dashboard-chart data-chart=JSON.stringify(productStats.originChart))
+      .col-lg-3.d-flex
+        .card.flex-fill
+          .card-header
+            h4.card-title Điều kiện bảo quản
+            p.small.text-muted.mb-0 Hàng mát, đông lạnh cần xe / hộp giữ lạnh khi giao
+          .card-body.pt-0
+            ul.list-group.list-group-flush
+              each item in productStats.storageList
+                li.list-group-item.bg-transparent.d-flex.justify-content-between.align-items-center.px-0
+                  span(class=`badge ${item.color} text-wrap text-start`) #{item.name}
+                  a.fw-semibold(href=`/${pathAdmin}/product/list?storageType=${item.id}`) #{formatNumber(item.count)}
+              if productStats.noStorageCount > 0
+                li.list-group-item.bg-transparent.d-flex.justify-content-between.align-items-center.px-0
+                  span.text-muted Chưa chọn
+                  span.fw-semibold #{formatNumber(productStats.noStorageCount)}
+
+    .row
+      .col-lg-7.d-flex
+        .card.flex-fill
+          .card-header
+            .row.align-items-center
+              .col
+                h4.card-title Sản phẩm cần nhập thêm hàng
+                p.small.text-muted.mb-0 Sản phẩm đang bán có tồn kho từ #{lowStockThreshold} trở xuống, ít nhất trước
+              .col-auto
+                a.btn.btn-sm.btn-light(href=`/${pathAdmin}/product/list?status=active&sort=stock-asc`) Xem tất cả
+          .card-body.pt-0
+            if productStats.lowStockList.length > 0
+              .table-responsive
+                table.table.mb-0
+                  thead.table-light
+                    tr
+                      th Sản phẩm
+                      th.text-center Tồn kho
+                      th.text-end
+                  tbody
+                    each item in productStats.lowStockList
+                      tr
+                        td
+                          .d-flex.align-items-center
+                            if item.avatar
+                              img.thumb-md.rounded.me-2(src=`${domainFileManager}${item.avatar}` alt="" style="object-fit: contain;")
+                            div
+                              div.fw-medium #{item.name}
+                              if item.sku
+                                div.small.text-muted SKU: #{item.sku}
+                        td.text-center.text-nowrap
+                          if !(item.stock > 0)
+                            span.badge.bg-danger Hết hàng
+                          else
+                            span.badge.bg-warning #{item.stock}
+                            if item.unitName
+                              span.small.text-muted  #{item.unitName}
+                        td.text-end
+                          if permissions.includes("product-edit")
+                            a(href=`/${pathAdmin}/product/edit/${item.id}` title="Chỉnh sửa")
+                              i.fa-solid.fa-pen-to-square.text-secondary.fs-5
+            else
+              p.text-center.text-success.my-4
+                i.fa-solid.fa-circle-check.me-1
+                | Tất cả sản phẩm đang bán đều đủ hàng
+      .col-lg-5.d-flex
+        .card.flex-fill
+          .card-header
+            h4.card-title Thông tin sản phẩm còn thiếu
+            p.small.text-muted.mb-0 Nhãn hàng nhập khẩu tại Nga cần tên tiếng Nga, thành phần, hạn sử dụng, nhà nhập khẩu, chứng nhận ЕАЭС. Bấm vào số để xem sản phẩm.
+          .card-body.pt-0
+            ul.list-group.list-group-flush
+              each item in productStats.missingInfoList
+                li.list-group-item.bg-transparent.d-flex.justify-content-between.align-items-center.px-0
+                  span #{item.name}
+                  if item.count > 0
+                    a.badge.bg-warning-subtle.text-warning.fs-6(href=`/${pathAdmin}/product/list?missing=${item.id}` title="Xem các sản phẩm còn thiếu") Thiếu #{formatNumber(item.count)}
+                  else
+                    span.text-success(title="Đã đủ")
+                      i.fa-solid.fa-circle-check
+
+  //- ===== Mã giảm giá, bài viết =====
+  if couponStats || articleStats
+    .row
+      if couponStats
+        div(class=articleStats ? "col-lg-8 d-flex" : "col-12 d-flex")
+          .card.flex-fill
+            .card-header
+              .row.align-items-center
+                .col
+                  h4.card-title Mã giảm giá
+                .col-auto
+                  a.btn.btn-sm.btn-light(href=`/${pathAdmin}/coupon/list`) Xem tất cả
+            .card-body.pt-0
+              .row.g-2.mb-3
+                each item in couponStats.statusList
+                  .col
+                    a.d-block.border.rounded.text-center.p-2.h-100(href=`/${pathAdmin}/coupon/list?status=${item.id}`)
+                      div.fs-4.fw-bold.text-body #{formatNumber(item.count)}
+                      span(class=`badge ${item.color}`) #{item.name}
+              h6.mb-2 Sắp hết hạn trong 7 ngày
+              if couponStats.endingSoonList.length > 0
+                .table-responsive
+                  table.table.mb-0
+                    tbody
+                      each item in couponStats.endingSoonList
+                        tr
+                          td.ps-0
+                            span.fw-bold.font-monospace #{item.code}
+                            div.small.text-muted #{item.name}
+                          td #{item.discountText}
+                          td.text-end.text-nowrap.pe-0
+                            div #{item.endAtFormat}
+                            span.badge.bg-warning-subtle.text-warning #{item.timeLeft}
+              else
+                p.small.text-muted.mb-0 Không có mã nào đang chạy sắp hết hạn.
+      if articleStats
+        div(class=couponStats ? "col-lg-4 d-flex" : "col-12 d-flex")
+          .card.flex-fill
+            .card-header
+              .row.align-items-center
+                .col
+                  h4.card-title Bài viết
+                .col-auto
+                  a.btn.btn-sm.btn-light(href=`/${pathAdmin}/article/list`) Xem tất cả
+            .card-body.pt-0
+              ul.list-group.list-group-flush
+                li.list-group-item.bg-transparent.d-flex.justify-content-between.px-0
+                  span
+                    span.badge.bg-success.me-1 Đã xuất bản
+                  span.fw-semibold #{formatNumber(articleStats.publishedCount)}
+                li.list-group-item.bg-transparent.d-flex.justify-content-between.px-0
+                  span
+                    span.badge.bg-danger.me-1 Bản nháp
+                  span.fw-semibold #{formatNumber(articleStats.draftCount)}
+                li.list-group-item.bg-transparent.d-flex.justify-content-between.px-0
+                  span
+                    span.badge.bg-dark.border.me-1 Đã lưu trữ
+                  span.fw-semibold #{formatNumber(articleStats.archivedCount)}
+                li.list-group-item.bg-transparent.d-flex.justify-content-between.px-0
+                  span.fw-medium Tổng
+                  span.fw-bold #{formatNumber(articleStats.totalCount)}
+
+  //- ===== Hoạt động gần đây (chỉ Super Admin) =====
+  if activityList
+    .card
+      .card-header
+        .row.align-items-center
+          .col
+            h4.card-title Hoạt động gần đây
+          .col-auto
+            a.btn.btn-sm.btn-light(href=`/${pathAdmin}/activity-log/list`) Xem nhật ký
+      .card-body.pt-0
+        if activityList.length > 0
+          .table-responsive
+            table.table.mb-0
+              tbody
+                each item in activityList
+                  tr
+                    td.text-nowrap.text-muted.small.ps-0 #{item.createdAtFormat}
+                    td.text-nowrap #{item.accountFullName}
+                    td
+                      span(class=`badge ${item.actionColor}`) #{item.actionName}
+                    td(style="min-width: 250px;") #{item.description}
+        else
+          p.small.text-muted.mb-0 Chưa có hoạt động nào.
+
+block script
   script(src="/admin/assets/libs/apexcharts/apexcharts.min.js")
-  script(src="/admin/assets/js/pages/ecommerce-index.init.js")

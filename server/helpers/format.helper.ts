@@ -15,3 +15,8 @@ export const formatPrice = (price: number | null | undefined): string => {
 
   return new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(price) + " ₽"
 }
+
+// Định dạng số kiểu Nga (giống giá tiền), ví dụ: 1250 => "1 250"
+export const formatNumber = (value: number | null | undefined): string => {
+  return new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(value || 0)
+}
