@@ -50,6 +50,8 @@
         input.form-control(id="maxDiscount" type="number" name="maxDiscount" min="1" step="0.01" value=coupon.maxDiscount placeholder="Không giới hạn")
         span.input-group-text ₽
       small.text-muted Ví dụ giảm 10% nhưng không quá 500 ₽. Để trống nếu không giới hạn
+      //- Lời nhắc đơn từ bao nhiêu thì được giảm đủ mức tối đa, JS tính theo số đang nhập
+      .small.text-info.mt-1.d-none(max-discount-hint)
   .col-md-8(coupon-field="freeShippingNote")
     .alert.alert-info.mb-3
       i.fa-solid.fa-truck-fast.me-1

@@ -1604,6 +1604,41 @@ const initCouponForm = (form) => {
   // Ẩn/hiện ô nhập theo loại giảm giá và phạm vi áp dụng
   const isFieldVisible = (field) => !form.querySelector(`[coupon-field="${field}"]`).classList.contains("d-none")
 
+  // Lời nhắc dưới ô "Giảm tối đa" (loại giảm theo %): đơn từ bao nhiêu thì được giảm đủ mức tối đa
+  // Ví dụ giảm 15% tối đa 500 ₽: đơn từ 3 334 ₽ mới được giảm đủ 500 ₽, đơn 300 ₽ chỉ được giảm 45 ₽
+  const maxDiscountHint = form.querySelector("[max-discount-hint]")
+
+  // Định dạng tiền rúp kiểu Nga giống trang danh sách, ví dụ: 3334 => "3 334 ₽", 49.95 => "49,95 ₽"
+  const formatRub = (price) => new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(price) + " ₽"
+
+  const updateMaxDiscountHint = () => {
+    const percent = Number(form.querySelector(`[name="discountValue"]`).value)
+    const maxDiscountValue = form.querySelector(`[name="maxDiscount"]`).value.trim()
+    const minOrderValue = form.querySelector(`[name="minOrderValue"]`).value.trim()
+    const maxDiscount = Number(maxDiscountValue)
+
+    // Chưa nhập đủ số % hoặc giảm tối đa thì ẩn lời nhắc
+    if(!isFieldVisible("maxDiscount") || maxDiscountValue === "" || !(maxDiscount > 0) || !(percent > 0 && percent <= 100)){
+      maxDiscountHint.classList.add("d-none")
+      return
+    }
+
+    // Đơn nhỏ nhất được giảm đủ mức tối đa, làm tròn lên đến rúp (toFixed để bỏ sai số khi chia số thập phân)
+    const fullDiscountOrder = Math.ceil(Number((maxDiscount * 100 / percent).toFixed(2)))
+    let hint = `Đơn từ ${formatRub(fullDiscountOrder)} mới được giảm đủ ${formatRub(maxDiscount)}, đơn nhỏ hơn được giảm ${percent}%.`
+
+    const minOrder = Number(minOrderValue)
+    if(minOrderValue !== "" && minOrder > 0){
+      const minOrderDiscount = minOrder * percent / 100
+      hint = minOrderDiscount >= maxDiscount
+        ? `Đơn tối thiểu ${formatRub(minOrder)} đã được giảm đủ ${formatRub(maxDiscount)}, nên mọi đơn dùng mã đều được giảm đúng ${formatRub(maxDiscount)}.`
+        : `${hint} Ví dụ đơn ${formatRub(minOrder)} (tối thiểu) được giảm ${formatRub(minOrderDiscount)}.`
+    }
+
+    maxDiscountHint.textContent = hint
+    maxDiscountHint.classList.remove("d-none")
+  }
+
   const updateCouponFields = () => {
     const discountType = form.querySelector(`[name="discountType"]`).value
     const applyTo = form.querySelector(`[name="applyTo"]`).value
@@ -1621,11 +1656,19 @@ const initCouponForm = (form) => {
     }
 
     form.querySelector("[discount-unit]").textContent = discountType === "percent" ? "%" : "₽"
+
+    updateMaxDiscountHint()
   }
 
   form.querySelector(`[name="discountType"]`).addEventListener("change", updateCouponFields)
   form.querySelector(`[name="applyTo"]`).addEventListener("change", updateCouponFields)
   updateCouponFields()
+
+  // Nhập số % giảm, giảm tối đa, đơn tối thiểu thì tính lại lời nhắc
+  const hintFieldList = ["discountValue", "maxDiscount", "minOrderValue"]
+  hintFieldList.forEach(field => {
+    form.querySelector(`[name="${field}"]`).addEventListener("input", updateMaxDiscountHint)
+  })
 
   // Tạo mã ngẫu nhiên 8 ký tự (bỏ các ký tự dễ nhầm: 0 - O, 1 - I - L)
   form.querySelector("[button-random-code]").addEventListener("click", () => {
