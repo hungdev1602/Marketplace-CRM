@@ -119,3 +119,13 @@
   overflow-y: auto;
 }
 /* End Chọn sản phẩm áp dụng mã giảm giá */
+
+/* Trang tổng quan: ô số liệu bấm được thì nổi viền khi rê chuột */
+.dashboard-stat-card {
+  transition: border-color 0.15s;
+}
+
+.dashboard-stat-card:has(.stretched-link):hover {
+  border-color: var(--bs-primary);
+}
+/* End Trang tổng quan */
