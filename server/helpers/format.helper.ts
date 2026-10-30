@@ -20,3 +20,16 @@ export const formatPrice = (price: number | null | undefined): string => {
 export const formatNumber = (value: number | null | undefined): string => {
   return new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(value || 0)
 }
+
+// Bỏ thẻ HTML (nội dung từ trình soạn thảo) để lấy chữ thuần, dùng cho thẻ meta description (Google/Yandex)
+// Dài quá maxLength ký tự thì cắt bớt và thêm "…"
+export const htmlToText = (html: string | null | undefined, maxLength: number = 160): string => {
+  const text = (html || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+
+  if(text.length <= maxLength) return text
+  return text.slice(0, maxLength - 1).trim() + "…"
+}

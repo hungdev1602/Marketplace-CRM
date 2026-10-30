@@ -1,0 +1,153 @@
+import ru from "./ru"
+
+// Từ ngữ tiếng Việt trên trang khách hàng
+// Phải có đủ key giống file ru.ts (thiếu key thì TypeScript báo lỗi)
+// Tiếng Việt không đổi theo số đếm nên chỉ cần 1 dạng, ví dụ: 5 sản phẩm
+const vi: Record<keyof typeof ru, string> = {
+  // Chung
+  siteTitle: "SFoodie — Thực phẩm châu Á",
+  siteDescription: "Cửa hàng thực phẩm châu Á SFoodie tại Nga: mì, nước chấm, gia vị, đồ ăn vặt và đồ uống từ Việt Nam, Hàn Quốc, Nhật Bản, Thái Lan và nhiều nước châu Á khác.",
+  home: "Trang chủ",
+  products: "Sản phẩm",
+  sale: "Giảm giá",
+  newArrivals: "Hàng mới về",
+  blog: "Blog",
+  menu: "Menu",
+  categories: "Danh mục",
+  allCategories: "Tất cả danh mục",
+  browseCategories: "Danh mục sản phẩm",
+  searchPlaceholder: "Tìm sản phẩm...",
+  search: "Tìm",
+  hotline: "Hotline",
+  language: "Ngôn ngữ",
+  viewAll: "Xem tất cả",
+  close: "Đóng",
+  previous: "Trang trước",
+  next: "Trang sau",
+
+  // Số đếm
+  productCount: "sản phẩm",
+  categoryCount: "danh mục",
+  countryCount: "quốc gia",
+  articleCount: "bài viết",
+
+  // Chân trang
+  footerAbout: "Cửa hàng thực phẩm châu Á: mì, nước chấm, gia vị, đồ ăn vặt và đồ uống — đủ để nấu những món châu Á bạn yêu thích.",
+  footerCatalog: "Danh mục",
+  footerCustomers: "Khách hàng",
+  footerContact: "Liên hệ",
+  workingHours: "Giờ làm việc",
+  copyright: "Bảo lưu mọi quyền.",
+
+  // Trang chủ
+  heroLabel: "Asian Store",
+  heroTitle: "Hương vị châu Á ngay gần nhà",
+  heroText: "Mì, nước chấm, gia vị, đồ ăn vặt và đồ uống từ Việt Nam, Hàn Quốc, Nhật Bản, Thái Lan và nhiều nước châu Á khác.",
+  heroButton: "Xem sản phẩm",
+  sectionCategories: "Danh mục",
+  sectionCategoriesSub: "Chọn món bạn yêu thích",
+  sectionFeatured: "Sản phẩm nổi bật",
+  sectionFeaturedSub: "Những món SFoodie gợi ý bạn nên thử",
+  sectionSale: "Đang giảm giá",
+  sectionSaleSub: "Món quen thuộc, giá tốt hơn",
+  sectionNew: "Hàng mới về",
+  sectionNewSub: "Sản phẩm vừa có mặt tại cửa hàng",
+  sectionBestSeller: "Bán chạy nhất",
+  sectionBestSellerSub: "Được mua nhiều nhất",
+  sectionOrigin: "Sản phẩm từ nhiều quốc gia",
+  sectionOriginSub: "Chọn theo nơi sản xuất",
+  sectionBlog: "Blog SFoodie",
+  sectionBlogSub: "Công thức nấu ăn và câu chuyện ẩm thực châu Á",
+  emptyShopTitle: "Sản phẩm sắp có mặt tại đây",
+  emptyShopText: "Cửa hàng đang chuẩn bị sản phẩm. Bạn quay lại sau nhé!",
+
+  // Thẻ sản phẩm
+  badgeNew: "Mới",
+  badgeHit: "Nổi bật",
+  inStock: "Còn hàng",
+  lowStock: "Sắp hết hàng",
+  outOfStock: "Hết hàng",
+  noImage: "Chưa có ảnh",
+
+  // Trang danh sách sản phẩm
+  allProducts: "Tất cả sản phẩm",
+  searchResult: "Kết quả tìm kiếm",
+  searchFor: "cho từ khoá",
+  filter: "Bộ lọc",
+  filterCategory: "Danh mục",
+  filterOrigin: "Xuất xứ",
+  filterStorage: "Bảo quản",
+  filterDiet: "Đặc điểm",
+  filterPrice: "Giá, ₽",
+  priceFrom: "Từ",
+  priceTo: "Đến",
+  filterInStock: "Chỉ hiện hàng còn",
+  filterOnSale: "Đang giảm giá",
+  filterApply: "Áp dụng",
+  filterReset: "Xoá bộ lọc",
+  sortBy: "Sắp xếp",
+  sortDefault: "Mặc định",
+  sortNewest: "Mới nhất",
+  sortPriceAsc: "Giá tăng dần",
+  sortPriceDesc: "Giá giảm dần",
+  sortBestSeller: "Bán chạy",
+  found: "Tìm thấy",
+  noProducts: "Không tìm thấy sản phẩm",
+  noProductsText: "Bạn thử đổi bộ lọc hoặc từ khoá tìm kiếm nhé.",
+  subcategories: "Danh mục con",
+
+  // Trang chi tiết sản phẩm
+  brand: "Thương hiệu",
+  origin: "Xuất xứ",
+  sku: "Mã sản phẩm",
+  barcode: "Mã vạch",
+  unit: "Đơn vị bán",
+  netWeight: "Khối lượng tịnh",
+  storage: "Bảo quản",
+  shelfLife: "Hạn sử dụng",
+  shelfLifeDay: "ngày",
+  shelfLifeMonth: "tháng",
+  shelfLifeYear: "năm",
+  youSave: "Tiết kiệm",
+  tabDescription: "Mô tả",
+  tabComposition: "Thành phần & dinh dưỡng",
+  tabStorage: "Bảo quản & sử dụng",
+  tabInfo: "Nhà sản xuất & giấy tờ",
+  ingredients: "Thành phần",
+  allergens: "Chất gây dị ứng",
+  nutrition: "Giá trị dinh dưỡng trong 100 g / 100 ml",
+  calories: "Năng lượng",
+  kcal: "kcal",
+  protein: "Chất đạm",
+  fat: "Chất béo",
+  carbohydrate: "Carbohydrate",
+  gram: "g",
+  storageNote: "Hướng dẫn bảo quản",
+  usageInstructions: "Hướng dẫn sử dụng / chế biến",
+  manufacturer: "Nhà sản xuất",
+  importer: "Nhà nhập khẩu",
+  certificate: "Số chứng nhận hợp chuẩn ЕАЭС",
+  marking: "Dán mã «Честный знак»",
+  yes: "Có",
+  noInfo: "Thông tin đang được cập nhật.",
+  relatedProducts: "Sản phẩm tương tự",
+
+  // Trang tất cả danh mục
+  allCategoriesSub: "Tất cả danh mục sản phẩm của SFoodie",
+  noCategories: "Chưa có danh mục nào.",
+
+  // Blog
+  blogSub: "Công thức nấu ăn, tin tức và câu chuyện ẩm thực châu Á",
+  blogCategories: "Danh mục bài viết",
+  allArticles: "Tất cả bài viết",
+  latestArticles: "Bài viết mới",
+  readMore: "Đọc tiếp",
+  noArticles: "Chưa có bài viết nào.",
+
+  // Trang 404
+  notFoundTitle: "Không tìm thấy trang",
+  notFoundText: "Có thể sản phẩm đã ngừng bán hoặc đường dẫn không còn đúng.",
+  backHome: "Về trang chủ"
+}
+
+export default vi

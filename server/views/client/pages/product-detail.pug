@@ -1,0 +1,280 @@
+extends ../layouts/default.pug
+include ../mixins/product-card.pug
+
+//- 1 dòng thông tin (tên: giá trị), giá trị trống thì không hiện
+mixin infoRow(label, value)
+  if value
+    tr
+      th #{label}
+      td #{value}
+
+block main
+  - const inStock = product.stock > 0
+  - const otherName = lang == "ru" ? product.name : product.nameRu
+  - const originName = product.origin ? tOption(productOptions.originList, product.origin) : ""
+  - const unitName = product.unit ? tOption(productOptions.unitList, product.unit) : ""
+  - const storageName = product.storageType ? tOption(productOptions.storageList, product.storageType) : ""
+  - const netWeightText = product.netWeight ? `${formatNumber(product.netWeight)} ${tOption(productOptions.netWeightUnitList, product.netWeightUnit)}` : ""
+  - const shelfLifeText = product.shelfLife && shelfLifeKey ? tCount(product.shelfLife, shelfLifeKey) : ""
+  - const allergenList = (product.allergens || []).map(id => tOption(productOptions.allergenList, id)).filter(Boolean)
+  - const dietTagList = (product.dietTags || []).map(id => tOption(productOptions.dietTagList, id)).filter(Boolean)
+  - const hasComposition = product.ingredients || allergenList.length > 0 || hasNutrition
+  - const hasStorage = storageName || product.storageNote || shelfLifeText || product.usageInstructions
+  - const hasInfo = product.manufacturer || product.importer || product.certificateNumber || product.barcode || product.markingRequired
+
+  //- Đường dẫn (breadcrumb)
+  div(class="sf-breadcrumb-bar")
+    .container
+      ol(class="sf-breadcrumb")
+        li
+          a(href="/")
+            i.fas.fa-home
+            | #{t("home")}
+        li
+          a(href="/products") #{t("products")}
+        each item in categoryPath
+          li
+            a(href=`/category/${item.slug}`) #{tName(item)}
+        li
+          span #{productName}
+
+  section(class="sf-product-detail")
+    .container
+      .row.g-4.g-xl-5
+        //- Ảnh sản phẩm
+        .col-lg-6
+          div(class="sf-gallery")
+            div(class="sf-gallery-main")
+              img(
+                src=mediaUrl(imageList[0])
+                alt=productName
+                gallery-main
+                )
+              ul(class="sf-badges")
+                if product.discountPercent
+                  li(class="sf-badge sf-badge-sale") −#{product.discountPercent}%
+                if product.newArrival
+                  li(class="sf-badge sf-badge-new") #{t("badgeNew")}
+                if product.featured
+                  li(class="sf-badge sf-badge-hit") #{t("badgeHit")}
+            if imageList.length > 1
+              div(class="sf-gallery-thumbs")
+                each image, index in imageList
+                  button(
+                    type="button"
+                    class=index == 0 ? "active" : ""
+                    gallery-thumb=mediaUrl(image)
+                    aria-label=`${productName} ${index + 1}`
+                    )
+                    img(
+                      src=mediaUrl(image)
+                      alt=""
+                      loading="lazy"
+                      )
+
+        //- Thông tin chính
+        .col-lg-6
+          div(class="sf-product-info")
+            if product.brand || originName
+              p(class="sf-product-info-brand")
+                if product.brand
+                  span #{product.brand}
+                if originName && product.origin != "other"
+                  span
+                    i.fas.fa-globe-asia
+                    | #{originName}
+            h1 #{productName}
+            if otherName && otherName != productName
+              p(class="sf-product-subname") #{otherName}
+
+            div(class="sf-stock")
+              if !inStock
+                span(class="sf-stock-out")
+                  i.fas.fa-times-circle
+                  | #{t("outOfStock")}
+              else if product.isLowStock
+                span(class="sf-stock-low")
+                  i.fas.fa-exclamation-circle
+                  | #{t("lowStock")}
+              else
+                span(class="sf-stock-in")
+                  i.fas.fa-check-circle
+                  | #{t("inStock")}
+
+            div(class="sf-detail-price")
+              span(class="sf-price") #{product.priceFormat}
+              if unitName
+                span(class="sf-price-unit") / #{unitName.toLowerCase()}
+              if product.discountPercent
+                del #{product.priceOldFormat}
+                span(class="sf-saving") #{t("youSave")} #{product.savingFormat}
+
+            if product.description
+              div(class="sf-product-short sf-content") !{product.description}
+
+            ul(class="sf-fact-list")
+              if netWeightText
+                li
+                  i.fas.fa-weight-hanging
+                  span #{t("netWeight")}
+                  b #{netWeightText}
+              if storageName
+                li
+                  i(class=product.storageType == "frozen" ? "fas fa-snowflake" : (product.storageType == "chilled" ? "fas fa-thermometer-quarter" : "fas fa-box"))
+                  span #{t("storage")}
+                  b #{storageName}
+              if shelfLifeText
+                li
+                  i.fas.fa-calendar-alt
+                  span #{t("shelfLife")}
+                  b #{shelfLifeText}
+              if product.sku
+                li
+                  i.fas.fa-hashtag
+                  span #{t("sku")}
+                  b #{product.sku}
+
+            if dietTagList.length > 0
+              div(class="sf-chip-list")
+                each tag in dietTagList
+                  span(class="sf-chip sf-chip-static") #{tag}
+
+            if productCategoryList.length > 0
+              p(class="sf-product-categories")
+                span #{t("categories")}:
+                each item, index in productCategoryList
+                  a(href=`/category/${item.slug}`) #{tName(item)}
+
+      //- Thông tin chi tiết (các tab)
+      div(class="sf-product-tabs")
+        ul.nav.nav-tabs(role="tablist")
+          li.nav-item(role="presentation")
+            button#tab-description-btn.nav-link.active(
+              data-bs-toggle="tab"
+              data-bs-target="#tab-description"
+              type="button"
+              role="tab"
+              aria-controls="tab-description"
+              aria-selected="true"
+              ) #{t("tabDescription")}
+          if hasComposition
+            li.nav-item(role="presentation")
+              button#tab-composition-btn.nav-link(
+                data-bs-toggle="tab"
+                data-bs-target="#tab-composition"
+                type="button"
+                role="tab"
+                aria-controls="tab-composition"
+                aria-selected="false"
+                ) #{t("tabComposition")}
+          if hasStorage
+            li.nav-item(role="presentation")
+              button#tab-storage-btn.nav-link(
+                data-bs-toggle="tab"
+                data-bs-target="#tab-storage"
+                type="button"
+                role="tab"
+                aria-controls="tab-storage"
+                aria-selected="false"
+                ) #{t("tabStorage")}
+          if hasInfo
+            li.nav-item(role="presentation")
+              button#tab-info-btn.nav-link(
+                data-bs-toggle="tab"
+                data-bs-target="#tab-info"
+                type="button"
+                role="tab"
+                aria-controls="tab-info"
+                aria-selected="false"
+                ) #{t("tabInfo")}
+
+        div.tab-content
+          #tab-description.tab-pane.fade.show.active(
+            role="tabpanel"
+            aria-labelledby="tab-description-btn"
+            tabindex="0"
+            )
+            if product.content
+              div(class="sf-content") !{product.content}
+            else if product.description
+              div(class="sf-content") !{product.description}
+            else
+              p(class="sf-muted") #{t("noInfo")}
+
+          if hasComposition
+            #tab-composition.tab-pane.fade(
+              role="tabpanel"
+              aria-labelledby="tab-composition-btn"
+              tabindex="0"
+              )
+              if product.ingredients
+                h4 #{t("ingredients")}
+                p(class="sf-pre-line") #{product.ingredients}
+              if allergenList.length > 0
+                h4 #{t("allergens")}
+                div(class="sf-chip-list")
+                  each item in allergenList
+                    span(class="sf-chip sf-chip-warning") #{item}
+              if hasNutrition
+                h4 #{t("nutrition")}
+                table(class="sf-info-table sf-nutrition-table")
+                  tbody
+                    if product.calories !== null && product.calories !== undefined
+                      tr
+                        th #{t("calories")}
+                        td #{formatNumber(product.calories)} #{t("kcal")}
+                    if product.protein !== null && product.protein !== undefined
+                      tr
+                        th #{t("protein")}
+                        td #{formatNumber(product.protein)} #{t("gram")}
+                    if product.fat !== null && product.fat !== undefined
+                      tr
+                        th #{t("fat")}
+                        td #{formatNumber(product.fat)} #{t("gram")}
+                    if product.carbohydrate !== null && product.carbohydrate !== undefined
+                      tr
+                        th #{t("carbohydrate")}
+                        td #{formatNumber(product.carbohydrate)} #{t("gram")}
+
+          if hasStorage
+            #tab-storage.tab-pane.fade(
+              role="tabpanel"
+              aria-labelledby="tab-storage-btn"
+              tabindex="0"
+              )
+              table(class="sf-info-table")
+                tbody
+                  +infoRow(t("storage"), storageName)
+                  +infoRow(t("shelfLife"), shelfLifeText)
+              if product.storageNote
+                h4 #{t("storageNote")}
+                p(class="sf-pre-line") #{product.storageNote}
+              if product.usageInstructions
+                h4 #{t("usageInstructions")}
+                p(class="sf-pre-line") #{product.usageInstructions}
+
+          if hasInfo
+            #tab-info.tab-pane.fade(
+              role="tabpanel"
+              aria-labelledby="tab-info-btn"
+              tabindex="0"
+              )
+              table(class="sf-info-table")
+                tbody
+                  +infoRow(t("brand"), product.brand)
+                  +infoRow(t("origin"), originName)
+                  +infoRow(t("manufacturer"), product.manufacturer)
+                  +infoRow(t("importer"), product.importer)
+                  +infoRow(t("certificate"), product.certificateNumber)
+                  +infoRow(t("barcode"), product.barcode)
+                  +infoRow(t("marking"), product.markingRequired ? t("yes") : "")
+
+      //- Sản phẩm tương tự
+      if relatedList.length > 0
+        div(class="sf-related")
+          div(class="sf-section-heading")
+            div
+              h2 #{t("relatedProducts")}
+          div(class="sf-product-grid sf-product-grid-home")
+            each item in relatedList
+              +productCard(item)

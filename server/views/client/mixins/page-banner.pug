@@ -1,0 +1,20 @@
+//- Tiêu đề trang + đường dẫn (breadcrumb) ở đầu các trang con
+//- - breadcrumbList: [{ name, url }], mục cuối không cần url
+mixin pageBanner(title, breadcrumbList)
+  section(class="sf-page-banner")
+    .container
+      nav(aria-label="breadcrumb")
+        ol(class="sf-breadcrumb")
+          li
+            a(href="/")
+              i.fas.fa-home
+              | #{t("home")}
+          each item in breadcrumbList
+            li
+              if item.url
+                a(href=item.url) #{item.name}
+              else
+                span #{item.name}
+      h1 #{title}
+      if block
+        block

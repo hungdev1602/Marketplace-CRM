@@ -98,10 +98,10 @@ app.use((req, res, next) => {
 app.locals.pathAdmin = pathAdmin // "admin"
 app.locals.domainFileManager = domainFileManager // "link server file-manager"
 
-// route client
-clientRoute(app)
 // route admin
 adminRoute(app)
+// route client (đặt sau route admin, vì trang khách hàng có trang 404 bắt tất cả đường dẫn còn lại)
+clientRoute(app)
 
 app.listen(port, () => {
   console.log(`App listening on port ${port}`)
