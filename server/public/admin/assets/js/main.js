@@ -857,26 +857,46 @@ if(listButtonDeleteFolder.length > 0){
 // End Delete Folder
 
 // form-group-file
-// Nhập đường dẫn file thì hiện ảnh xem trước, dùng cho cả ô chọn 1 file và từng dòng của ô chọn nhiều file
+// Đường dẫn file là video hay không (xét theo đuôi file), giống videoExtensionList trong helpers/media.helper.ts
+const isVideoPath = (path) => /\.(mp4|webm|mov|m4v|ogv)$/i.test(path.split(/[?#]/)[0])
+
+// Nhập đường dẫn file thì hiện ảnh (hoặc video) xem trước, dùng cho cả ô chọn 1 file và từng dòng của ô chọn nhiều file
 const initFormGroupFile = (element) => {
   const inputFile = element.querySelector("[input-file]")
   const previewFile = element.querySelector("[preview-file]")
+  const previewImage = previewFile.querySelector("img")
+  const previewVideo = previewFile.querySelector("video")
 
-  inputFile.addEventListener("input", () => {
-    const value = inputFile.value
-    if(value !== ""){
-      previewFile.style.display = "block"
-    }
-    else{
-      previewFile.style.display = "none"
-    }
-    previewFile.querySelector("img").src = `${domainFileManager}${value}`
-  })
+  const showPreview = () => {
+    const value = inputFile.value.trim()
+    previewFile.style.display = value !== "" ? "block" : "none"
 
-  // Hiển thị ảnh mặc định, ở trên là khi chưa có mặc định
+    const isVideo = previewVideo && isVideoPath(value)
+    previewImage.style.display = isVideo ? "none" : ""
+    if(previewVideo) {
+      previewVideo.style.display = isVideo ? "block" : "none"
+    }
+
+    if(isVideo) {
+      if(previewVideo.getAttribute("src") !== `${domainFileManager}${value}`) {
+        previewVideo.src = `${domainFileManager}${value}`
+      }
+      previewImage.removeAttribute("src")
+    }
+    else {
+      previewImage.src = `${domainFileManager}${value}`
+      if(previewVideo) {
+        previewVideo.removeAttribute("src")
+        previewVideo.load()
+      }
+    }
+  }
+
+  inputFile.addEventListener("input", showPreview)
+
+  // Hiển thị file mặc định (trang sửa)
   if(inputFile.value !== "") {
-    previewFile.style.display = "block"
-    previewFile.querySelector("img").src = `${domainFileManager}${inputFile.value}`
+    showPreview()
   }
 }
 

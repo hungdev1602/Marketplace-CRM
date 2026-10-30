@@ -1,4 +1,5 @@
 import { formatPrice } from "./format.helper"
+import { isVideoPath } from "./media.helper"
 import { productLowStockThreshold } from "../config/variable.config"
 
 // Điều kiện sản phẩm khách được xem: chưa xoá và đang bán
@@ -22,9 +23,12 @@ export const clientProductSortList = [
   { id: "best-seller", key: "sortBestSeller", sort: { sold: "desc" } }
 ]
 
-// Thêm thông tin hiển thị ở thẻ sản phẩm và trang chi tiết: giá đã định dạng, % giảm giá, sắp hết hàng
+// Thêm thông tin hiển thị ở thẻ sản phẩm và trang chi tiết: ảnh, giá đã định dạng, % giảm giá, sắp hết hàng
 export const addProductDisplayInfo = (productList: any[]) => {
   for (const item of productList) {
+    // Ảnh trên thẻ sản phẩm luôn là ảnh (không dùng video): ảnh đại diện, chưa có thì lấy ảnh đầu tiên trong album
+    item.cardImage = [item.avatar, ...(item.images || [])].find(path => path && !isVideoPath(path)) || ""
+
     item.priceFormat = formatPrice(item.price)
     item.priceOldFormat = formatPrice(item.priceOld)
     if(item.priceOld > item.price){

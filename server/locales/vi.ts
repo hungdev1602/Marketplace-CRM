@@ -23,6 +23,7 @@ const vi: Record<keyof typeof ru, string> = {
   themeToggle: "Giao diện sáng / tối",
   viewAll: "Xem tất cả",
   close: "Đóng",
+  back: "Quay lại",
   previous: "Trang trước",
   next: "Trang sau",
 

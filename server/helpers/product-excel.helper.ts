@@ -17,6 +17,7 @@ import {
   productUnitList,
   productVatList
 } from "../config/variable.config"
+import { isVideoPath } from "./media.helper"
 
 // ===== File Excel sản phẩm (dùng chung cho file mẫu, file xuất, file lỗi và đọc file nhập) =====
 // Cấu trúc sheet "Sản phẩm":
@@ -459,11 +460,11 @@ export const productExcelColumnList: ProductExcelColumn[] = [
   },
   {
     key: "images",
-    header: "Album ảnh",
+    header: "Album ảnh", // không đổi tên cột: file nhập nhận cột theo tên (album nhận cả video)
     group: "media",
     type: "images",
     width: 40,
-    note: "Giống cột Ảnh đại diện. Nhiều ảnh cách nhau bằng dấu ; hoặc xuống dòng (Alt + Enter).",
+    note: "Giống cột Ảnh đại diện. Nhiều ảnh cách nhau bằng dấu ; hoặc xuống dòng (Alt + Enter). Video (MP4) thì dùng đường dẫn /media/... trong Quản lý file, video hiện đầu tiên trong album ở trang khách hàng.",
     example: "/media/anh-1.png; https://example.com/anh-2.jpg"
   },
   {
@@ -1207,6 +1208,10 @@ export const parseProductExcelCell = (
       })
       if(invalidList.length > 0){
         return { error: `${column.header}: link ảnh không hợp lệ ${invalidList.join(", ")} (phải là đường dẫn /media/... copy ở trang Quản lý file hoặc link http(s)://...)` }
+      }
+      // Ảnh đại diện phải là ảnh, video thì thêm vào cột album
+      if(column.type === "image" && isVideoPath(linkList[0])){
+        return { error: `${column.header} phải là file ảnh, video hãy thêm vào cột Album ảnh` }
       }
       return { value: column.type === "image" ? linkList[0] : [...new Set(linkList)] }
     }

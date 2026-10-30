@@ -22,6 +22,7 @@ const ru = {
   themeToggle: "Светлая / тёмная тема",
   viewAll: "Смотреть все",
   close: "Закрыть",
+  back: "Назад",
   previous: "Назад",
   next: "Вперёд",
 

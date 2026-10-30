@@ -83,7 +83,7 @@ export const index = async (req: Request, res: Response) => {
 
   // Ảnh sản phẩm ở banner đầu trang: ưu tiên sản phẩm nổi bật, đang giảm giá, mới về
   const heroProductList = [...featuredList, ...saleList, ...newList]
-    .filter((item: any, index: number, list: any[]) => item.avatar && list.findIndex(other => other.id === item.id) === index)
+    .filter((item: any, index: number, list: any[]) => item.cardImage && list.findIndex(other => other.id === item.id) === index)
     .slice(0, 3)
 
   res.render("client/pages/home", {

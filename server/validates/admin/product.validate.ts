@@ -10,6 +10,7 @@ import {
   productUnitList,
   productVatList
 } from "../../config/variable.config"
+import { isVideoPath } from "../../helpers/media.helper"
 
 // Thông báo lỗi tiếng Việt dùng chung (cả validate mã giảm giá), {{#label}} là tên trường (đặt bằng .label("..."))
 export const messages = {
@@ -166,7 +167,7 @@ export const createPost = (req: Request, res: Response, next: NextFunction) => {
 
     // Hình ảnh & mô tả
     avatar: Joi.string().allow(""),
-    images: jsonArray("Album ảnh"),
+    images: jsonArray("Album ảnh / video"),
     description: Joi.string().allow(""),
     content: Joi.string().allow(""),
 
@@ -200,6 +201,15 @@ export const createPost = (req: Request, res: Response, next: NextFunction) => {
     res.json({
       code: "error",
       message: "Giá trước khuyến mãi phải cao hơn giá bán (để trống nếu không giảm giá)!"
+    })
+    return
+  }
+
+  // Ảnh đại diện (hiện ở danh sách sản phẩm) phải là ảnh, video thì thêm vào album
+  if(isVideoPath(req.body.avatar)){
+    res.json({
+      code: "error",
+      message: "Ảnh đại diện phải là file ảnh. Video hãy thêm vào mục Album ảnh / video!"
     })
     return
   }

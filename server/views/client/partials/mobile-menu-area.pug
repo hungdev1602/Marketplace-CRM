@@ -1,118 +1,201 @@
 //- Menu trên điện thoại (bấm nút ☰ ở đầu trang)
-div(class="mobile_menu_area")
-  #offcanvasWithBothOptions.offcanvas.offcanvas-start(
-    tabindex="-1"
-    data-bs-scroll="true"
+//- Menu nhiều tầng: bấm mục có dấu › thì trượt sang tầng danh mục con, bấm "Назад" để quay lại (main.js)
+
+//- 1 tầng danh mục con (gọi lại chính nó cho danh mục cháu)
+mixin mobileNavPanel(category)
+  div(
+    class="sf-mnav-panel"
+    mnav-panel=category.id
+    aria-hidden="true"
     )
-    button.btn-close(
-      aria-label=t("close")
-      data-bs-dismiss="offcanvas"
+    button(
       type="button"
+      class="sf-mnav-back"
+      mnav-back
+      )
+      i.fas.fa-chevron-left
+      | #{t("back")}
+    p(class="sf-mnav-title") #{tName(category)}
+    ul(class="sf-mnav-list")
+      li
+        a(
+          href=`/category/${category.slug}`
+          class="sf-mnav-link sf-mnav-view-all"
+          )
+          span #{t("viewAll")}
+          i.fas.fa-arrow-right
+      each child in category.children
+        li
+          +mobileNavLink(child)
+  each child in category.children
+    if child.children.length > 0
+      +mobileNavPanel(child)
+
+//- 1 dòng danh mục: có danh mục con thì là nút mở tầng tiếp theo, không có thì là link
+mixin mobileNavLink(category)
+  if category.children.length > 0
+    button(
+      type="button"
+      class="sf-mnav-link"
+      mnav-open=category.id
+      )
+      span #{tName(category)}
+      i.fas.fa-chevron-right
+  else
+    a(
+      href=`/category/${category.slug}`
+      class="sf-mnav-link" + (currentPath == `/category/${category.slug}` ? " active" : "")
+      )
+      span #{tName(category)}
+
+#offcanvasWithBothOptions.offcanvas.offcanvas-start(
+  class="sf-mnav"
+  tabindex="-1"
+  aria-label=t("menu")
+  mnav
+  )
+  //- Thanh trên cùng: đóng, logo, tìm kiếm, sáng / tối
+  div(class="sf-mnav-top")
+    button(
+      type="button"
+      class="sf-mnav-icon-btn"
+      data-bs-dismiss="offcanvas"
+      aria-label=t("close")
       )
       i.fas.fa-times
-    .offcanvas-body
-      a(
-        href="/"
-        class="sf-mobile-logo"
+    a(
+      href="/"
+      class="sf-mnav-logo"
+      )
+      img(
+        alt="SFoodie"
+        src="/client/assets/images/sfoodie-logo.png"
+        width="480"
+        height="118"
         )
-        img.img-fluid(
-          alt="SFoodie"
-          src="/client/assets/images/sfoodie-logo.png"
-          width="480"
-          height="118"
-          )
-      ul(
-        class="sf-language sf-language-mobile"
-        aria-label=t("language")
+    div(class="sf-mnav-top-actions")
+      button(
+        type="button"
+        class="sf-mnav-icon-btn sf-mnav-search-btn"
+        mnav-search-toggle
+        aria-controls="sf-mnav-search"
+        aria-expanded="false"
+        aria-label=t("search")
         )
-        each item in languageList
-          li
-            a(
-              href=`/language/${item.id}`
-              class=(item.id == lang ? "active" : "")
-              hreflang=item.id
-              ) #{item.name}
-      form(
-        class="mobile_menu_search"
-        action="/products"
-        method="GET"
+        i.fas.fa-search
+      +themeToggle()
+
+  //- Ô tìm kiếm (bấm nút kính lúp để mở)
+  form#sf-mnav-search(
+    class="sf-mnav-search"
+    action="/products"
+    method="GET"
+    )
+    div(class="sf-mnav-search-inner")
+      input(
+        placeholder=t("searchPlaceholder")
+        type="search"
+        name="keyword"
+        value=(query && query.keyword) || ""
+        aria-label=t("searchPlaceholder")
         )
-        input(
-          placeholder=t("searchPlaceholder")
-          type="search"
-          name="keyword"
-          value=(query && query.keyword) || ""
-          aria-label=t("searchPlaceholder")
-          )
-        button(
-          type="submit"
-          aria-label=t("search")
-          )
-          i.fas.fa-search
-      div(class="mobile_menu_item_area")
-        ul#pills-tab.nav.nav-pills(role="tablist")
-          li.nav-item(role="presentation")
-            button#pills-home-tab.nav-link.active(
-              aria-selected="true"
-              aria-controls="pills-home"
-              role="tab"
-              type="button"
-              data-bs-target="#pills-home"
-              data-bs-toggle="pill"
-              ) #{t("categories")}
-          li.nav-item(role="presentation")
-            button#pills-profile-tab.nav-link(
-              aria-selected="false"
-              aria-controls="pills-profile"
-              role="tab"
-              type="button"
-              data-bs-target="#pills-profile"
-              data-bs-toggle="pill"
-              ) #{t("menu")}
-        #pills-tabContent.tab-content
-          #pills-home.tab-pane.fade.show.active(
-            tabindex="0"
-            aria-labelledby="pills-home-tab"
-            role="tabpanel"
+      button(
+        type="submit"
+        aria-label=t("search")
+        )
+        i.fas.fa-search
+
+  div(class="sf-mnav-body")
+    //- Tầng đầu tiên: danh mục gốc, sau đó là các trang
+    div(
+      class="sf-mnav-panel is-active"
+      mnav-panel="main"
+      )
+      if categoryTree.length > 0
+        ul(class="sf-mnav-list")
+          each item in categoryTree
+            li
+              +mobileNavLink(item)
+        div(class="sf-mnav-divider")
+      ul(class="sf-mnav-list")
+        li
+          a(
+            href="/"
+            class="sf-mnav-link" + (currentPath == "/" ? " active" : "")
             )
-            ul(class="main_mobile_menu")
-              each item in categoryTree
-                if item.children.length > 0
-                  li(class="mobile_dropdown")
-                    a(href="#") #{tName(item)}
-                    ul(class="inner_menu")
-                      li
-                        a(href=`/category/${item.slug}`) #{t("viewAll")}
-                      each child in item.children
-                        li
-                          a(href=`/category/${child.slug}`) #{tName(child)}
-                else
-                  li
-                    a(href=`/category/${item.slug}`) #{tName(item)}
-              li
-                a(href="/categories") #{t("allCategories")}
-          #pills-profile.tab-pane.fade(
-            tabindex="0"
-            aria-labelledby="pills-profile-tab"
-            role="tabpanel"
+            span #{t("home")}
+        li
+          a(
+            href="/products"
+            class="sf-mnav-link" + (currentPath == "/products" && !(query && query.onSale) && !(query && query.sort) ? " active" : "")
             )
-            ul(class="main_mobile_menu")
-              li
-                a(href="/") #{t("home")}
-              li
-                a(href="/products") #{t("products")}
-              li
-                a(href="/products?onSale=1") #{t("sale")}
-              li
-                a(href="/products?sort=newest") #{t("newArrivals")}
-              li
-                a(href="/categories") #{t("categories")}
-              li
-                a(href="/blog") #{t("blog")}
-      if shopInfo.phone
+            span #{t("allProducts")}
+        li
+          a(
+            href="/products?onSale=1"
+            class="sf-mnav-link" + (query && query.onSale == "1" ? " active" : "")
+            )
+            span #{t("sale")}
+        li
+          a(
+            href="/products?sort=newest"
+            class="sf-mnav-link"
+            )
+            span #{t("newArrivals")}
+        li
+          a(
+            href="/categories"
+            class="sf-mnav-link" + (currentPath == "/categories" ? " active" : "")
+            )
+            span #{t("allCategories")}
+        li
+          a(
+            href="/blog"
+            class="sf-mnav-link" + (currentPath.startsWith("/blog") ? " active" : "")
+            )
+            span #{t("blog")}
+
+    //- Các tầng danh mục con
+    each item in categoryTree
+      if item.children.length > 0
+        +mobileNavPanel(item)
+
+  //- Dưới cùng: ngôn ngữ, gọi điện, mạng xã hội (mục nào chưa điền trong shopInfo thì không hiện)
+  div(class="sf-mnav-bottom")
+    div(
+      class="sf-mnav-language"
+      aria-label=t("language")
+      )
+      each item in languageList
         a(
-          href=`tel:${shopInfo.phone.replace(/[^\d+]/g, "")}`
-          class="sf-mobile-phone"
-          )
-          i.fas.fa-phone-alt
-          | #{shopInfo.phone}
+          href=`/language/${item.id}`
+          class=(item.id == lang ? "active" : "")
+          hreflang=item.id
+          ) #{item.name}
+    if shopInfo.phone
+      a(
+        href=`tel:${shopInfo.phone.replace(/[^\d+]/g, "")}`
+        class="sf-mnav-bottom-btn"
+        )
+        i.fas.fa-phone-alt
+        | #{shopInfo.phone}
+    if shopInfo.telegram || shopInfo.whatsapp
+      div(class="sf-mnav-bottom-row")
+        if shopInfo.telegram
+          a(
+            href=shopInfo.telegram
+            class="sf-mnav-bottom-btn"
+            target="_blank"
+            rel="noopener"
+            )
+            i.fab.fa-telegram-plane
+            | Telegram
+        if shopInfo.whatsapp
+          a(
+            href=shopInfo.whatsapp
+            class="sf-mnav-bottom-btn"
+            target="_blank"
+            rel="noopener"
+            )
+            i.fab.fa-whatsapp
+            | WhatsApp

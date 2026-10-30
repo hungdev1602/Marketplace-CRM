@@ -8,6 +8,7 @@ import {
 } from "../../config/variable.config"
 import { getDescendantIds } from "../../helpers/category.helper"
 import { htmlToText } from "../../helpers/format.helper"
+import { isVideoPath } from "../../helpers/media.helper"
 import { buildClientPagination } from "../../helpers/pagination.helper"
 import {
   addProductDisplayInfo,
@@ -212,9 +213,17 @@ export const detail = async (req: Request, res: Response) => {
 
   addProductDisplayInfo([product])
 
-  // Album ảnh: ảnh đại diện trước, bỏ ảnh trùng
-  const imageList = [product.avatar, ...(product.images || [])]
+  // Album ảnh / video (bỏ file trùng)
+  // Giống Ozon, Wildberries: video lên đầu danh sách, sau đó ảnh đại diện, rồi các ảnh còn lại
+  const fileList = [product.avatar, ...(product.images || [])]
     .filter((item, index, list) => item && list.indexOf(item) === index)
+  const mediaList = [
+    ...fileList.filter(item => isVideoPath(item)),
+    ...fileList.filter(item => !isVideoPath(item))
+  ].map(path => ({
+    path: path,
+    isVideo: isVideoPath(path)
+  }))
 
   // Danh mục đầu tiên còn hoạt động của sản phẩm (cho breadcrumb)
   const allCategory: any[] = res.locals.allCategory
@@ -244,7 +253,7 @@ export const detail = async (req: Request, res: Response) => {
     metaDescription: product.metaDescription || htmlToText(product.description),
     product: product,
     productName: productName,
-    imageList: imageList,
+    mediaList: mediaList,
     categoryPath: category ? getCategoryPath(allCategory, category) : [],
     productCategoryList: allCategory.filter(item => product.category.includes(item.id)),
     shelfLifeKey: shelfLifeKeyList[product.shelfLifeUnit],

@@ -31,29 +31,67 @@ if(menuCategoryBar) {
 }
 // Hết Nút "Danh mục sản phẩm" ở menu
 
-// Menu điện thoại: bấm danh mục cha để mở danh mục con
-const mobileDropdownList = document.querySelectorAll(".mobile_dropdown")
-mobileDropdownList.forEach((dropdown) => {
-  const innerMenu = dropdown.querySelector(".inner_menu")
-  const toggleLink = dropdown.querySelector(":scope > a")
+// Menu điện thoại (bấm nút ☰): nhiều tầng, bấm mục có dấu › để mở tầng danh mục con
+const mobileNav = document.querySelector("[mnav]")
+if(mobileNav) {
+  const panelStack = ["main"] // các tầng đã mở, tầng cuối là tầng đang xem
+  const getPanel = (id) => mobileNav.querySelector(`[mnav-panel="${id}"]`)
 
-  toggleLink.addEventListener("click", (event) => {
-    event.preventDefault()
+  const showPanel = (panel) => {
+    panel.classList.remove("is-behind")
+    panel.classList.add("is-active")
+    panel.removeAttribute("aria-hidden")
+    panel.scrollTop = 0
+  }
 
-    const isOpen = dropdown.classList.contains("active")
+  const hidePanel = (panel, isBehind) => {
+    panel.classList.remove("is-active")
+    panel.classList.toggle("is-behind", isBehind)
+    panel.setAttribute("aria-hidden", "true")
+  }
 
-    // Đóng các danh mục khác đang mở
-    mobileDropdownList.forEach((item) => {
-      item.classList.remove("active")
-      item.querySelector(".inner_menu").style.maxHeight = null
+  // Mở tầng danh mục con
+  mobileNav.querySelectorAll("[mnav-open]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const panel = getPanel(button.getAttribute("mnav-open"))
+      if(!panel) return
+
+      hidePanel(getPanel(panelStack[panelStack.length - 1]), true)
+      showPanel(panel)
+      panelStack.push(button.getAttribute("mnav-open"))
+      panel.querySelector("[mnav-back]").focus({ preventScroll: true })
     })
+  })
 
-    if(!isOpen) {
-      dropdown.classList.add("active")
-      innerMenu.style.maxHeight = innerMenu.scrollHeight + "px"
+  // Quay lại tầng trước
+  mobileNav.querySelectorAll("[mnav-back]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if(panelStack.length <= 1) return
+
+      hidePanel(getPanel(panelStack.pop()), false)
+      showPanel(getPanel(panelStack[panelStack.length - 1]))
+    })
+  })
+
+  // Đóng menu thì lần mở sau bắt đầu lại từ tầng đầu tiên
+  mobileNav.addEventListener("hidden.bs.offcanvas", () => {
+    while(panelStack.length > 1) {
+      hidePanel(getPanel(panelStack.pop()), false)
+    }
+    showPanel(getPanel("main"))
+  })
+
+  // Nút kính lúp: mở / đóng ô tìm kiếm
+  const searchToggle = mobileNav.querySelector("[mnav-search-toggle]")
+  const searchForm = mobileNav.querySelector(".sf-mnav-search")
+  searchToggle.addEventListener("click", () => {
+    const isOpen = searchForm.classList.toggle("is-open")
+    searchToggle.setAttribute("aria-expanded", isOpen)
+    if(isOpen) {
+      searchForm.querySelector("input").focus()
     }
   })
-})
+}
 // Hết Menu điện thoại
 
 // Bộ lọc sản phẩm
@@ -87,19 +125,38 @@ autoSubmitList.forEach((input) => {
 })
 // Hết Bộ lọc sản phẩm
 
-// Ảnh sản phẩm ở trang chi tiết: bấm ảnh nhỏ để xem ảnh lớn
-const galleryMain = document.querySelector("[gallery-main]")
-if(galleryMain) {
+// Ảnh / video sản phẩm ở trang chi tiết: bấm vào danh sách nhỏ để xem ở khung lớn
+const galleryMainImage = document.querySelector("[gallery-main-image]")
+const galleryMainVideo = document.querySelector("[gallery-main-video]")
+if(galleryMainImage && galleryMainVideo) {
   const thumbList = document.querySelectorAll("[gallery-thumb]")
   thumbList.forEach((thumb) => {
     thumb.addEventListener("click", () => {
-      galleryMain.src = thumb.getAttribute("gallery-thumb")
+      const src = thumb.getAttribute("gallery-thumb")
+
+      if(thumb.getAttribute("gallery-type") === "video") {
+        galleryMainImage.hidden = true
+        galleryMainVideo.hidden = false
+        if(galleryMainVideo.getAttribute("src") !== src) {
+          galleryMainVideo.src = src
+        }
+        galleryMainVideo.play().catch(() => {
+          // trình duyệt chặn tự phát thì khách bấm nút ▶ trên video
+        })
+      }
+      else {
+        galleryMainVideo.pause()
+        galleryMainVideo.hidden = true
+        galleryMainImage.hidden = false
+        galleryMainImage.src = src
+      }
+
       thumbList.forEach(item => item.classList.remove("active"))
       thumb.classList.add("active")
     })
   })
 }
-// Hết Ảnh sản phẩm
+// Hết Ảnh / video sản phẩm
 
 // Nút cuộn lên đầu trang (vòng tròn hiện tiến độ cuộn trang)
 const progressWrap = document.querySelector(".progress-wrap")

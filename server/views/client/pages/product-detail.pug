@@ -44,11 +44,29 @@ block main
         //- Ảnh sản phẩm
         .col-lg-6
           div(class="sf-gallery")
+            //- File đầu tiên là video thì hiện video (tự phát, tắt tiếng), không thì hiện ảnh
+            //- main.js đổi giữa ảnh / video khi bấm vào danh sách nhỏ bên dưới
+            - const firstMedia = mediaList[0]
+            - const isFirstVideo = Boolean(firstMedia && firstMedia.isVideo)
             div(class="sf-gallery-main")
+              video(
+                class="sf-gallery-video"
+                src=isFirstVideo ? mediaUrl(firstMedia.path) : false
+                poster=product.cardImage ? mediaUrl(product.cardImage) : false
+                controls
+                muted
+                autoplay=isFirstVideo
+                loop
+                playsinline
+                preload="metadata"
+                hidden=!isFirstVideo
+                gallery-main-video
+                )
               img(
-                src=mediaUrl(imageList[0])
+                src=mediaUrl(isFirstVideo ? product.cardImage : (firstMedia && firstMedia.path))
                 alt=productName
-                gallery-main
+                hidden=isFirstVideo
+                gallery-main-image
                 )
               ul(class="sf-badges")
                 if product.discountPercent
@@ -57,20 +75,34 @@ block main
                   li(class="sf-badge sf-badge-new") #{t("badgeNew")}
                 if product.featured
                   li(class="sf-badge sf-badge-hit") #{t("badgeHit")}
-            if imageList.length > 1
+            if mediaList.length > 1
               div(class="sf-gallery-thumbs")
-                each image, index in imageList
+                each media, index in mediaList
                   button(
                     type="button"
                     class=index == 0 ? "active" : ""
-                    gallery-thumb=mediaUrl(image)
+                    gallery-thumb=mediaUrl(media.path)
+                    gallery-type=media.isVideo ? "video" : "image"
                     aria-label=`${productName} ${index + 1}`
                     )
-                    img(
-                      src=mediaUrl(image)
-                      alt=""
-                      loading="lazy"
-                      )
+                    if media.isVideo
+                      //- Ảnh nhỏ của video: khung hình ở giây 0.1 của video + nút ▶
+                      video(
+                        src=`${mediaUrl(media.path)}#t=0.1`
+                        muted
+                        playsinline
+                        preload="metadata"
+                        tabindex="-1"
+                        aria-hidden="true"
+                        )
+                      span(class="sf-thumb-play")
+                        i.fas.fa-play
+                    else
+                      img(
+                        src=mediaUrl(media.path)
+                        alt=""
+                        loading="lazy"
+                        )
 
         //- Thông tin chính
         .col-lg-6
