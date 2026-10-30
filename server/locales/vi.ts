@@ -20,6 +20,7 @@ const vi: Record<keyof typeof ru, string> = {
   search: "Tìm",
   hotline: "Hotline",
   language: "Ngôn ngữ",
+  themeToggle: "Giao diện sáng / tối",
   viewAll: "Xem tất cả",
   close: "Đóng",
   previous: "Trang trước",

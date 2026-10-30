@@ -1,13 +1,14 @@
 // JS của trang khách hàng (không dùng jQuery)
 
-// Menu dính trên đầu trang khi cuộn xuống
+// Menu dính trên đầu trang khi cuộn xuống (CSS position: sticky, xem sfoodie.css)
+// Đầu trang (logo lớn, ô tìm kiếm) cuộn khuất thì thêm class is-stuck: hiện logo nhỏ, đổ bóng dưới menu
 const mainMenu = document.querySelector(".main_menu")
-if(mainMenu) {
-  const toggleMenuFix = () => {
-    mainMenu.classList.toggle("menu_fix", window.scrollY > 1)
-  }
-  toggleMenuFix()
-  window.addEventListener("scroll", toggleMenuFix, { passive: true })
+const siteHeader = document.querySelector(".sf-header")
+if(mainMenu && siteHeader && "IntersectionObserver" in window) {
+  const headerObserver = new IntersectionObserver(([entry]) => {
+    mainMenu.classList.toggle("is-stuck", !entry.isIntersecting)
+  })
+  headerObserver.observe(siteHeader)
 }
 // Hết Menu dính trên đầu trang khi cuộn xuống
 
@@ -121,3 +122,60 @@ if(progressWrap) {
   })
 }
 // Hết Nút cuộn lên đầu trang
+
+// Giao diện sáng / tối
+// Giao diện được chọn sẵn trong <head> (layouts/default.pug) để trang không bị nháy màu khi mở
+const themeColorMeta = document.querySelector("meta[name='theme-color']")
+const updateThemeColor = () => {
+  // Màu thanh trình duyệt trên điện thoại theo màu nền trang
+  if(themeColorMeta) {
+    themeColorMeta.setAttribute("content", getComputedStyle(document.body).getPropertyValue("--sf-bg").trim() || "#FFFFFF")
+  }
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark"
+  document.querySelectorAll("[theme-toggle]").forEach((button) => {
+    button.setAttribute("aria-pressed", isDark)
+  })
+}
+
+const setTheme = (theme) => {
+  const html = document.documentElement
+
+  // Màu chuyển từ từ cho mượt (bỏ qua nếu khách tắt hiệu ứng chuyển động trong cài đặt máy)
+  if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    html.classList.add("sf-theme-changing")
+    setTimeout(() => html.classList.remove("sf-theme-changing"), 400)
+  }
+
+  html.setAttribute("data-theme", theme)
+  updateThemeColor()
+}
+
+updateThemeColor()
+
+document.querySelectorAll("[theme-toggle]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const newTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark"
+    setTheme(newTheme)
+
+    // Nhớ lựa chọn của khách cho các lần mở trang sau
+    try {
+      localStorage.setItem("sf-theme", newTheme)
+    } catch (error) {
+      // trình duyệt chặn lưu (chế độ ẩn danh,...) thì chỉ đổi ở trang đang xem
+    }
+  })
+})
+
+// Khách chưa tự chọn giao diện và mặc định là "system": máy khách đổi sáng / tối thì trang đổi theo
+const systemDarkQuery = window.matchMedia("(prefers-color-scheme: dark)")
+systemDarkQuery.addEventListener("change", (event) => {
+  let savedTheme = null
+  try {
+    savedTheme = localStorage.getItem("sf-theme")
+  } catch (error) {}
+
+  if(!savedTheme && document.body.getAttribute("data-default-theme") === "system") {
+    setTheme(event.matches ? "dark" : "light")
+  }
+})
+// Hết Giao diện sáng / tối

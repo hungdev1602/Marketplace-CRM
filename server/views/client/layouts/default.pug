@@ -13,8 +13,23 @@ html(lang=lang)
       )
     meta(
       name="theme-color"
-      content="#02CAE5"
+      content="#FFFFFF"
       )
+    //- Chọn giao diện sáng / tối trước khi trang hiện ra (tránh bị nháy trắng khi khách đang dùng giao diện tối)
+    //- - Khách đã bấm đổi giao diện: dùng lựa chọn đã lưu (localStorage "sf-theme")
+    //- - Chưa bấm lần nào: dùng mặc định trong config (clientDefaultTheme), "system" là theo cài đặt của máy khách
+    script.
+      (function () {
+        var theme = null
+        try { theme = localStorage.getItem("sf-theme") } catch (error) {}
+        if(theme !== "light" && theme !== "dark") {
+          theme = "#{defaultTheme}"
+        }
+        if(theme !== "light" && theme !== "dark") {
+          theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+        }
+        document.documentElement.setAttribute("data-theme", theme)
+      })()
     link(
       href="/client/assets/images/favicon.ico"
       rel="icon"
@@ -64,7 +79,10 @@ html(lang=lang)
       href="/client/assets/css/sfoodie.css"
       rel="stylesheet"
       )
-  body(class="default_home sfoodie")
+  body(
+    class="default_home sfoodie"
+    data-default-theme=defaultTheme
+    )
     include ../partials/header.pug
     include ../partials/main-menu.pug
     include ../partials/mobile-menu-area.pug

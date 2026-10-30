@@ -19,6 +19,7 @@ const ru = {
   search: "Найти",
   hotline: "Телефон",
   language: "Язык",
+  themeToggle: "Светлая / тёмная тема",
   viewAll: "Смотреть все",
   close: "Закрыть",
   previous: "Назад",

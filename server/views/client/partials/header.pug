@@ -1,3 +1,15 @@
+//- Nút đổi giao diện sáng / tối (main.js xử lý khi bấm)
+mixin themeToggle()
+  button(
+    type="button"
+    class="sf-theme-toggle"
+    theme-toggle
+    aria-label=t("themeToggle")
+    title=t("themeToggle")
+    )
+    i.fas.fa-moon
+    i.fas.fa-sun
+
 header(class="header_2 sf-header")
   .container
     .row.align-items-center
@@ -13,15 +25,17 @@ header(class="header_2 sf-header")
               width="480"
               height="118"
               )
-          button.d-block.d-lg-none(
-            aria-controls="offcanvasWithBothOptions"
-            data-bs-target="#offcanvasWithBothOptions"
-            data-bs-toggle="offcanvas"
-            class="mobile_menu_icon"
-            type="button"
-            aria-label=t("menu")
-            )
-            i.fas.fa-bars(class="menu_icon_bar")
+          div(class="sf-header-mobile-actions d-flex d-lg-none")
+            +themeToggle()
+            button(
+              aria-controls="offcanvasWithBothOptions"
+              data-bs-target="#offcanvasWithBothOptions"
+              data-bs-toggle="offcanvas"
+              class="mobile_menu_icon"
+              type="button"
+              aria-label=t("menu")
+              )
+              i.fas.fa-bars(class="menu_icon_bar")
       .col-xl-6.col-lg-6.d-none.d-lg-block
         //- Tìm kiếm: chọn danh mục (không bắt buộc) + từ khoá
         form(
@@ -58,7 +72,7 @@ header(class="header_2 sf-header")
               aria-label=t("search")
               )
               i.fas.fa-search
-      .col-xl-4.col-lg-4.d-none.d-lg-flex.justify-content-end.align-items-center.gap-4
+      .col-xl-4.col-lg-4.d-none.d-lg-flex.justify-content-end.align-items-center.gap-3
         if shopInfo.phone
           div(class="sf-header-phone")
             span.icon
@@ -66,6 +80,7 @@ header(class="header_2 sf-header")
             div
               span #{t("hotline")}
               a(href=`tel:${shopInfo.phone.replace(/[^\d+]/g, "")}`) #{shopInfo.phone}
+        +themeToggle()
         //- Chọn ngôn ngữ
         ul(
           class="sf-language"

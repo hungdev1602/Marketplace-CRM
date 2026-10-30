@@ -3,6 +3,7 @@ import { CategoryProduct } from "../../models/category-product.model"
 import { buildCategoryTree } from "../../helpers/category.helper"
 import { formatNumber, htmlToText } from "../../helpers/format.helper"
 import {
+  clientDefaultTheme,
   domainFileManager,
   productAllergenList,
   productDietTagList,
@@ -44,6 +45,7 @@ export const loadLayoutData = async (req: Request, res: Response, next: NextFunc
   res.locals.currentPath = req.path // để tô đậm mục menu đang xem
   res.locals.query = req.query // để điền lại từ khoá, danh mục vào ô tìm kiếm
   res.locals.currentYear = new Date().getFullYear()
+  res.locals.defaultTheme = clientDefaultTheme
 
   // Hàm dùng trong file PUG
   res.locals.formatNumber = formatNumber

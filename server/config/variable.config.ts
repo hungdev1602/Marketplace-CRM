@@ -454,6 +454,12 @@ export const clientLanguageList = [
   { id: "vi", name: "Tiếng Việt", shortName: "VI" }
 ]
 
+// Giao diện mặc định khi khách chưa bấm nút đổi sáng / tối
+// - "system": theo cài đặt sáng / tối của máy khách
+// - "light": luôn sáng, "dark": luôn tối
+// Khách bấm đổi rồi thì trình duyệt nhớ lựa chọn của khách
+export const clientDefaultTheme: string = "system"
+
 // Thông tin cửa hàng hiển thị ở đầu trang và chân trang
 // Để trống ("") thì mục đó không hiển thị
 export const shopInfo = {

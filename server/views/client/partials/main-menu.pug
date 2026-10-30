@@ -7,17 +7,20 @@ nav.d-none.d-lg-block(class="main_menu_2 main_menu")
     .row
       .col-12.d-flex.flex-wrap
         div(class="main_menu_area")
-          div(class="menu_category_area")
-            a.d-none(
-              class="menu_logo"
-              href="/"
+          //- Logo nhỏ, chỉ hiện khi đã cuộn xuống (menu dính trên cùng, đầu trang có logo lớn đã bị cuộn khuất)
+          a(
+            class="menu_logo"
+            href="/"
+            tabindex="-1"
+            aria-hidden="true"
+            )
+            img.img-fluid(
+              alt="SFoodie"
+              src="/client/assets/images/sfoodie-logo.png"
+              width="480"
+              height="118"
               )
-              img.img-fluid(
-                alt="SFoodie"
-                src="/client/assets/images/sfoodie-logo.png"
-                width="480"
-                height="118"
-                )
+          div(class="menu_category_area")
             //- Danh mục sản phẩm (admin tạo ở trang Quản lý danh mục sản phẩm)
             div(class="menu_category_bar")
               p
