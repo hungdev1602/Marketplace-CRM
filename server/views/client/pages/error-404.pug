@@ -1,0 +1,20 @@
+extends ../layouts/default.pug
+
+block main
+  section(class="sf-section sf-section-first")
+    .container
+      div(class="sf-empty sf-not-found")
+        span(class="sf-not-found-code") 404
+        h1 #{t("notFoundTitle")}
+        p #{t("notFoundText")}
+        div(class="sf-hero-buttons justify-content-center")
+          a(
+            href="/"
+            class="sf-btn sf-btn-dark"
+            )
+            i.fas.fa-home
+            | #{t("backHome")}
+          a(
+            href="/products"
+            class="sf-btn sf-btn-primary"
+            ) #{t("products")}

@@ -1,0 +1,32 @@
+//- Thẻ bài viết (trang chủ, trang blog)
+mixin articleCard(article)
+  - const articleUrl = `/blog/${article.slug}`
+  article(class="sf-article-card")
+    a(
+      href=articleUrl
+      class="sf-article-img"
+      )
+      img(
+        src=mediaUrl(article.avatar)
+        alt=article.name
+        loading="lazy"
+        )
+    div(class="sf-article-body")
+      p(class="sf-article-meta")
+        span
+          i.fas.fa-calendar-alt
+          | #{article.publishedAtFormat}
+        if article.categoryList && article.categoryList.length > 0
+          a(href=`/blog/category/${article.categoryList[0].slug}`) #{article.categoryList[0].name}
+      a(
+        href=articleUrl
+        class="sf-article-title"
+        ) #{article.name}
+      if article.description
+        p(class="sf-article-desc") #{htmlToText(article.description, 140)}
+      a(
+        href=articleUrl
+        class="sf-read-more"
+        )
+        | #{t("readMore")}
+        i.fas.fa-arrow-right

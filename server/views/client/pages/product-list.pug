@@ -1,0 +1,178 @@
+extends ../layouts/default.pug
+include ../mixins/product-card.pug
+include ../mixins/pagination.pug
+include ../mixins/page-banner.pug
+
+//- Ô tick trong bộ lọc
+mixin filterCheckbox(name, value, label, checked)
+  - const inputId = `filter-${name}-${value}`
+  div(class="form-check sf-check")
+    input.form-check-input(
+      type="checkbox"
+      id=inputId
+      name=name
+      value=value
+      checked=checked
+      )
+    label.form-check-label(for=inputId) #{label}
+
+block main
+  - const breadcrumbList = [{ name: t("products"), url: "/products" }]
+  - categoryPath.forEach((item, index) => breadcrumbList.push({ name: tName(item), url: index < categoryPath.length - 1 ? `/category/${item.slug}` : "" }))
+  - if (!category && keyword) breadcrumbList.push({ name: t("searchResult") })
+  - if (!category && !keyword) breadcrumbList[0].url = ""
+  - const resetUrl = formAction + (keyword ? `?keyword=${encodeURIComponent(keyword)}` : "")
+
+  +pageBanner(title, breadcrumbList)
+    if keyword
+      p(class="sf-page-banner-sub") #{t("searchFor")} «#{keyword}»
+
+  section(class="sf-shop")
+    .container
+      if category && category.description
+        div(class="sf-category-desc") !{category.description}
+
+      if subCategoryList.length > 0
+        div(class="sf-chip-list")
+          span(class="sf-chip-label") #{t("subcategories")}:
+          each item in subCategoryList
+            a(
+              href=`/category/${item.slug}`
+              class="sf-chip"
+              ) #{tName(item)}
+
+      .row
+        //- Bộ lọc
+        .col-xl-3.col-lg-4
+          aside(class="sf-filter")
+            button(
+              type="button"
+              class="sf-filter-toggle d-lg-none"
+              aria-controls="sf-filter-form"
+              aria-expanded="false"
+              )
+              i.fas.fa-sliders-h
+              | #{t("filter")}
+              if hasFilter
+                span(class="sf-filter-dot")
+            form#sf-filter-form(
+              action=formAction
+              method="GET"
+              class="sf-filter-form"
+              filter-form
+              )
+              if keyword
+                input(
+                  type="hidden"
+                  name="keyword"
+                  value=keyword
+                  )
+
+              div(class="sf-filter-group")
+                h3 #{t("filterCategory")}
+                ul(class="sf-filter-category")
+                  each item in categoryTree
+                    - const activeRoot = category && (category.id == item.id || (categoryPath[0] && categoryPath[0].id == item.id))
+                    li
+                      a(
+                        href=`/category/${item.slug}`
+                        class=category && category.id == item.id ? "active" : ""
+                        ) #{tName(item)}
+                      if activeRoot && item.children.length > 0
+                        ul
+                          each child in item.children
+                            li
+                              a(
+                                href=`/category/${child.slug}`
+                                class=categoryPath.some(path => path.id == child.id) ? "active" : ""
+                                ) #{tName(child)}
+
+              div(class="sf-filter-group")
+                h3 #{t("filterPrice")}
+                div(class="sf-price-range")
+                  input(
+                    type="number"
+                    name="priceMin"
+                    min="0"
+                    step="1"
+                    inputmode="numeric"
+                    placeholder=t("priceFrom")
+                    value=filter.priceMin === null ? "" : filter.priceMin
+                    aria-label=`${t("filterPrice")} ${t("priceFrom")}`
+                    )
+                  span —
+                  input(
+                    type="number"
+                    name="priceMax"
+                    min="0"
+                    step="1"
+                    inputmode="numeric"
+                    placeholder=t("priceTo")
+                    value=filter.priceMax === null ? "" : filter.priceMax
+                    aria-label=`${t("filterPrice")} ${t("priceTo")}`
+                    )
+                +filterCheckbox("inStock", "1", t("filterInStock"), filter.inStock)
+                +filterCheckbox("onSale", "1", t("filterOnSale"), filter.onSale)
+
+              if originFilterList.length > 0
+                div(class="sf-filter-group")
+                  h3 #{t("filterOrigin")}
+                  each item in originFilterList
+                    +filterCheckbox("origin", item.id, tName(item), filter.origin.includes(item.id))
+
+              div(class="sf-filter-group")
+                h3 #{t("filterStorage")}
+                each item in productOptions.storageList
+                  +filterCheckbox("storageType", item.id, tName(item), filter.storageType.includes(item.id))
+
+              div(class="sf-filter-group")
+                h3 #{t("filterDiet")}
+                each item in productOptions.dietTagList
+                  +filterCheckbox("dietTags", item.id, tName(item), filter.dietTags.includes(item.id))
+
+              div(class="sf-filter-buttons")
+                button(
+                  type="submit"
+                  class="sf-btn sf-btn-primary"
+                  ) #{t("filterApply")}
+                if hasFilter
+                  a(
+                    href=resetUrl
+                    class="sf-btn sf-btn-outline"
+                    ) #{t("filterReset")}
+
+        //- Danh sách sản phẩm
+        .col-xl-9.col-lg-8
+          div(class="sf-shop-toolbar")
+            p
+              | #{t("found")}:
+              b  #{tCount(pagination.totalRecord, "productCount")}
+            label(class="sf-sort")
+              span #{t("sortBy")}
+              //- Ô sắp xếp thuộc form bộ lọc (form="sf-filter-form"), đổi là tải lại trang
+              select(
+                name="sort"
+                form="sf-filter-form"
+                auto-submit
+                )
+                each item in sortList
+                  option(
+                    value=item.id
+                    selected=item.id == sort
+                    ) #{t(item.key)}
+
+          if productList.length > 0
+            div(class="sf-product-grid")
+              each product in productList
+                +productCard(product)
+            +pagination(pagination)
+          else
+            div(class="sf-empty")
+              i.fas.fa-search
+              h3 #{t("noProducts")}
+              p #{t("noProductsText")}
+              if hasFilter
+                a(
+                  href=resetUrl
+                  class="sf-btn sf-btn-primary"
+                  ) #{t("filterReset")}

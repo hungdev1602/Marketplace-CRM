@@ -1,58 +1,96 @@
-header(class="header_2")
+//- Nút đổi giao diện sáng / tối (main.js xử lý khi bấm)
+mixin themeToggle()
+  button(
+    type="button"
+    class="sf-theme-toggle"
+    theme-toggle
+    aria-label=t("themeToggle")
+    title=t("themeToggle")
+    )
+    i.fas.fa-moon
+    i.fas.fa-sun
+
+header(class="header_2 sf-header")
   .container
     .row.align-items-center
-      .col-lg-2
+      .col-lg-2.col-xl-2
         div(class="header_logo_area")
           a(
-            class="header_logo" 
-            href="index.html"
+            class="header_logo"
+            href="/"
             )
-            img.img-fluid.w-100(
-              alt="Zenis" 
-              src="/client/assets/images/logo_2.png"
+            img.img-fluid(
+              alt="SFoodie Asian Store"
+              src="/client/assets/images/sfoodie-logo.png"
+              width="480"
+              height="118"
               )
-          .d-block.d-lg-none(
-            aria-controls="offcanvasWithBothOptions" 
-            data-bs-target="#offcanvasWithBothOptions" 
-            data-bs-toggle="offcanvas" 
-            class="mobile_menu_icon"
+          div(class="sf-header-mobile-actions d-flex d-lg-none")
+            +themeToggle()
+            button(
+              aria-controls="offcanvasWithBothOptions"
+              data-bs-target="#offcanvasWithBothOptions"
+              data-bs-toggle="offcanvas"
+              class="mobile_menu_icon"
+              type="button"
+              aria-label=t("menu")
+              )
+              i.fas.fa-bars(class="menu_icon_bar")
+      .col-xl-6.col-lg-6.d-none.d-lg-block
+        //- Tìm kiếm: chọn danh mục (không bắt buộc) + từ khoá
+        form(
+          action="/products"
+          method="GET"
+          class="sf-search"
+          )
+          select(
+            name="category"
+            class="sf-search-select"
+            aria-label=t("categories")
             )
-            span(class="mobile_menu_icon")
-              i.far.fa-stream(class="menu_icon_bar")
-      .col-xXl-6.col-xl-5.col-lg-5.d-none.d-lg-block
-        form(action="#")
-          select(class="select_2")
-            option All Categories
-            option Fashion
-            option Elentronics
-            option Fashion & Beauty
-            option Jewelry
-            option Grocery
-          .input
+            option(value="") #{t("allCategories")}
+            each item in categoryTree
+              option(
+                value=item.slug
+                selected=(item.slug == (query && query.category))
+                ) #{tName(item)}
+              each child in item.children
+                option(
+                  value=child.slug
+                  selected=(child.slug == (query && query.category))
+                  ) — #{tName(child)}
+          .sf-search-input
             input(
-              placeholder="Search your product..." 
-              type="text"
+              placeholder=t("searchPlaceholder")
+              type="search"
+              name="keyword"
+              value=(query && query.keyword) || ""
+              aria-label=t("searchPlaceholder")
               )
-            button(type="submit")
-              i.far.fa-search
-      .col-xXl-4.col-xl-5.col-lg-5.d-none.d-lg-flex
-        .d-flex.flex-wrap(class="header_support_user")
-          div(class="header_support")
+            button(
+              type="submit"
+              aria-label=t("search")
+              )
+              i.fas.fa-search
+      .col-xl-4.col-lg-4.d-none.d-lg-flex.justify-content-end.align-items-center.gap-3
+        if shopInfo.phone
+          div(class="sf-header-phone")
             span.icon
-              i.far.fa-phone-alt
-            h3
-              | Hotline:
-              a(href="callto:1234567890")
-                span +(402) 763 282 46
-        .d-flex.flex-wrap.align-items-center.justify-content-end(class="topbar_right")
-          select.language(class="select_js")
-            option English
-            option Arabic
-            option Hindi
-            option Chinese
-          select(class="select_js")
-            option $USD
-            option €EUR
-            option ¥JPY
-            option £GBP
-            option ₹INR
+              i.fas.fa-phone-alt
+            div
+              span #{t("hotline")}
+              a(href=`tel:${shopInfo.phone.replace(/[^\d+]/g, "")}`) #{shopInfo.phone}
+        +themeToggle()
+        //- Chọn ngôn ngữ
+        ul(
+          class="sf-language"
+          aria-label=t("language")
+          )
+          each item in languageList
+            li
+              a(
+                href=`/language/${item.id}`
+                class=(item.id == lang ? "active" : "")
+                title=item.name
+                hreflang=item.id
+                ) #{item.shortName}

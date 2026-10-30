@@ -1,0 +1,41 @@
+extends ../layouts/default.pug
+include ../mixins/page-banner.pug
+
+block main
+  +pageBanner(t("allCategories"), [{ name: t("allCategories") }])
+    p(class="sf-page-banner-sub") #{t("allCategoriesSub")}
+
+  section(class="sf-section sf-section-first")
+    .container
+      if categoryTree.length > 0
+        div(class="sf-category-tree")
+          each item in categoryTree
+            div(class="sf-category-tree-item")
+              a(
+                href=`/category/${item.slug}`
+                class="sf-category-tree-head"
+                )
+                span(class="sf-category-img")
+                  if item.avatar
+                    img(
+                      src=mediaUrl(item.avatar)
+                      alt=tName(item)
+                      loading="lazy"
+                      )
+                  else
+                    i.fas.fa-utensils
+                b #{tName(item)}
+              if item.children.length > 0
+                ul
+                  each child in item.children
+                    li
+                      a(href=`/category/${child.slug}`) #{tName(child)}
+                      if child.children.length > 0
+                        ul
+                          each grandChild in child.children
+                            li
+                              a(href=`/category/${grandChild.slug}`) #{tName(grandChild)}
+      else
+        div(class="sf-empty")
+          i.fas.fa-th-large
+          p #{t("noCategories")}

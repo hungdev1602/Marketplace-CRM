@@ -1,0 +1,61 @@
+extends ../layouts/default.pug
+include ../mixins/page-banner.pug
+
+block main
+  - const breadcrumbList = [{ name: t("blog"), url: "/blog" }]
+  - if (article.categoryList.length > 0) breadcrumbList.push({ name: article.categoryList[0].name, url: `/blog/category/${article.categoryList[0].slug}` })
+
+  +pageBanner(article.name, breadcrumbList)
+    p(class="sf-page-banner-sub")
+      i.fas.fa-calendar-alt
+      | #{article.publishedAtFormat}
+
+  section(class="sf-section sf-section-first")
+    .container
+      .row.g-4.g-xl-5
+        .col-lg-8
+          article(class="sf-article-detail")
+            if article.avatar
+              div(class="sf-article-detail-img")
+                img(
+                  src=mediaUrl(article.avatar)
+                  alt=article.name
+                  )
+            if article.content
+              div(class="sf-content") !{article.content}
+            else if article.description
+              div(class="sf-content") !{article.description}
+            if article.categoryList.length > 0
+              div(class="sf-chip-list")
+                each item in article.categoryList
+                  a(
+                    href=`/blog/category/${item.slug}`
+                    class="sf-chip"
+                    ) #{item.name}
+        .col-lg-4
+          aside(class="sf-sidebar")
+            if latestList.length > 0
+              div(class="sf-sidebar-box")
+                h3 #{t("latestArticles")}
+                ul(class="sf-latest-list")
+                  each item in latestList
+                    li
+                      a(
+                        href=`/blog/${item.slug}`
+                        class="sf-latest-img"
+                        )
+                        img(
+                          src=mediaUrl(item.avatar)
+                          alt=item.name
+                          loading="lazy"
+                          )
+                      div
+                        a(href=`/blog/${item.slug}`) #{item.name}
+                        span #{item.publishedAtFormat}
+            if allCategory.length > 0
+              div(class="sf-sidebar-box")
+                h3 #{t("blogCategories")}
+                ul(class="sf-sidebar-links")
+                  each item in allCategory
+                    li
+                      a(href=`/blog/category/${item.slug}`) #{item.name}

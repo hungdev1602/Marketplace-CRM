@@ -244,10 +244,12 @@
   .col-md-6
     .mb-3
       +form-group-file-multiple(
-        "Album ảnh",
+        "Album ảnh / video",
         "images",
-        product.images || []
+        product.images || [],
+        "Thêm ảnh / video"
       )
+      .form-text Video (MP4) hiện đầu tiên trong album ở trang khách hàng, ảnh đại diện vẫn là ảnh.
   .col-md-12
     .mb-3
       label.form-label(for="description") Mô tả ngắn

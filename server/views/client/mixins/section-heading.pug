@@ -1,0 +1,14 @@
+//- Tiêu đề mỗi mục ở trang chủ, có link "Xem tất cả" (không bắt buộc)
+mixin sectionHeading(title, subtitle, viewAllUrl)
+  div(class="sf-section-heading")
+    div
+      h2 #{title}
+      if subtitle
+        p #{subtitle}
+    if viewAllUrl
+      a(
+        href=viewAllUrl
+        class="sf-view-all"
+        )
+        | #{t("viewAll")}
+        i.fas.fa-arrow-right

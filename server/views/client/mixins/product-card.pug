@@ -1,0 +1,47 @@
+//- Thẻ sản phẩm (trang chủ, danh sách sản phẩm, sản phẩm tương tự)
+//- product cần có thêm thông tin từ addProductDisplayInfo (helpers/client-product.helper.ts)
+mixin productCard(product)
+  - const productName = tName(product)
+  - const productUrl = `/product/${product.slug}`
+  - const inStock = product.stock > 0
+  div(class="sf-product-card" + (inStock ? "" : " is-out"))
+    a(
+      href=productUrl
+      class="sf-product-img"
+      )
+      img(
+        src=mediaUrl(product.cardImage)
+        alt=productName
+        loading="lazy"
+        )
+      ul(class="sf-badges")
+        if product.discountPercent
+          li(class="sf-badge sf-badge-sale") −#{product.discountPercent}%
+        if product.newArrival
+          li(class="sf-badge sf-badge-new") #{t("badgeNew")}
+        if product.featured
+          li(class="sf-badge sf-badge-hit") #{t("badgeHit")}
+      if product.storageType == "frozen" || product.storageType == "chilled"
+        span(
+          class="sf-storage-icon sf-storage-" + product.storageType
+          title=tOption(productOptions.storageList, product.storageType)
+          )
+          i(class=product.storageType == "frozen" ? "fas fa-snowflake" : "fas fa-thermometer-quarter")
+      if !inStock
+        span(class="sf-out-label") #{t("outOfStock")}
+    div(class="sf-product-body")
+      if product.brand
+        p(class="sf-product-brand") #{product.brand}
+      a(
+        href=productUrl
+        class="sf-product-title"
+        ) #{productName}
+      - const metaList = []
+      - if (product.netWeight) metaList.push(`${formatNumber(product.netWeight)} ${tOption(productOptions.netWeightUnitList, product.netWeightUnit)}`)
+      - if (product.origin && product.origin != "other") metaList.push(tOption(productOptions.originList, product.origin))
+      if metaList.length > 0
+        p(class="sf-product-meta") #{metaList.join(" · ")}
+      div(class="sf-product-price" + (product.discountPercent ? " is-sale" : ""))
+        span(class="sf-price") #{product.priceFormat}
+        if product.discountPercent
+          del #{product.priceOldFormat}

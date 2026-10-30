@@ -1,0 +1,40 @@
+//- Phân trang, link các trang tạo sẵn ở buildClientPagination (helpers/pagination.helper.ts)
+mixin pagination(pagination)
+  if pagination.totalPage > 1
+    nav(
+      class="pagination_area sf-pagination"
+      aria-label="pagination"
+      )
+      ul.pagination.justify-content-center
+        li.page-item
+          if pagination.prevUrl
+            a.page-link(
+              href=pagination.prevUrl
+              aria-label=t("previous")
+              rel="prev"
+              )
+              i.fas.fa-arrow-left
+          else
+            span.page-link.disabled
+              i.fas.fa-arrow-left
+        each item in pagination.items
+          li.page-item
+            if item.dots
+              span.page-link.disabled …
+            else
+              a.page-link(
+                href=item.url
+                class=item.active ? "active" : ""
+                aria-current=item.active ? "page" : false
+                ) #{item.page}
+        li.page-item
+          if pagination.nextUrl
+            a.page-link(
+              href=pagination.nextUrl
+              aria-label=t("next")
+              rel="next"
+              )
+              i.fas.fa-arrow-right
+          else
+            span.page-link.disabled
+              i.fas.fa-arrow-right

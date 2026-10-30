@@ -1,0 +1,35 @@
+extends ../layouts/default.pug
+include ../mixins/page-banner.pug
+include ../mixins/article-card.pug
+include ../mixins/pagination.pug
+
+block main
+  - const breadcrumbList = category ? [{ name: t("blog"), url: "/blog" }, { name: category.name }] : [{ name: t("blog") }]
+
+  +pageBanner(title, breadcrumbList)
+    if !category
+      p(class="sf-page-banner-sub") #{t("blogSub")}
+
+  section(class="sf-section sf-section-first")
+    .container
+      if allCategory.length > 0
+        div(class="sf-chip-list sf-blog-categories")
+          a(
+            href="/blog"
+            class="sf-chip" + (category ? "" : " active")
+            ) #{t("allArticles")}
+          each item in allCategory
+            a(
+              href=`/blog/category/${item.slug}`
+              class="sf-chip" + (category && category.id == item.id ? " active" : "")
+              ) #{item.name}
+
+      if articleList.length > 0
+        div(class="sf-article-grid")
+          each article in articleList
+            +articleCard(article)
+        +pagination(pagination)
+      else
+        div(class="sf-empty")
+          i.fas.fa-newspaper
+          p #{t("noArticles")}

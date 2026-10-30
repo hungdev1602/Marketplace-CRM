@@ -304,60 +304,61 @@ export const activityLogActionList = [
 // Các danh sách bên dưới dùng cho ô chọn ở trang tạo/sửa sản phẩm
 // - id: giá trị lưu trong database, không đổi id đã dùng (sản phẩm đã tạo đang lưu theo id)
 // - name: tên hiển thị, đổi thoải mái
-// Muốn thêm lựa chọn thì thêm 1 dòng { id, name } vào danh sách tương ứng
+// - nameRu: tên tiếng Nga, hiển thị ở trang khách hàng khi khách chọn tiếng Nga
+// Muốn thêm lựa chọn thì thêm 1 dòng { id, name, nameRu } vào danh sách tương ứng
 
 // Tồn kho nhỏ hơn hoặc bằng số này thì báo "Sắp hết hàng" ở danh sách sản phẩm
 export const productLowStockThreshold: number = 10
 
 // Xuất xứ (id là mã quốc gia ISO)
 export const productOriginList = [
-  { id: "VN", name: "Việt Nam" },
-  { id: "TH", name: "Thái Lan" },
-  { id: "KR", name: "Hàn Quốc" },
-  { id: "JP", name: "Nhật Bản" },
-  { id: "CN", name: "Trung Quốc" },
-  { id: "TW", name: "Đài Loan" },
-  { id: "ID", name: "Indonesia" },
-  { id: "MY", name: "Malaysia" },
-  { id: "PH", name: "Philippines" },
-  { id: "SG", name: "Singapore" },
-  { id: "IN", name: "Ấn Độ" },
-  { id: "LA", name: "Lào" },
-  { id: "KH", name: "Campuchia" },
-  { id: "MM", name: "Myanmar" },
-  { id: "RU", name: "Nga" },
-  { id: "other", name: "Khác" }
+  { id: "VN", name: "Việt Nam", nameRu: "Вьетнам" },
+  { id: "TH", name: "Thái Lan", nameRu: "Таиланд" },
+  { id: "KR", name: "Hàn Quốc", nameRu: "Южная Корея" },
+  { id: "JP", name: "Nhật Bản", nameRu: "Япония" },
+  { id: "CN", name: "Trung Quốc", nameRu: "Китай" },
+  { id: "TW", name: "Đài Loan", nameRu: "Тайвань" },
+  { id: "ID", name: "Indonesia", nameRu: "Индонезия" },
+  { id: "MY", name: "Malaysia", nameRu: "Малайзия" },
+  { id: "PH", name: "Philippines", nameRu: "Филиппины" },
+  { id: "SG", name: "Singapore", nameRu: "Сингапур" },
+  { id: "IN", name: "Ấn Độ", nameRu: "Индия" },
+  { id: "LA", name: "Lào", nameRu: "Лаос" },
+  { id: "KH", name: "Campuchia", nameRu: "Камбоджа" },
+  { id: "MM", name: "Myanmar", nameRu: "Мьянма" },
+  { id: "RU", name: "Nga", nameRu: "Россия" },
+  { id: "other", name: "Khác", nameRu: "Другое" }
 ]
 
 // Đơn vị bán
 export const productUnitList = [
-  { id: "pack", name: "Gói" },
-  { id: "box", name: "Hộp" },
-  { id: "bottle", name: "Chai" },
-  { id: "can", name: "Lon" },
-  { id: "jar", name: "Hũ / Lọ" },
-  { id: "bag", name: "Túi" },
-  { id: "tray", name: "Khay" },
-  { id: "bunch", name: "Bó" },
-  { id: "piece", name: "Cái / Quả" },
-  { id: "kg", name: "Kg" },
-  { id: "carton", name: "Thùng" }
+  { id: "pack", name: "Gói", nameRu: "Упаковка" },
+  { id: "box", name: "Hộp", nameRu: "Коробка" },
+  { id: "bottle", name: "Chai", nameRu: "Бутылка" },
+  { id: "can", name: "Lon", nameRu: "Жестяная банка" },
+  { id: "jar", name: "Hũ / Lọ", nameRu: "Банка" },
+  { id: "bag", name: "Túi", nameRu: "Пакет" },
+  { id: "tray", name: "Khay", nameRu: "Лоток" },
+  { id: "bunch", name: "Bó", nameRu: "Пучок" },
+  { id: "piece", name: "Cái / Quả", nameRu: "Штука" },
+  { id: "kg", name: "Kg", nameRu: "Кг" },
+  { id: "carton", name: "Thùng", nameRu: "Ящик" }
 ]
 
 // Đơn vị khối lượng tịnh / thể tích (in trên bao bì)
 export const productNetWeightUnitList = [
-  { id: "g", name: "g" },
-  { id: "kg", name: "kg" },
-  { id: "ml", name: "ml" },
-  { id: "l", name: "l" }
+  { id: "g", name: "g", nameRu: "г" },
+  { id: "kg", name: "kg", nameRu: "кг" },
+  { id: "ml", name: "ml", nameRu: "мл" },
+  { id: "l", name: "l", nameRu: "л" }
 ]
 
 // Điều kiện bảo quản (ảnh hưởng đến cách giao hàng: hàng mát, hàng đông lạnh cần xe/hộp giữ lạnh)
 // - color: màu nhãn hiển thị ở danh sách sản phẩm (class badge của bootstrap)
 export const productStorageList = [
-  { id: "ambient", name: "Nhiệt độ thường", color: "bg-secondary" },
-  { id: "chilled", name: "Bảo quản mát (+2°C đến +6°C)", color: "bg-info" },
-  { id: "frozen", name: "Đông lạnh (-18°C trở xuống)", color: "bg-primary" }
+  { id: "ambient", name: "Nhiệt độ thường", nameRu: "При комнатной температуре", color: "bg-secondary" },
+  { id: "chilled", name: "Bảo quản mát (+2°C đến +6°C)", nameRu: "Охлаждённое (от +2°C до +6°C)", color: "bg-info" },
+  { id: "frozen", name: "Đông lạnh (-18°C trở xuống)", nameRu: "Замороженное (-18°C и ниже)", color: "bg-primary" }
 ]
 
 // Đơn vị hạn sử dụng
@@ -369,31 +370,31 @@ export const productShelfLifeUnitList = [
 
 // Chất gây dị ứng phải ghi trên nhãn theo quy chuẩn ЕАЭС ТР ТС 022/2011
 export const productAllergenList = [
-  { id: "gluten", name: "Ngũ cốc chứa gluten (lúa mì, lúa mạch...)" },
-  { id: "crustaceans", name: "Giáp xác (tôm, cua...)" },
-  { id: "molluscs", name: "Thân mềm (mực, bạch tuộc, sò, ốc...)" },
-  { id: "fish", name: "Cá (kể cả nước mắm, mắm cá)" },
-  { id: "eggs", name: "Trứng" },
-  { id: "milk", name: "Sữa (lactose)" },
-  { id: "peanuts", name: "Đậu phộng" },
-  { id: "nuts", name: "Các loại hạt (điều, óc chó, hạnh nhân...)" },
-  { id: "soy", name: "Đậu nành" },
-  { id: "sesame", name: "Vừng (mè)" },
-  { id: "celery", name: "Cần tây" },
-  { id: "mustard", name: "Mù tạt" },
-  { id: "lupin", name: "Đậu lupin" },
-  { id: "sulphites", name: "Sulfit (trên 10 mg/kg)" }
+  { id: "gluten", name: "Ngũ cốc chứa gluten (lúa mì, lúa mạch...)", nameRu: "Злаки, содержащие глютен (пшеница, ячмень...)" },
+  { id: "crustaceans", name: "Giáp xác (tôm, cua...)", nameRu: "Ракообразные (креветки, крабы...)" },
+  { id: "molluscs", name: "Thân mềm (mực, bạch tuộc, sò, ốc...)", nameRu: "Моллюски (кальмары, осьминоги, мидии...)" },
+  { id: "fish", name: "Cá (kể cả nước mắm, mắm cá)", nameRu: "Рыба (в том числе рыбный соус)" },
+  { id: "eggs", name: "Trứng", nameRu: "Яйца" },
+  { id: "milk", name: "Sữa (lactose)", nameRu: "Молоко (лактоза)" },
+  { id: "peanuts", name: "Đậu phộng", nameRu: "Арахис" },
+  { id: "nuts", name: "Các loại hạt (điều, óc chó, hạnh nhân...)", nameRu: "Орехи (кешью, грецкий орех, миндаль...)" },
+  { id: "soy", name: "Đậu nành", nameRu: "Соя" },
+  { id: "sesame", name: "Vừng (mè)", nameRu: "Кунжут" },
+  { id: "celery", name: "Cần tây", nameRu: "Сельдерей" },
+  { id: "mustard", name: "Mù tạt", nameRu: "Горчица" },
+  { id: "lupin", name: "Đậu lupin", nameRu: "Люпин" },
+  { id: "sulphites", name: "Sulfit (trên 10 mg/kg)", nameRu: "Диоксид серы и сульфиты (более 10 мг/кг)" }
 ]
 
 // Đặc điểm (dùng để khách lọc sản phẩm)
 export const productDietTagList = [
-  { id: "spicy", name: "Cay" },
-  { id: "vegetarian", name: "Chay" },
-  { id: "vegan", name: "Thuần chay" },
-  { id: "halal", name: "Halal" },
-  { id: "gluten-free", name: "Không gluten" },
-  { id: "sugar-free", name: "Không đường" },
-  { id: "organic", name: "Hữu cơ" }
+  { id: "spicy", name: "Cay", nameRu: "Острое" },
+  { id: "vegetarian", name: "Chay", nameRu: "Вегетарианское" },
+  { id: "vegan", name: "Thuần chay", nameRu: "Веганское" },
+  { id: "halal", name: "Halal", nameRu: "Халяль" },
+  { id: "gluten-free", name: "Không gluten", nameRu: "Без глютена" },
+  { id: "sugar-free", name: "Không đường", nameRu: "Без сахара" },
+  { id: "organic", name: "Hữu cơ", nameRu: "Органическое" }
 ]
 
 // Thuế VAT (НДС) in trên hoá đơn điện tử / máy tính tiền online (54-ФЗ)
@@ -443,3 +444,39 @@ export const couponApplyToList = [
   { id: "category", name: "Sản phẩm thuộc danh mục được chọn" },
   { id: "product", name: "Sản phẩm được chọn" }
 ]
+
+// ===== Trang khách hàng =====
+// Ngôn ngữ của trang khách hàng, khách chọn ở đầu trang (lưu trong cookie "lang")
+// Ngôn ngữ đầu tiên là ngôn ngữ mặc định (khách chưa chọn ngôn ngữ nào)
+// Từ ngữ của từng ngôn ngữ nằm trong thư mục locales (locales/ru.ts, locales/vi.ts)
+export const clientLanguageList = [
+  { id: "ru", name: "Русский", shortName: "RU" },
+  { id: "vi", name: "Tiếng Việt", shortName: "VI" }
+]
+
+// Giao diện mặc định khi khách chưa bấm nút đổi sáng / tối
+// - "system": theo cài đặt sáng / tối của máy khách
+// - "light": luôn sáng, "dark": luôn tối
+// Khách bấm đổi rồi thì trình duyệt nhớ lựa chọn của khách
+export const clientDefaultTheme: string = "system"
+
+// Thông tin cửa hàng hiển thị ở đầu trang và chân trang
+// Để trống ("") thì mục đó không hiển thị
+export const shopInfo = {
+  phone: "", // số điện thoại / hotline, ví dụ: +7 (999) 123-45-67
+  email: "", // ví dụ: info@sfoodie.ru
+  address: "", // địa chỉ cửa hàng / kho
+  workingHours: "", // giờ làm việc, ví dụ: 09:00 - 21:00
+  telegram: "", // link Telegram, ví dụ: https://t.me/sfoodie
+  whatsapp: "", // link WhatsApp, ví dụ: https://wa.me/79991234567
+  vk: "" // link trang VK, ví dụ: https://vk.com/sfoodie
+}
+
+// Số sản phẩm mỗi trang ở trang danh sách sản phẩm
+export const clientProductPerPage: number = 20
+
+// Số bài viết mỗi trang ở trang blog
+export const clientArticlePerPage: number = 9
+
+// Số sản phẩm hiển thị ở mỗi mục của trang chủ (nổi bật, giảm giá, hàng mới về, bán chạy)
+export const clientHomeProductLimit: number = 10

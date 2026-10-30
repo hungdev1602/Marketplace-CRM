@@ -11,6 +11,9 @@ export function buildCategoryTree(categories: any, parentId: string = "") {
     return {
       id: category.id,
       name: category.name,
+      nameRu: category.nameRu, // trang khách hàng: tên tiếng Nga, đường dẫn, ảnh của danh mục
+      slug: category.slug,
+      avatar: category.avatar,
       children: children,
     };
   });
