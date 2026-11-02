@@ -87,3 +87,6 @@ nav.d-none.d-lg-block(class="main_menu_2 main_menu")
                 href="/blog"
                 class=isActive("/blog") ? "active" : ""
                 ) #{t("blog")}
+          //- Yêu thích, giỏ hàng (menu dính trên cùng khi cuộn nên khách luôn thấy)
+          div(class="sf-menu-actions")
+            +shopIconLinks()

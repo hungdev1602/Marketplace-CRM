@@ -3,6 +3,8 @@ import { homePageRoute } from "./homePage.route"
 import { productRoute } from "./product.route"
 import { articleRoute } from "./article.route"
 import { languageRoute } from "./language.route"
+import { cartRoute } from "./cart.route"
+import { wishlistRoute } from "./wishlist.route"
 import * as languageMiddleware from "../../middlewares/client/language.middleware"
 import * as layoutMiddleware from "../../middlewares/client/layout.middleware"
 import * as errorController from "../../controller/client/error.controller"
@@ -21,6 +23,11 @@ export const clientRoute = (app: Express) => {
   app.use("/", productRoute)
 
   app.use("/blog", articleRoute)
+
+  // Giỏ hàng, sản phẩm yêu thích
+  app.use("/cart", cartRoute)
+
+  app.use("/wishlist", wishlistRoute)
 
   // Không trang nào khớp thì hiện trang 404
   app.use(errorController.notFound)

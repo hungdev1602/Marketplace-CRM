@@ -1,8 +1,11 @@
 import { NextFunction, Request, Response } from "express"
 import { CategoryProduct } from "../../models/category-product.model"
 import { buildCategoryTree } from "../../helpers/category.helper"
-import { formatNumber, htmlToText } from "../../helpers/format.helper"
+import { formatNumber, formatPrice, htmlToText } from "../../helpers/format.helper"
+import { getCart, getCartQuantity } from "../../helpers/cart.helper"
+import { getWishlist } from "../../helpers/wishlist.helper"
 import {
+  clientCartMaxQuantity,
   clientDefaultTheme,
   domainFileManager,
   productAllergenList,
@@ -47,8 +50,18 @@ export const loadLayoutData = async (req: Request, res: Response, next: NextFunc
   res.locals.currentYear = new Date().getFullYear()
   res.locals.defaultTheme = clientDefaultTheme
 
+  // Giỏ hàng, yêu thích của khách: số trên biểu tượng ở đầu trang, trạng thái nút trên thẻ sản phẩm
+  // - cartQuantityMap: { id sản phẩm: số lượng trong giỏ }, wishlistMap: { id sản phẩm: true }
+  const [cart, wishlist] = await Promise.all([getCart(req), getWishlist(req)])
+  res.locals.cartQuantity = getCartQuantity(cart)
+  res.locals.cartQuantityMap = Object.fromEntries((cart?.items || []).map((item: any) => [item.productId, item.quantity]))
+  res.locals.cartMaxQuantity = clientCartMaxQuantity
+  res.locals.wishlistCount = wishlist ? wishlist.items.length : 0
+  res.locals.wishlistMap = Object.fromEntries((wishlist?.items || []).map((item: any) => [item.productId, true]))
+
   // Hàm dùng trong file PUG
   res.locals.formatNumber = formatNumber
+  res.locals.formatPrice = formatPrice
   res.locals.htmlToText = htmlToText
   // Link ảnh lưu ở server quản lý file, chưa có ảnh thì dùng ảnh mặc định
   res.locals.mediaUrl = (path: string) => path ? `${domainFileManager}${path}` : "/client/assets/images/no-image.svg"

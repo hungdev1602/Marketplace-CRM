@@ -480,3 +480,21 @@ export const clientArticlePerPage: number = 9
 
 // Số sản phẩm hiển thị ở mỗi mục của trang chủ (nổi bật, giảm giá, hàng mới về, bán chạy)
 export const clientHomeProductLimit: number = 10
+
+// ===== Giỏ hàng, yêu thích (trang khách hàng) =====
+// Khách không cần tài khoản: giỏ hàng và danh sách yêu thích lưu trong database,
+// trình duyệt của khách giữ mã nhận diện (chuỗi ngẫu nhiên) trong cookie "cartToken", "wishlistToken"
+// Số ngày giữ giỏ hàng kể từ lần thay đổi cuối cùng, quá hạn thì tự động xoá
+export const clientCartRetentionDays: number = 30
+
+// Số ngày giữ danh sách yêu thích kể từ lần thay đổi cuối cùng, quá hạn thì tự động xoá
+export const clientWishlistRetentionDays: number = 365
+
+// Số loại sản phẩm tối đa trong 1 giỏ hàng
+export const clientCartMaxItems: number = 100
+
+// Số lượng tối đa của 1 sản phẩm trong giỏ hàng (ngoài ra còn bị giới hạn bởi số lượng tồn kho)
+export const clientCartMaxQuantity: number = 99
+
+// Số sản phẩm tối đa trong danh sách yêu thích
+export const clientWishlistMaxItems: number = 200

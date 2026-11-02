@@ -141,6 +141,11 @@ block main
                 del #{product.priceOldFormat}
                 span(class="sf-saving") #{t("youSave")} #{product.savingFormat}
 
+            //- Thêm vào giỏ hàng, yêu thích
+            div(class="sf-buy-box")
+              +cartControl(product, { large: true })
+              +wishlistButton(product, true)
+
             if product.description
               div(class="sf-product-short sf-content") !{product.description}
 

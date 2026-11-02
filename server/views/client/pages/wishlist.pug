@@ -1,0 +1,75 @@
+extends ../layouts/default.pug
+include ../mixins/page-banner.pug
+include ../mixins/product-card.pug
+
+block main
+  - const view = wishlistView
+
+  +pageBanner(t("wishlist"), [{ name: t("wishlist") }])
+    p(class="sf-page-banner-sub") #{t("wishlistSub")}
+
+  section(class="sf-shop sf-wishlist-page")
+    .container
+      if view.productList.length == 0 && view.unavailableList.length == 0
+        div(class="sf-empty")
+          i.far.fa-heart
+          h3 #{t("wishlistEmptyTitle")}
+          p #{t("wishlistEmptyText")}
+          a(
+            href="/products"
+            class="sf-btn sf-btn-primary"
+            ) #{t("goShopping")}
+      else
+        //- main.js: bỏ ♡ thì sản phẩm biến mất khỏi trang, bỏ hết thì tải lại trang
+        div(wishlist-page)
+          div(class="sf-shop-toolbar sf-wishlist-toolbar")
+            p
+              b(wishlist-page-count) #{tCount(view.wishlistCount, "productCount")}
+            div(class="sf-toolbar-actions")
+              if canAddAllToCart
+                button(
+                  type="button"
+                  class="sf-btn sf-btn-primary sf-btn-sm"
+                  wishlist-add-all
+                  )
+                  i.fas.fa-cart-plus
+                  | #{t("addAllToCart")}
+              button(
+                type="button"
+                class="sf-link-btn"
+                wishlist-clear
+                data-confirm=t("clearWishlistConfirm")
+                )
+                i.far.fa-trash-alt
+                | #{t("clearWishlist")}
+
+          if view.productList.length > 0
+            div(class="sf-product-grid sf-product-grid-home")
+              each product in view.productList
+                +productCard(product)
+
+          //- Sản phẩm ngừng bán: không mở được trang sản phẩm, chỉ xoá khỏi danh sách
+          if view.unavailableList.length > 0
+            h3(class="sf-cart-subtitle") #{t("noLongerSold")}
+            ul(class="sf-wish-unavailable")
+              each product in view.unavailableList
+                li(wishlist-item)
+                  span(class="sf-cart-img")
+                    img(
+                      src=mediaUrl(product.cardImage)
+                      alt=""
+                      loading="lazy"
+                      )
+                  span(class="sf-cart-name") #{tName(product)}
+                  button(
+                    type="button"
+                    class="sf-link-btn"
+                    wishlist-toggle=product.id
+                    wishlist-remove
+                    )
+                    i.far.fa-trash-alt
+                    | #{t("remove")}
+
+          p(class="sf-wishlist-note")
+            i.fas.fa-info-circle
+            | #{t("wishlistNote")}

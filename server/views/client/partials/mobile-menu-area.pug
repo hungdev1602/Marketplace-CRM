@@ -154,6 +154,34 @@ mixin mobileNavLink(category)
             class="sf-mnav-link" + (currentPath.startsWith("/blog") ? " active" : "")
             )
             span #{t("blog")}
+      div(class="sf-mnav-divider")
+      ul(class="sf-mnav-list")
+        li
+          a(
+            href="/wishlist"
+            class="sf-mnav-link" + (currentPath == "/wishlist" ? " active" : "")
+            )
+            span
+              i.far.fa-heart
+              | #{t("wishlist")}
+            span(
+              class="sf-count sf-count-inline"
+              wishlist-count
+              hidden=!(wishlistCount > 0)
+              ) #{wishlistCount > 99 ? "99+" : wishlistCount}
+        li
+          a(
+            href="/cart"
+            class="sf-mnav-link" + (currentPath == "/cart" ? " active" : "")
+            )
+            span
+              i.fas.fa-shopping-basket
+              | #{t("cart")}
+            span(
+              class="sf-count sf-count-inline"
+              cart-count
+              hidden=!(cartQuantity > 0)
+              ) #{cartQuantity > 99 ? "99+" : cartQuantity}
 
     //- Các tầng danh mục con
     each item in categoryTree

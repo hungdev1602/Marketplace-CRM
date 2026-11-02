@@ -1,4 +1,6 @@
-//- Thẻ sản phẩm (trang chủ, danh sách sản phẩm, sản phẩm tương tự)
+include ./cart-control.pug
+
+//- Thẻ sản phẩm (trang chủ, danh sách sản phẩm, sản phẩm tương tự, yêu thích)
 //- product cần có thêm thông tin từ addProductDisplayInfo (helpers/client-product.helper.ts)
 mixin productCard(product)
   - const productName = tName(product)
@@ -29,6 +31,8 @@ mixin productCard(product)
           i(class=product.storageType == "frozen" ? "fas fa-snowflake" : "fas fa-thermometer-quarter")
       if !inStock
         span(class="sf-out-label") #{t("outOfStock")}
+    //- Nút ♡ ở góc trên bên phải ảnh (đặt ngoài link ảnh để bấm không mở trang sản phẩm)
+    +wishlistButton(product)
     div(class="sf-product-body")
       if product.brand
         p(class="sf-product-brand") #{product.brand}
@@ -45,3 +49,4 @@ mixin productCard(product)
         span(class="sf-price") #{product.priceFormat}
         if product.discountPercent
           del #{product.priceOldFormat}
+      +cartControl(product)

@@ -1,0 +1,249 @@
+//- Nội dung trang giỏ hàng: danh sách sản phẩm + tổng tiền + mã giảm giá
+//- main.js tải lại phần này (/cart?partial=1) sau mỗi lần đổi số lượng, xoá sản phẩm, nhập mã giảm giá
+//- Cần có mixin cartControl, wishlistButton (mixins/cart-control.pug) và cartView (helpers/cart.helper.ts)
+
+//- 1 dòng sản phẩm đặt được
+mixin cartItem(item)
+  - const product = item.product
+  - const productName = tName(product)
+  - const productUrl = `/product/${product.slug}`
+  - const unitName = product.unit ? tOption(productOptions.unitList, product.unit) : ""
+  - const metaList = []
+  - if (product.netWeight) metaList.push(`${formatNumber(product.netWeight)} ${tOption(productOptions.netWeightUnitList, product.netWeightUnit)}`)
+  - if (product.origin && product.origin != "other") metaList.push(tOption(productOptions.originList, product.origin))
+  li(class="sf-cart-item")
+    a(
+      href=productUrl
+      class="sf-cart-img"
+      tabindex="-1"
+      aria-hidden="true"
+      )
+      img(
+        src=mediaUrl(product.cardImage)
+        alt=""
+        loading="lazy"
+        )
+    div(class="sf-cart-info")
+      if product.brand
+        p(class="sf-product-brand") #{product.brand}
+      a(
+        href=productUrl
+        class="sf-cart-name"
+        ) #{productName}
+      if metaList.length > 0
+        p(class="sf-product-meta") #{metaList.join(" · ")}
+      div(class="sf-cart-unit-price" + (product.discountPercent ? " is-sale" : ""))
+        b #{product.priceFormat}
+        if unitName
+          span / #{unitName.toLowerCase()}
+        if product.discountPercent
+          del #{product.priceOldFormat}
+      if product.storageType == "frozen" || product.storageType == "chilled"
+        span(class="sf-cart-tag")
+          i(class=product.storageType == "frozen" ? "fas fa-snowflake" : "fas fa-thermometer-quarter")
+          | #{tOption(productOptions.storageList, product.storageType)}
+      if item.isReduced
+        p(class="sf-cart-warning")
+          i.fas.fa-exclamation-circle
+          | #{t("quantityReduced")}
+      else if product.isLowStock
+        p(class="sf-cart-note") #{t("onlyLeft")} #{formatNumber(product.stock)}
+      div(class="sf-cart-actions")
+        +wishlistButton(product, true)
+        button(
+          type="button"
+          class="sf-link-btn"
+          cart-remove=product.id
+          )
+          i.far.fa-trash-alt
+          | #{t("remove")}
+    div(class="sf-cart-side")
+      +cartControl(product, { min: 1, quantity: item.quantity, maxQuantity: item.maxQuantity })
+      div(class="sf-cart-line" + (item.lineOldTotal > item.lineTotal ? " is-sale" : ""))
+        b #{formatPrice(item.lineTotal)}
+        if item.lineOldTotal > item.lineTotal
+          del #{formatPrice(item.lineOldTotal)}
+
+//- 1 dòng sản phẩm tạm thời không đặt được (hết hàng, ngừng bán)
+mixin cartUnavailableItem(item)
+  - const product = item.product
+  - const productName = tName(product)
+  li(class="sf-cart-item is-unavailable")
+    span(class="sf-cart-img")
+      img(
+        src=mediaUrl(product.cardImage)
+        alt=""
+        loading="lazy"
+        )
+    div(class="sf-cart-info")
+      if item.isVisible
+        a(
+          href=`/product/${product.slug}`
+          class="sf-cart-name"
+          ) #{productName}
+      else
+        span(class="sf-cart-name") #{productName}
+      span(class="sf-cart-status") #{item.isVisible ? t("outOfStock") : t("noLongerSold")}
+      div(class="sf-cart-actions")
+        if item.isVisible
+          +wishlistButton(product, true)
+        button(
+          type="button"
+          class="sf-link-btn"
+          cart-remove=product.id
+          )
+          i.far.fa-trash-alt
+          | #{t("remove")}
+
+- const view = cartView
+- const coupon = view.coupon
+- const couponOk = coupon && !coupon.errorKey
+div(
+  cart-content
+  data-cart-quantity=view.cartQuantity
+  )
+  if view.itemList.length == 0 && view.unavailableList.length == 0
+    //- Giỏ hàng trống
+    div(class="sf-empty sf-cart-empty")
+      i.fas.fa-shopping-basket
+      h3 #{t("cartEmptyTitle")}
+      p #{t("cartEmptyText")}
+      div(class="sf-hero-buttons justify-content-center")
+        a(
+          href="/products"
+          class="sf-btn sf-btn-primary"
+          ) #{t("goShopping")}
+        if wishlistCount > 0
+          a(
+            href="/wishlist"
+            class="sf-btn sf-btn-light"
+            )
+            i.far.fa-heart
+            | #{t("viewWishlist")}
+  else
+    .row.g-4
+      //- Danh sách sản phẩm
+      .col-lg-8
+        div(class="sf-cart-box")
+          div(class="sf-cart-head")
+            h2
+              | #{t("cart")}
+              span #{tCount(view.totalQuantity, "productCount")}
+            button(
+              type="button"
+              class="sf-link-btn"
+              cart-clear
+              data-confirm=t("clearCartConfirm")
+              )
+              i.far.fa-trash-alt
+              | #{t("clearCart")}
+          if view.itemList.length > 0
+            ul(class="sf-cart-list")
+              each item in view.itemList
+                +cartItem(item)
+          if view.unavailableList.length > 0
+            h3(class="sf-cart-subtitle") #{t("unavailableItems")}
+            ul(class="sf-cart-list")
+              each item in view.unavailableList
+                +cartUnavailableItem(item)
+        a(
+          href="/products"
+          class="sf-continue"
+          )
+          i.fas.fa-arrow-left
+          | #{t("continueShopping")}
+
+      //- Tổng tiền, mã giảm giá
+      .col-lg-4
+        aside(class="sf-cart-summary")
+          h2 #{t("orderSummary")}
+          dl(class="sf-summary-list")
+            div
+              dt #{t("itemsTotal")} (#{formatNumber(view.totalQuantity)})
+              dd #{formatPrice(view.oldSubtotal)}
+            if view.productDiscount > 0
+              div(class="is-discount")
+                dt #{t("productDiscount")}
+                dd −#{formatPrice(view.productDiscount)}
+            if couponOk && view.couponDiscount > 0
+              div(class="is-discount")
+                dt #{t("coupon")} #{coupon.code}
+                dd −#{formatPrice(view.couponDiscount)}
+            div
+              dt #{t("delivery")}
+              dd
+                if couponOk && coupon.freeShipping
+                  span(class="sf-free") #{t("free")}
+                else
+                  span(class="sf-muted") #{t("deliveryAtCheckout")}
+          div(class="sf-summary-total")
+            span #{t("total")}
+            b #{formatPrice(view.total)}
+
+          //- Mã giảm giá
+          if coupon
+            div(class="sf-coupon-applied" + (couponOk ? "" : " is-warning"))
+              i.fas.fa-ticket-alt
+              div
+                b #{coupon.code}
+                if couponOk
+                  if coupon.freeShipping
+                    p #{t("couponFreeShipping")}
+                  else if coupon.description
+                    p #{coupon.description}
+                  else
+                    p #{t("couponApplied")}
+                else
+                  p(class="sf-coupon-error")
+                    if coupon.errorKey == "couponMinOrder"
+                      | #{t("couponMinOrder")} #{formatPrice(coupon.minOrderValue)}. #{t("couponAddMore")} #{formatPrice(coupon.missingAmount)}
+                    else if coupon.errorKey == "couponNotStarted"
+                      | #{t("couponNotStarted")}. #{t("couponStartAt")}: #{coupon.startAtFormat}
+                    else
+                      | #{t(coupon.errorKey)}
+              button(
+                type="button"
+                cart-coupon-remove
+                aria-label=t("couponRemove")
+                title=t("couponRemove")
+                )
+                i.fas.fa-times
+          else if view.itemList.length > 0
+            form(
+              class="sf-coupon-form"
+              cart-coupon-form
+              novalidate
+              )
+              input(
+                type="text"
+                name="code"
+                placeholder=t("couponPlaceholder")
+                aria-label=t("coupon")
+                autocomplete="off"
+                autocapitalize="characters"
+                spellcheck="false"
+                maxlength="50"
+                )
+              button(
+                type="submit"
+                class="sf-btn sf-btn-dark"
+                ) #{t("couponApply")}
+            p(
+              class="sf-coupon-message"
+              cart-coupon-message
+              role="alert"
+              hidden
+              )
+
+          //- Đặt hàng: trang thanh toán làm ở bước sau, tạm thời nút bị khoá
+          button(
+            type="button"
+            class="sf-btn sf-btn-primary sf-checkout-btn"
+            disabled
+            ) #{t("checkout")}
+          p(class="sf-checkout-note") #{t("checkoutSoon")}
+
+          if view.hasColdItems
+            p(class="sf-cold-note")
+              i.fas.fa-snowflake
+              | #{t("coldChainNote")}
