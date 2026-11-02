@@ -2,25 +2,36 @@ import { Request, Response } from "express"
 import moment from "moment"
 import { Wishlist } from "../models/wishlist.model"
 import { Product } from "../models/product.model"
-import { clientWishlistRetentionDays } from "../config/variable.config"
+import { clientGuestDataRetentionDays, clientWishlistMaxItems } from "../config/variable.config"
 import { addProductDisplayInfo } from "./client-product.helper"
 import { generateClientToken, getClientToken, setClientTokenCookie } from "./client-token.helper"
 
-// Tên cookie giữ mã danh sách yêu thích của khách
+// Tên cookie phiên giữ mã danh sách yêu thích của khách chưa đăng nhập
 export const wishlistCookieName = "wishlistToken"
 
 // Danh sách yêu thích của khách đang xem trang, chưa có thì trả về null (không tạo mới)
-export const getWishlist = async (req: Request): Promise<any> => {
+// - Đã đăng nhập: danh sách của tài khoản
+// - Chưa đăng nhập: danh sách theo mã trong cookie phiên
+export const getWishlist = async (req: Request, res: Response): Promise<any> => {
+  const account = res.locals.clientAccount
+  if(account){
+    return await Wishlist.findOne({ userId: account.id })
+  }
+
   const token = getClientToken(req, wishlistCookieName)
   if(!token) return null
 
-  return await Wishlist.findOne({ token: token })
+  return await Wishlist.findOne({ token: token, userId: null })
 }
 
-// Danh sách yêu thích của khách, chưa có thì tạo mới (chỉ gọi khi khách bấm ♡), mỗi lần gọi thì gia hạn cookie
+// Danh sách yêu thích của khách, chưa có thì tạo mới (chỉ gọi khi khách bấm ♡)
 export const getOrCreateWishlist = async (req: Request, res: Response): Promise<any> => {
-  let wishlist: any = await getWishlist(req)
+  const account = res.locals.clientAccount
+  if(account){
+    return await getOrCreateAccountWishlist(account.id)
+  }
 
+  let wishlist: any = await getWishlist(req, res)
   if(!wishlist){
     wishlist = await Wishlist.create({
       token: generateClientToken(),
@@ -28,9 +39,54 @@ export const getOrCreateWishlist = async (req: Request, res: Response): Promise<
     })
   }
 
-  setClientTokenCookie(res, wishlistCookieName, wishlist.token, clientWishlistRetentionDays)
+  setClientTokenCookie(res, wishlistCookieName, wishlist.token)
 
   return wishlist
+}
+
+// Danh sách yêu thích của tài khoản, chưa có thì tạo mới (upsert: 2 yêu cầu cùng lúc không tạo ra 2 danh sách)
+const getOrCreateAccountWishlist = async (userId: string): Promise<any> => {
+  return await Wishlist.findOneAndUpdate({
+    userId: userId
+  }, {
+    $setOnInsert: {
+      token: generateClientToken(),
+      items: []
+    }
+  }, {
+    upsert: true,
+    new: true
+  })
+}
+
+// Khách vừa đăng nhập / đăng ký: gộp danh sách yêu thích lúc chưa đăng nhập vào danh sách của tài khoản,
+// rồi xoá danh sách tạm (sản phẩm đã có thì bỏ qua, không quá số sản phẩm tối đa)
+export const mergeGuestWishlist = async (req: Request, res: Response, userId: string) => {
+  const token = getClientToken(req, wishlistCookieName)
+  res.clearCookie(wishlistCookieName)
+  if(!token) return
+
+  const guestWishlist: any = await Wishlist.findOne({ token: token, userId: null })
+  if(!guestWishlist) return
+
+  if(guestWishlist.items.length > 0){
+    const accountWishlist: any = await getOrCreateAccountWishlist(userId)
+    const items = accountWishlist.items.map((item: any) => ({
+      productId: item.productId,
+      addedAt: item.addedAt
+    }))
+
+    for (const guestItem of guestWishlist.items) {
+      const isExist = items.some((item: any) => item.productId === guestItem.productId)
+      if(!isExist && items.length < clientWishlistMaxItems){
+        items.push({ productId: guestItem.productId, addedAt: guestItem.addedAt })
+      }
+    }
+
+    await Wishlist.updateOne({ _id: accountWishlist.id }, { items: items })
+  }
+
+  await Wishlist.deleteOne({ _id: guestWishlist.id })
 }
 
 // Dữ liệu hiển thị trang yêu thích (thêm sau hiện trước)
@@ -79,17 +135,19 @@ export const buildWishlistView = async (wishlist: any) => {
   return view
 }
 
-// Xoá danh sách yêu thích không thay đổi quá clientWishlistRetentionDays ngày
+// Xoá danh sách yêu thích của khách chưa đăng nhập không thay đổi quá clientGuestDataRetentionDays ngày
+// (danh sách của tài khoản giữ lâu dài, không xoá)
 export const deleteOldWishlists = async () => {
   try {
     const result = await Wishlist.deleteMany({
+      userId: null,
       updatedAt: {
-        $lt: moment().subtract(clientWishlistRetentionDays, "days").toDate()
+        $lt: moment().subtract(clientGuestDataRetentionDays, "days").toDate()
       }
     })
 
     if(result.deletedCount > 0){
-      console.log(`Đã xoá ${result.deletedCount} danh sách yêu thích không thay đổi quá ${clientWishlistRetentionDays} ngày`)
+      console.log(`Đã xoá ${result.deletedCount} danh sách yêu thích của khách chưa đăng nhập, không thay đổi quá ${clientGuestDataRetentionDays} ngày`)
     }
   } catch (error) {
     console.log("Xoá danh sách yêu thích cũ thất bại")

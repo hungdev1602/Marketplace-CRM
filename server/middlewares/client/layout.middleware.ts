@@ -52,7 +52,7 @@ export const loadLayoutData = async (req: Request, res: Response, next: NextFunc
 
   // Giỏ hàng, yêu thích của khách: số trên biểu tượng ở đầu trang, trạng thái nút trên thẻ sản phẩm
   // - cartQuantityMap: { id sản phẩm: số lượng trong giỏ }, wishlistMap: { id sản phẩm: true }
-  const [cart, wishlist] = await Promise.all([getCart(req), getWishlist(req)])
+  const [cart, wishlist] = await Promise.all([getCart(req, res), getWishlist(req, res)])
   res.locals.cartQuantity = getCartQuantity(cart)
   res.locals.cartQuantityMap = Object.fromEntries((cart?.items || []).map((item: any) => [item.productId, item.quantity]))
   res.locals.cartMaxQuantity = clientCartMaxQuantity

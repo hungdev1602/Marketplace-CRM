@@ -22,6 +22,7 @@ block main
       else
         //- main.js: bỏ ♡ thì sản phẩm biến mất khỏi trang, bỏ hết thì tải lại trang
         div(wishlist-page)
+          +guestNote("/wishlist")
           div(class="sf-shop-toolbar sf-wishlist-toolbar")
             p
               b(wishlist-page-count) #{tCount(view.wishlistCount, "productCount")}
@@ -70,6 +71,3 @@ block main
                     i.far.fa-trash-alt
                     | #{t("remove")}
 
-          p(class="sf-wishlist-note")
-            i.fas.fa-info-circle
-            | #{t("wishlistNote")}

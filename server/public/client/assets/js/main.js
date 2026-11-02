@@ -658,3 +658,78 @@ window.addEventListener("pageshow", (event) => {
   if(event.persisted) location.reload()
 })
 // Hết Giỏ hàng, yêu thích
+
+// ===== Tài khoản khách: đăng nhập, đăng ký, sửa thông tin, đổi mật khẩu =====
+// Form có thuộc tính account-form: gửi bằng fetch (JSON) tới action của form
+// - data-method: PATCH,... (mặc định POST)
+// - data-reset: gửi thành công thì xoá trắng form (form đổi mật khẩu)
+// Server trả về { code, message, field, redirect }: field là ô bị lỗi (tô đỏ, đưa con trỏ vào ô đó),
+// redirect là trang chuyển tới sau khi thành công (ví dụ quay lại giỏ hàng sau khi đăng nhập)
+document.querySelectorAll("[account-form]").forEach((form) => {
+  const message = form.querySelector("[form-message]")
+  const submitButton = form.querySelector("[type='submit']")
+
+  const showMessage = (text, type) => {
+    if(!message) return
+    message.textContent = text
+    message.className = `sf-form-message is-${type}`
+    message.hidden = !text
+  }
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault()
+
+    // Bỏ tô đỏ của lần gửi trước
+    form.querySelectorAll("[aria-invalid]").forEach(input => input.removeAttribute("aria-invalid"))
+    showMessage("", "error")
+
+    // Ô tick không được tick thì FormData không có ô đó (server hiểu là chưa đồng ý)
+    const data = Object.fromEntries(new FormData(form))
+
+    submitButton.disabled = true
+    const result = await sendJson(form.getAttribute("action"), form.getAttribute("data-method") || "POST", data)
+
+    if(result.code === "success") {
+      if(result.redirect) {
+        // Giữ nút bị khoá trong lúc chuyển trang để khách không bấm 2 lần
+        location.href = result.redirect
+        return
+      }
+      showMessage(result.message, "success")
+      if(form.hasAttribute("data-reset")) form.reset()
+    }
+    else {
+      showMessage(result.message, "error")
+      const input = result.field && form.querySelector(`[name="${result.field}"]`)
+      if(input) {
+        input.setAttribute("aria-invalid", "true")
+        input.focus()
+      }
+      // Phiên đăng nhập đã hết (trang tài khoản): chuyển về trang đăng nhập
+      if(result.redirect) {
+        location.href = result.redirect
+        return
+      }
+    }
+    submitButton.disabled = false
+  })
+
+  // Khách sửa ô bị lỗi thì bỏ tô đỏ
+  form.addEventListener("input", (event) => {
+    event.target.removeAttribute("aria-invalid")
+  })
+})
+
+// Nút 👁 hiện / ẩn mật khẩu
+document.querySelectorAll("[password-toggle]").forEach((button) => {
+  const input = button.parentElement.querySelector("input")
+  const icon = button.querySelector("i")
+
+  button.addEventListener("click", () => {
+    const isShown = input.type === "text"
+    input.type = isShown ? "password" : "text"
+    button.setAttribute("aria-pressed", !isShown)
+    icon.className = isShown ? "far fa-eye" : "far fa-eye-slash"
+  })
+})
+// Hết Tài khoản khách

@@ -1,8 +1,8 @@
 import crypto from "crypto"
 import { Request, Response } from "express"
 
-// ===== Mã nhận diện giỏ hàng / danh sách yêu thích của khách (lưu trong cookie) =====
-// Khách chưa có tài khoản, nên trình duyệt giữ 1 mã ngẫu nhiên, server tìm giỏ hàng / danh sách yêu thích theo mã này
+// ===== Mã nhận diện giỏ hàng / danh sách yêu thích của khách chưa đăng nhập (lưu trong cookie phiên) =====
+// Khách chưa đăng nhập thì trình duyệt giữ 1 mã ngẫu nhiên, server tìm giỏ hàng / danh sách yêu thích theo mã này
 
 // Mã ngẫu nhiên 48 ký tự (0-9, a-f), không đoán được nên người khác không xem được giỏ hàng của khách
 export const generateClientToken = (): string => {
@@ -17,12 +17,11 @@ export const getClientToken = (req: Request, cookieName: string): string => {
   return typeof token === "string" && /^[a-f0-9]{48}$/.test(token) ? token : ""
 }
 
-// Lưu mã vào cookie (gọi lại mỗi lần giỏ hàng / danh sách yêu thích thay đổi để gia hạn cookie)
+// Lưu mã vào cookie phiên của khách chưa đăng nhập (không đặt thời hạn: trình duyệt tự xoá cookie khi khách tắt trình duyệt)
 // - httpOnly: JS trên trang không đọc được cookie
 // - sameSite lax: trang web khác không gửi được yêu cầu thêm / xoá sản phẩm thay cho khách
-export const setClientTokenCookie = (res: Response, cookieName: string, token: string, days: number) => {
+export const setClientTokenCookie = (res: Response, cookieName: string, token: string) => {
   res.cookie(cookieName, token, {
-    maxAge: days * 24 * 60 * 60 * 1000,
     httpOnly: true,
     sameSite: "lax"
   })

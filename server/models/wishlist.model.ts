@@ -1,11 +1,13 @@
 import mongoose from "mongoose"
 
-// Danh sách sản phẩm yêu thích của khách (chưa cần tài khoản)
-// - token: mã nhận diện danh sách, trình duyệt của khách giữ trong cookie "wishlistToken"
-// - Danh sách không thay đổi quá clientWishlistRetentionDays ngày thì tự động bị xoá (helpers/wishlist.helper.ts)
+// Danh sách sản phẩm yêu thích của khách
+// - Khách chưa đăng nhập: tìm theo token, trình duyệt giữ token trong cookie phiên "wishlistToken" (tắt trình duyệt là mất),
+//   danh sách không thay đổi quá clientGuestDataRetentionDays ngày thì tự động bị xoá
+// - Khách đã đăng nhập: tìm theo userId (mỗi tài khoản 1 danh sách), giữ lâu dài
 const wishlistSchema = new mongoose.Schema(
   {
     token: String,
+    userId: String, // id tài khoản khách đã đăng nhập (AccountClient), trống là của khách chưa đăng nhập
     items: [
       {
         _id: false,
@@ -19,7 +21,9 @@ const wishlistSchema = new mongoose.Schema(
   }
 )
 
+// Danh sách của tài khoản cũng có token (không dùng đến) để index token luôn khác nhau
 wishlistSchema.index({ token: 1 }, { unique: true })
+wishlistSchema.index({ userId: 1 }, { unique: true, partialFilterExpression: { userId: { $type: "string" } } })
 wishlistSchema.index({ updatedAt: 1 })
 
 export const Wishlist = mongoose.model("Wishlist", wishlistSchema, "wishlists")

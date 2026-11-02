@@ -63,6 +63,8 @@ footer(class="sf-footer")
           li
             a(href="/blog") #{t("blog")}
           li
+            a(href=clientAccount ? "/account" : "/account/login") #{clientAccount ? t("myAccount") : t("loginOrRegister")}
+          li
             a(href="/wishlist") #{t("wishlist")}
           li
             a(href="/cart") #{t("cart")}

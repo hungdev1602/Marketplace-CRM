@@ -33,7 +33,7 @@ const getNewCartQuantity = async (cartId: string): Promise<number> => {
 // Trang giỏ hàng: /cart
 // - /cart?partial=1: chỉ trả về phần nội dung giỏ hàng (main.js gọi sau khi đổi số lượng, nhập mã giảm giá để thay vào trang)
 export const index = async (req: Request, res: Response) => {
-  const cart = await getCart(req)
+  const cart = await getCart(req, res)
   const cartView = await buildCartView(cart)
 
   // Số trên biểu tượng giỏ hàng theo giỏ hàng đã dọn (bỏ sản phẩm đã xoá, giảm số lượng quá tồn kho)
@@ -119,7 +119,7 @@ export const updatePatch = async (req: Request, res: Response) => {
 
     // Bỏ khỏi giỏ
     if(quantity === 0){
-      const cart = await getCart(req)
+      const cart = await getCart(req, res)
       if(cart){
         await removeCartItem(cart, productId)
       }
@@ -182,7 +182,7 @@ export const couponPost = async (req: Request, res: Response) => {
       return
     }
 
-    const cart = await getCart(req)
+    const cart = await getCart(req, res)
     if(!cart || cart.items.length === 0){
       sendError(res, "errorGeneral")
       return
@@ -223,7 +223,7 @@ export const couponPost = async (req: Request, res: Response) => {
 // Bỏ mã giảm giá: DELETE /cart/coupon
 export const couponDelete = async (req: Request, res: Response) => {
   try {
-    const cart = await getCart(req)
+    const cart = await getCart(req, res)
     if(cart){
       await Cart.updateOne({ _id: cart.id }, { $unset: { couponCode: "" } })
     }
@@ -241,7 +241,7 @@ export const couponDelete = async (req: Request, res: Response) => {
 // Xoá hết sản phẩm trong giỏ (và mã giảm giá): DELETE /cart/clear
 export const clearDelete = async (req: Request, res: Response) => {
   try {
-    const cart = await getCart(req)
+    const cart = await getCart(req, res)
     if(cart){
       await Cart.updateOne({ _id: cart.id }, { items: [], $unset: { couponCode: "" } })
     }

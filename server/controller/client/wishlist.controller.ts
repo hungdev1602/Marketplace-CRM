@@ -18,7 +18,7 @@ const sendError = (res: Response, key: string) => {
 
 // Trang sản phẩm yêu thích: /wishlist
 export const index = async (req: Request, res: Response) => {
-  const wishlist = await getWishlist(req)
+  const wishlist = await getWishlist(req, res)
   const wishlistView = await buildWishlistView(wishlist)
 
   // Số trên biểu tượng ♡ theo danh sách đã dọn (bỏ sản phẩm đã xoá vĩnh viễn)
@@ -100,7 +100,7 @@ export const togglePost = async (req: Request, res: Response) => {
 // POST /wishlist/add-to-cart
 export const addAllToCartPost = async (req: Request, res: Response) => {
   try {
-    const wishlist = await getWishlist(req)
+    const wishlist = await getWishlist(req, res)
 
     const productList: any[] = wishlist ? await Product.find({
       _id: { $in: wishlist.items.map((item: any) => item.productId) },
@@ -156,7 +156,7 @@ export const addAllToCartPost = async (req: Request, res: Response) => {
 // Xoá hết sản phẩm yêu thích: DELETE /wishlist/clear
 export const clearDelete = async (req: Request, res: Response) => {
   try {
-    const wishlist = await getWishlist(req)
+    const wishlist = await getWishlist(req, res)
     if(wishlist){
       await Wishlist.updateOne({ _id: wishlist.id }, { items: [] })
     }

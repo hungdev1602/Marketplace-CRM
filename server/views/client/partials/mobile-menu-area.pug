@@ -157,6 +157,23 @@ mixin mobileNavLink(category)
       div(class="sf-mnav-divider")
       ul(class="sf-mnav-list")
         li
+          if clientAccount
+            a(
+              href="/account"
+              class="sf-mnav-link" + (currentPath.startsWith("/account") ? " active" : "")
+              )
+              span
+                i.fas.fa-user
+                | #{clientAccount.fullName}
+          else
+            a(
+              href="/account/login"
+              class="sf-mnav-link" + (currentPath.startsWith("/account") ? " active" : "")
+              )
+              span
+                i.far.fa-user
+                | #{t("loginOrRegister")}
+        li
           a(
             href="/wishlist"
             class="sf-mnav-link" + (currentPath == "/wishlist" ? " active" : "")

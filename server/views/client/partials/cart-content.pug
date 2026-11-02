@@ -1,6 +1,6 @@
 //- Nội dung trang giỏ hàng: danh sách sản phẩm + tổng tiền + mã giảm giá
 //- main.js tải lại phần này (/cart?partial=1) sau mỗi lần đổi số lượng, xoá sản phẩm, nhập mã giảm giá
-//- Cần có mixin cartControl, wishlistButton (mixins/cart-control.pug) và cartView (helpers/cart.helper.ts)
+//- Cần có mixin cartControl, wishlistButton, guestNote (mixins/cart-control.pug) và cartView (helpers/cart.helper.ts)
 
 //- 1 dòng sản phẩm đặt được
 mixin cartItem(item)
@@ -124,6 +124,7 @@ div(
     .row.g-4
       //- Danh sách sản phẩm
       .col-lg-8
+        +guestNote("/cart")
         div(class="sf-cart-box")
           div(class="sf-cart-head")
             h2

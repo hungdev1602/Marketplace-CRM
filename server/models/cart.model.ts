@@ -1,12 +1,14 @@
 import mongoose from "mongoose"
 
-// Giỏ hàng của khách (chưa cần tài khoản)
-// - token: mã nhận diện giỏ hàng, trình duyệt của khách giữ trong cookie "cartToken"
+// Giỏ hàng của khách
+// - Khách chưa đăng nhập: tìm theo token (mã ngẫu nhiên), trình duyệt giữ token trong cookie phiên "cartToken",
+//   tắt trình duyệt là mất cookie; giỏ hàng không thay đổi quá clientGuestDataRetentionDays ngày thì tự động bị xoá
+// - Khách đã đăng nhập: tìm theo userId (mỗi tài khoản 1 giỏ hàng), giữ lâu dài
 // - Giá tiền không lưu ở đây, luôn lấy giá mới nhất của sản phẩm khi hiển thị
-// - Giỏ hàng không thay đổi quá clientCartRetentionDays ngày thì tự động bị xoá (helpers/cart.helper.ts)
 const cartSchema = new mongoose.Schema(
   {
     token: String,
+    userId: String, // id tài khoản khách đã đăng nhập (AccountClient), trống là của khách chưa đăng nhập
     items: [
       {
         _id: false,
@@ -21,8 +23,10 @@ const cartSchema = new mongoose.Schema(
   }
 )
 
-// Mỗi lần mở trang đều tìm giỏ hàng theo token, nên tạo index cho nhanh
+// Mỗi lần mở trang đều tìm giỏ hàng theo token / userId, nên tạo index cho nhanh
+// Giỏ hàng của tài khoản cũng có token (không dùng đến) để index token luôn khác nhau
 cartSchema.index({ token: 1 }, { unique: true })
+cartSchema.index({ userId: 1 }, { unique: true, partialFilterExpression: { userId: { $type: "string" } } })
 // Tìm giỏ hàng lâu không thay đổi để xoá
 cartSchema.index({ updatedAt: 1 })
 

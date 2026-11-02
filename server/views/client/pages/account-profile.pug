@@ -1,0 +1,97 @@
+extends ../layouts/default.pug
+include ../mixins/page-banner.pug
+include ../mixins/form-field.pug
+
+block main
+  - const account = clientAccount
+  - const initials = (account.fullName || account.email || "?").trim().split(/\s+/).slice(0, 2).map(word => word[0]).join("").toUpperCase()
+
+  +pageBanner(t("myAccount"), [{ name: t("myAccount") }])
+    p(class="sf-page-banner-sub") #{t("hello")}, #{account.fullName}!
+
+  section(class="sf-shop sf-account-page")
+    .container
+      .row.g-4
+        //- Thông tin tóm tắt, link nhanh, đăng xuất
+        .col-lg-4
+          aside(class="sf-account-card")
+            div(class="sf-account-head")
+              span(class="sf-account-avatar") #{initials}
+              div
+                b #{account.fullName}
+                span #{account.email}
+            p(class="sf-account-since") #{t("memberSince")} #{memberSince}
+            ul(class="sf-account-links")
+              li
+                a(href="/cart")
+                  i.fas.fa-shopping-basket
+                  span #{t("cart")}
+                  if cartQuantity > 0
+                    b #{cartQuantity}
+              li
+                a(href="/wishlist")
+                  i.far.fa-heart
+                  span #{t("wishlist")}
+                  if wishlistCount > 0
+                    b #{wishlistCount}
+              li
+                span(class="is-disabled")
+                  i.fas.fa-receipt
+                  span #{t("myOrders")}
+                  small #{t("ordersSoon")}
+            form(
+              action="/account/logout"
+              method="POST"
+              )
+              button(
+                type="submit"
+                class="sf-btn sf-btn-outline sf-logout-btn"
+                )
+                i.fas.fa-sign-out-alt
+                | #{t("logout")}
+
+        //- Sửa thông tin, đổi mật khẩu
+        .col-lg-8
+          div(class="sf-account-box")
+            h2 #{t("profileInfo")}
+            form(
+              action="/account/profile"
+              data-method="PATCH"
+              account-form
+              novalidate
+              )
+              .row.g-3
+                .col-md-6
+                  +formField("fullName", t("fullName"), "text", { value: account.fullName, autocomplete: "name", maxlength: 60 })
+                .col-md-6
+                  +formField("phone", t("phone"), "tel", { value: account.phone, autocomplete: "tel", inputmode: "tel", maxlength: 20, optional: true })
+                .col-12
+                  +formField("email", t("email"), "email", { id: "field-email-readonly", value: account.email, readonly: true, hint: t("emailCannotChange") })
+              +formMessage()
+              button(
+                type="submit"
+                class="sf-btn sf-btn-dark"
+                ) #{t("save")}
+
+          div(class="sf-account-box")
+            h2 #{t("changePassword")}
+            //- data-reset: đổi xong thì xoá trắng các ô mật khẩu
+            form(
+              action="/account/password"
+              data-method="PATCH"
+              account-form
+              data-reset
+              novalidate
+              )
+              .row.g-3
+                .col-12
+                  +formField("currentPassword", t("currentPassword"), "password", { autocomplete: "current-password", maxlength: 200 })
+                .col-md-6
+                  +formField("password", t("newPassword"), "password", { autocomplete: "new-password", maxlength: 72, hint: t("passwordHint") })
+                .col-md-6
+                  +formField("confirmPassword", t("confirmPassword"), "password", { autocomplete: "new-password", maxlength: 72 })
+              +formMessage()
+              button(
+                type="submit"
+                class="sf-btn sf-btn-dark"
+                ) #{t("changePassword")}

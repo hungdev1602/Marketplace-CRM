@@ -41,6 +41,27 @@ mixin shopIconLinks()
       hidden=!(cartQuantity > 0)
       ) #{countText(cartQuantity)}
 
+//- Nút tài khoản: chưa đăng nhập => "Войти" (trang đăng nhập), đã đăng nhập => tên khách (trang tài khoản)
+mixin accountLink()
+  if clientAccount
+    a(
+      href="/account"
+      class="sf-icon-link sf-account-link" + (currentPath.startsWith("/account") ? " active" : "")
+      aria-label=t("myAccount")
+      title=t("myAccount")
+      )
+      i.fas.fa-user
+      span(class="sf-icon-text") #{(clientAccount.fullName || "").split(" ")[0]}
+  else
+    a(
+      href="/account/login"
+      class="sf-icon-link sf-account-link" + (currentPath.startsWith("/account") ? " active" : "")
+      aria-label=t("loginOrRegister")
+      title=t("loginOrRegister")
+      )
+      i.far.fa-user
+      span(class="sf-icon-text") #{t("loginAction")}
+
 header(class="header_2 sf-header")
   .container
     .row.align-items-center

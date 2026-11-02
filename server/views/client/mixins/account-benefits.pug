@@ -1,0 +1,17 @@
+//- Khối "Vì sao nên có tài khoản" bên cạnh form đăng nhập / đăng ký
+mixin accountBenefits()
+  aside(class="sf-auth-benefits")
+    h2 #{t("benefitTitle")}
+    ul
+      li
+        span(class="sf-auth-benefit-icon")
+          i.fas.fa-shopping-basket
+        | #{t("benefitSave")}
+      li
+        span(class="sf-auth-benefit-icon")
+          i.fas.fa-mobile-alt
+        | #{t("benefitDevices")}
+      li
+        span(class="sf-auth-benefit-icon")
+          i.fas.fa-heart
+        | #{t("benefitMerge")}

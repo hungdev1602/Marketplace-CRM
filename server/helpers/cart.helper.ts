@@ -4,28 +4,39 @@ import { Cart } from "../models/cart.model"
 import { Product } from "../models/product.model"
 import { Coupon } from "../models/coupon.model"
 import { CategoryProduct } from "../models/category-product.model"
-import { clientCartMaxQuantity, clientCartRetentionDays } from "../config/variable.config"
+import { clientCartMaxItems, clientCartMaxQuantity, clientGuestDataRetentionDays } from "../config/variable.config"
 import { addProductDisplayInfo } from "./client-product.helper"
 import { getDescendantIds } from "./category.helper"
 import { formatShopDateTime, getCouponStatus } from "./coupon.helper"
 import { generateClientToken, getClientToken, roundMoney, setClientTokenCookie } from "./client-token.helper"
 
-// Tên cookie giữ mã giỏ hàng của khách
+// Tên cookie phiên giữ mã giỏ hàng của khách chưa đăng nhập
 export const cartCookieName = "cartToken"
 
 // Giỏ hàng của khách đang xem trang, chưa có thì trả về null (không tạo mới)
-export const getCart = async (req: Request): Promise<any> => {
+// - Đã đăng nhập (res.locals.clientAccount, middlewares/client/auth.middleware.ts): giỏ hàng của tài khoản
+// - Chưa đăng nhập: giỏ hàng theo mã trong cookie phiên
+export const getCart = async (req: Request, res: Response): Promise<any> => {
+  const account = res.locals.clientAccount
+  if(account){
+    return await Cart.findOne({ userId: account.id })
+  }
+
   const token = getClientToken(req, cartCookieName)
   if(!token) return null
 
-  return await Cart.findOne({ token: token })
+  return await Cart.findOne({ token: token, userId: null })
 }
 
 // Giỏ hàng của khách, chưa có thì tạo mới
-// Chỉ gọi khi khách thêm / sửa giỏ hàng (không tạo giỏ hàng cho mọi lượt xem trang), mỗi lần gọi thì gia hạn cookie
+// Chỉ gọi khi khách thêm / sửa giỏ hàng (không tạo giỏ hàng cho mọi lượt xem trang)
 export const getOrCreateCart = async (req: Request, res: Response): Promise<any> => {
-  let cart: any = await getCart(req)
+  const account = res.locals.clientAccount
+  if(account){
+    return await getOrCreateAccountCart(account.id)
+  }
 
+  let cart: any = await getCart(req, res)
   if(!cart){
     cart = await Cart.create({
       token: generateClientToken(),
@@ -33,9 +44,75 @@ export const getOrCreateCart = async (req: Request, res: Response): Promise<any>
     })
   }
 
-  setClientTokenCookie(res, cartCookieName, cart.token, clientCartRetentionDays)
+  setClientTokenCookie(res, cartCookieName, cart.token)
 
   return cart
+}
+
+// Giỏ hàng của tài khoản, chưa có thì tạo mới
+// Dùng upsert (tìm, không có thì tạo trong cùng 1 lệnh) để 2 yêu cầu cùng lúc không tạo ra 2 giỏ hàng
+const getOrCreateAccountCart = async (userId: string): Promise<any> => {
+  return await Cart.findOneAndUpdate({
+    userId: userId
+  }, {
+    $setOnInsert: {
+      token: generateClientToken(),
+      items: []
+    }
+  }, {
+    upsert: true,
+    new: true
+  })
+}
+
+// Khách vừa đăng nhập / đăng ký: gộp giỏ hàng lúc chưa đăng nhập vào giỏ hàng của tài khoản, rồi xoá giỏ hàng tạm
+// - Sản phẩm có ở cả 2 giỏ: lấy số lượng lớn hơn (không cộng dồn, tránh khách thêm lại sản phẩm đã có thành gấp đôi)
+// - Sản phẩm chỉ có trong giỏ tạm: thêm vào giỏ của tài khoản (không quá số loại sản phẩm tối đa)
+// - Giỏ của tài khoản chưa có mã giảm giá thì lấy mã của giỏ tạm
+export const mergeGuestCart = async (req: Request, res: Response, userId: string) => {
+  const token = getClientToken(req, cartCookieName)
+  res.clearCookie(cartCookieName)
+  if(!token) return
+
+  const guestCart: any = await Cart.findOne({ token: token, userId: null })
+  if(!guestCart) return
+
+  if(guestCart.items.length > 0 || guestCart.couponCode){
+    const accountCart: any = await getOrCreateAccountCart(userId)
+    const items = accountCart.items.map((item: any) => ({
+      productId: item.productId,
+      quantity: item.quantity
+    }))
+
+    const productList: any[] = await Product.find({
+      _id: { $in: guestCart.items.map((item: any) => item.productId) }
+    })
+
+    for (const guestItem of guestCart.items) {
+      const product = productList.find(product => product.id === guestItem.productId)
+      if(!product) continue // sản phẩm đã bị xoá vĩnh viễn
+
+      // Sản phẩm còn hàng thì không quá tồn kho, hết hàng thì giữ nguyên số lượng (trang giỏ hàng báo tạm hết hàng)
+      const maxQuantity = getMaxQuantity(product)
+      const quantity = maxQuantity > 0 ? Math.min(guestItem.quantity, maxQuantity) : guestItem.quantity
+
+      const existItem = items.find((item: any) => item.productId === guestItem.productId)
+      if(existItem){
+        existItem.quantity = Math.max(existItem.quantity, quantity)
+      }
+      else if(items.length < clientCartMaxItems){
+        items.push({ productId: guestItem.productId, quantity: quantity })
+      }
+    }
+
+    const update: any = { items: items }
+    if(!accountCart.couponCode && guestCart.couponCode){
+      update.couponCode = guestCart.couponCode
+    }
+    await Cart.updateOne({ _id: accountCart.id }, update)
+  }
+
+  await Cart.deleteOne({ _id: guestCart.id })
 }
 
 // Tổng số lượng sản phẩm trong giỏ (số hiện trên biểu tượng giỏ hàng)
@@ -291,17 +368,19 @@ export const buildCartView = async (cart: any) => {
   return view
 }
 
-// Xoá giỏ hàng không thay đổi quá clientCartRetentionDays ngày
+// Xoá giỏ hàng của khách chưa đăng nhập không thay đổi quá clientGuestDataRetentionDays ngày
+// (giỏ hàng của tài khoản giữ lâu dài, không xoá)
 export const deleteOldCarts = async () => {
   try {
     const result = await Cart.deleteMany({
+      userId: null,
       updatedAt: {
-        $lt: moment().subtract(clientCartRetentionDays, "days").toDate()
+        $lt: moment().subtract(clientGuestDataRetentionDays, "days").toDate()
       }
     })
 
     if(result.deletedCount > 0){
-      console.log(`Đã xoá ${result.deletedCount} giỏ hàng không thay đổi quá ${clientCartRetentionDays} ngày`)
+      console.log(`Đã xoá ${result.deletedCount} giỏ hàng của khách chưa đăng nhập, không thay đổi quá ${clientGuestDataRetentionDays} ngày`)
     }
   } catch (error) {
     console.log("Xoá giỏ hàng cũ thất bại")

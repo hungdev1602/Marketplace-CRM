@@ -85,3 +85,28 @@ mixin wishlistButton(product, withText)
     if withText
       span(class="sf-wish-off") #{t("addToWishlist")}
       span(class="sf-wish-on") #{t("inWishlist")}
+
+//- Lời nhắc ở trang giỏ hàng, yêu thích
+//- - Chưa đăng nhập: giỏ hàng / yêu thích mất khi tắt trình duyệt, mời đăng nhập / đăng ký (xong quay lại trang đang xem)
+//- - Đã đăng nhập: đã lưu trong tài khoản
+mixin guestNote(backUrl)
+  if clientAccount
+    p(class="sf-saved-note")
+      i.fas.fa-check-circle
+      | #{t("accountSavedNote")}
+  else
+    div(class="sf-guest-note")
+      i.fas.fa-exclamation-circle
+      div
+        p
+          b #{t("guestNote")}
+          |  #{t("guestNoteAction")}
+        div(class="sf-guest-note-buttons")
+          a(
+            href=`/account/login?next=${encodeURIComponent(backUrl)}`
+            class="sf-btn sf-btn-dark sf-btn-sm"
+            ) #{t("loginAction")}
+          a(
+            href=`/account/register?next=${encodeURIComponent(backUrl)}`
+            class="sf-btn sf-btn-light sf-btn-sm"
+            ) #{t("registerAction")}

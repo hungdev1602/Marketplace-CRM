@@ -1,0 +1,42 @@
+extends ../layouts/default.pug
+include ../mixins/form-field.pug
+include ../mixins/account-benefits.pug
+
+block main
+  section(class="sf-section sf-section-first sf-auth-page")
+    .container
+      div(class="sf-auth")
+        div(class="sf-auth-card")
+          h1 #{t("login")}
+          p(class="sf-auth-sub") #{t("loginSub")}
+          //- main.js gửi form bằng fetch (JSON), đăng nhập xong chuyển sang trang "next" (mặc định trang tài khoản)
+          form(
+            action="/account/login"
+            method="POST"
+            account-form
+            novalidate
+            )
+            input(
+              type="hidden"
+              name="next"
+              value=next
+              )
+            +formField("email", t("email"), "email", { autocomplete: "email", inputmode: "email", maxlength: 100 })
+            +formField("password", t("password"), "password", { autocomplete: "current-password", maxlength: 200 })
+            div(class="form-check sf-check")
+              input.form-check-input(
+                type="checkbox"
+                id="field-remember"
+                name="remember"
+                checked
+                )
+              label.form-check-label(for="field-remember") #{t("rememberMe")}
+            +formMessage()
+            button(
+              type="submit"
+              class="sf-btn sf-btn-primary sf-auth-submit"
+              ) #{t("loginAction")}
+          p(class="sf-auth-switch")
+            | #{t("noAccount")}
+            a(href="/account/register" + (next ? `?next=${encodeURIComponent(next)}` : "")) #{t("registerAction")}
+        +accountBenefits()
