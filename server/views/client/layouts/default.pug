@@ -82,6 +82,7 @@ html(lang=lang)
   body(
     class="default_home sfoodie"
     data-default-theme=defaultTheme
+    data-error-text=t("errorGeneral")
     )
     include ../partials/header.pug
     include ../partials/main-menu.pug
@@ -92,6 +93,13 @@ html(lang=lang)
 
     include ../partials/footer.pug
     include ../partials/scroll-button.pug
+
+    //- Thông báo nhỏ ở cuối màn hình (đã thêm vào giỏ hàng,...), main.js thêm nội dung
+    div(
+      class="sf-toast-area"
+      toast-area
+      aria-live="polite"
+      )
 
     // bootstrap js (menu mobile, tab ở trang chi tiết sản phẩm)
     script(src="/client/assets/js/bootstrap.bundle.min.js")

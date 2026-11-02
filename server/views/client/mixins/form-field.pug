@@ -1,0 +1,48 @@
+//- 1 ô nhập trong form tài khoản (đăng nhập, đăng ký, trang tài khoản)
+//- - options: value, autocomplete, inputmode, maxlength, readonly, optional (hiện chữ "необязательно"), hint (dòng gợi ý)
+//- - Ô mật khẩu có nút 👁 hiện / ẩn mật khẩu (main.js)
+//- Form có novalidate: không dùng thông báo lỗi của trình duyệt, server trả lời báo lỗi theo ngôn ngữ khách chọn
+mixin formField(name, label, type, options)
+  - options = options || {}
+  - const inputId = options.id || `field-${name}`
+  div(class="sf-field")
+    label(for=inputId)
+      | #{label}
+      if options.optional
+        span(class="sf-field-optional") #{t("optional")}
+    div(class="sf-field-input" + (type == "password" ? " has-toggle" : ""))
+      input(
+        id=inputId
+        type=type
+        name=name
+        value=options.value
+        autocomplete=options.autocomplete || "off"
+        inputmode=options.inputmode
+        maxlength=options.maxlength
+        readonly=options.readonly
+        aria-describedby=options.hint ? `${inputId}-hint` : false
+        )
+      if type == "password"
+        button(
+          type="button"
+          class="sf-password-toggle"
+          password-toggle
+          aria-label=t("showPassword")
+          title=t("showPassword")
+          aria-pressed="false"
+          )
+          i.far.fa-eye
+    if options.hint
+      p(
+        class="sf-field-hint"
+        id=`${inputId}-hint`
+        ) #{options.hint}
+
+//- Dòng báo lỗi / thành công dưới form (main.js điền nội dung)
+mixin formMessage()
+  p(
+    class="sf-form-message"
+    form-message
+    role="alert"
+    hidden
+    )

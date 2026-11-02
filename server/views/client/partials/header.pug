@@ -10,6 +10,58 @@ mixin themeToggle()
     i.fas.fa-moon
     i.fas.fa-sun
 
+//- Biểu tượng ♡ (yêu thích) và giỏ hàng kèm số lượng (main.js cập nhật số khi khách thêm / bỏ sản phẩm)
+//- Dùng ở đầu trang trên điện thoại và ở menu trên máy tính (main-menu.pug)
+mixin shopIconLinks()
+  - const countText = (count) => count > 99 ? "99+" : `${count}`
+  a(
+    href="/wishlist"
+    class="sf-icon-link" + (currentPath == "/wishlist" ? " active" : "")
+    aria-label=t("wishlist")
+    title=t("wishlist")
+    )
+    i.far.fa-heart
+    span(class="sf-icon-text") #{t("wishlist")}
+    span(
+      class="sf-count"
+      wishlist-count
+      hidden=!(wishlistCount > 0)
+      ) #{countText(wishlistCount)}
+  a(
+    href="/cart"
+    class="sf-icon-link" + (currentPath == "/cart" ? " active" : "")
+    aria-label=t("cart")
+    title=t("cart")
+    )
+    i.fas.fa-shopping-basket
+    span(class="sf-icon-text") #{t("cart")}
+    span(
+      class="sf-count"
+      cart-count
+      hidden=!(cartQuantity > 0)
+      ) #{countText(cartQuantity)}
+
+//- Nút tài khoản: chưa đăng nhập => "Войти" (trang đăng nhập), đã đăng nhập => tên khách (trang tài khoản)
+mixin accountLink()
+  if clientAccount
+    a(
+      href="/account"
+      class="sf-icon-link sf-account-link" + (currentPath.startsWith("/account") ? " active" : "")
+      aria-label=t("myAccount")
+      title=t("myAccount")
+      )
+      i.fas.fa-user
+      span(class="sf-icon-text") #{(clientAccount.fullName || "").split(" ")[0]}
+  else
+    a(
+      href="/account/login"
+      class="sf-icon-link sf-account-link" + (currentPath.startsWith("/account") ? " active" : "")
+      aria-label=t("loginOrRegister")
+      title=t("loginOrRegister")
+      )
+      i.far.fa-user
+      span(class="sf-icon-text") #{t("loginAction")}
+
 header(class="header_2 sf-header")
   .container
     .row.align-items-center
@@ -26,6 +78,7 @@ header(class="header_2 sf-header")
               height="118"
               )
           div(class="sf-header-mobile-actions d-flex d-lg-none")
+            +shopIconLinks()
             +themeToggle()
             button(
               aria-controls="offcanvasWithBothOptions"

@@ -62,6 +62,12 @@ footer(class="sf-footer")
             a(href="/products?sort=newest") #{t("newArrivals")}
           li
             a(href="/blog") #{t("blog")}
+          li
+            a(href=clientAccount ? "/account" : "/account/login") #{clientAccount ? t("myAccount") : t("loginOrRegister")}
+          li
+            a(href="/wishlist") #{t("wishlist")}
+          li
+            a(href="/cart") #{t("cart")}
       .col-xl-3.col-lg-3.col-md-4
         h3 #{t("footerContact")}
         ul(class="sf-footer-contact")

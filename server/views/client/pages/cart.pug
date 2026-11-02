@@ -1,0 +1,12 @@
+extends ../layouts/default.pug
+include ../mixins/page-banner.pug
+include ../mixins/cart-control.pug
+
+block main
+  +pageBanner(t("cart"), [{ name: t("cart") }])
+
+  section(class="sf-shop sf-cart-page")
+    .container
+      //- main.js thay nội dung bên trong khi giỏ hàng thay đổi
+      div(cart-page)
+        include ../partials/cart-content.pug

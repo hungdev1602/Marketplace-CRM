@@ -480,3 +480,27 @@ export const clientArticlePerPage: number = 9
 
 // Số sản phẩm hiển thị ở mỗi mục của trang chủ (nổi bật, giảm giá, hàng mới về, bán chạy)
 export const clientHomeProductLimit: number = 10
+
+// ===== Tài khoản khách, giỏ hàng, yêu thích (trang khách hàng) =====
+// Khách không cần đăng nhập vẫn thêm được sản phẩm vào giỏ hàng / yêu thích:
+// - Chưa đăng nhập: giỏ hàng, yêu thích gắn với cookie phiên "cartToken", "wishlistToken"
+//   (trình duyệt tự xoá cookie phiên khi khách tắt trình duyệt => giỏ hàng, yêu thích coi như bị xoá)
+// - Đăng ký / đăng nhập: sản phẩm đã chọn được gộp vào giỏ hàng, yêu thích của tài khoản (lưu lâu dài trong database,
+//   đăng nhập ở máy khác cũng thấy)
+// Số ngày giữ giỏ hàng / yêu thích của khách chưa đăng nhập trong database, kể từ lần thay đổi cuối cùng
+// (khách tắt trình duyệt thì không mở lại được nữa, nên tự động xoá cho nhẹ database)
+export const clientGuestDataRetentionDays: number = 3
+
+// Số loại sản phẩm tối đa trong 1 giỏ hàng
+export const clientCartMaxItems: number = 100
+
+// Số lượng tối đa của 1 sản phẩm trong giỏ hàng (ngoài ra còn bị giới hạn bởi số lượng tồn kho)
+export const clientCartMaxQuantity: number = 99
+
+// Số sản phẩm tối đa trong danh sách yêu thích
+export const clientWishlistMaxItems: number = 200
+
+// Đăng nhập tài khoản khách
+// - Tick "Запомнить меня": giữ đăng nhập số ngày bên dưới
+// - Không tick: đăng xuất khi tắt trình duyệt (và tối đa sau 1 ngày)
+export const clientLoginRememberDays: number = 30

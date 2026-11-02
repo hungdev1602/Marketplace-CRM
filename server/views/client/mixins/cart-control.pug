@@ -1,0 +1,112 @@
+//- Nút "В корзину" + ô chọn số lượng (− 2 +) của 1 sản phẩm
+//- - Chưa có trong giỏ: hiện nút "В корзину", bấm vào thì thêm 1 cái và đổi thành ô chọn số lượng
+//- - Đã có trong giỏ (class in-cart): hiện ô chọn số lượng, giảm về 0 thì bỏ khỏi giỏ
+//- main.js xử lý khi bấm (gửi lên /cart/add, /cart/update)
+//- - options.large: nút to ở trang chi tiết sản phẩm (kèm link "Перейти в корзину")
+//- - options.min: số lượng nhỏ nhất của ô chọn (trang giỏ hàng là 1, bỏ sản phẩm bằng nút "Удалить")
+//- - options.quantity, options.maxQuantity: số lượng đã kiểm tra tồn kho (trang giỏ hàng)
+mixin cartControl(product, options)
+  - options = options || {}
+  - const quantity = options.quantity !== undefined ? options.quantity : (cartQuantityMap[product.id] || 0)
+  - const maxQuantity = options.maxQuantity !== undefined ? options.maxQuantity : Math.max(0, Math.min(Math.floor(product.stock || 0), cartMaxQuantity))
+  - const minQuantity = options.min || 0
+  - const productName = tName(product)
+  if maxQuantity > 0
+    div(
+      class="sf-cart-control" + (options.large ? " is-large" : "") + (quantity > 0 ? " in-cart" : "")
+      cart-control=product.id
+      data-min=minQuantity
+      data-max=maxQuantity
+      )
+      button(
+        type="button"
+        class="sf-btn sf-btn-primary sf-cart-add"
+        cart-add
+        )
+        i.fas.fa-shopping-basket
+        span #{options.large ? t("addToCartLong") : t("addToCart")}
+      div(
+        class="sf-qty"
+        role="group"
+        aria-label=`${t("quantity")}: ${productName}`
+        )
+        button(
+          type="button"
+          cart-minus
+          aria-label=t("decrease")
+          disabled=quantity <= minQuantity
+          )
+          i.fas.fa-minus
+        input(
+          type="number"
+          cart-qty
+          value=quantity
+          min=minQuantity
+          max=maxQuantity
+          step="1"
+          inputmode="numeric"
+          aria-label=t("quantity")
+          )
+        button(
+          type="button"
+          cart-plus
+          aria-label=t("increase")
+          disabled=quantity >= maxQuantity
+          )
+          i.fas.fa-plus
+      if options.large
+        a(
+          href="/cart"
+          class="sf-btn sf-btn-dark sf-cart-go"
+          )
+          | #{t("goToCart")}
+          i.fas.fa-arrow-right
+  else
+    button(
+      type="button"
+      class="sf-btn sf-btn-outline sf-cart-add sf-cart-out" + (options.large ? " is-large" : "")
+      disabled
+      ) #{t("outOfStock")}
+
+//- Nút ♡ thêm / bỏ sản phẩm yêu thích (main.js gửi lên /wishlist/toggle)
+//- - withText: nút có chữ "В избранное" / "В избранном" (trang chi tiết sản phẩm)
+mixin wishlistButton(product, withText)
+  - const isActive = Boolean(wishlistMap[product.id])
+  button(
+    type="button"
+    class="sf-wish-btn" + (withText ? " sf-wish-btn-text" : "") + (isActive ? " is-active" : "")
+    wishlist-toggle=product.id
+    aria-pressed=isActive ? "true" : "false"
+    aria-label=withText ? false : `${t("wishlist")}: ${tName(product)}`
+    title=withText ? false : t("wishlist")
+    )
+    i.far.fa-heart(class="sf-wish-off")
+    i.fas.fa-heart(class="sf-wish-on")
+    if withText
+      span(class="sf-wish-off") #{t("addToWishlist")}
+      span(class="sf-wish-on") #{t("inWishlist")}
+
+//- Lời nhắc ở trang giỏ hàng, yêu thích
+//- - Chưa đăng nhập: giỏ hàng / yêu thích mất khi tắt trình duyệt, mời đăng nhập / đăng ký (xong quay lại trang đang xem)
+//- - Đã đăng nhập: đã lưu trong tài khoản
+mixin guestNote(backUrl)
+  if clientAccount
+    p(class="sf-saved-note")
+      i.fas.fa-check-circle
+      | #{t("accountSavedNote")}
+  else
+    div(class="sf-guest-note")
+      i.fas.fa-exclamation-circle
+      div
+        p
+          b #{t("guestNote")}
+          |  #{t("guestNoteAction")}
+        div(class="sf-guest-note-buttons")
+          a(
+            href=`/account/login?next=${encodeURIComponent(backUrl)}`
+            class="sf-btn sf-btn-dark sf-btn-sm"
+            ) #{t("loginAction")}
+          a(
+            href=`/account/register?next=${encodeURIComponent(backUrl)}`
+            class="sf-btn sf-btn-light sf-btn-sm"
+            ) #{t("registerAction")}
