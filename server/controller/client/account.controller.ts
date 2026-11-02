@@ -17,10 +17,12 @@ const sendError = (res: Response, key: string, field: string = "") => {
   })
 }
 
-// Trang quay lại sau khi đăng nhập / đăng ký (?next=/cart)
+// Trang chuyển tới sau khi đăng nhập / đăng ký
+// - Mặc định: trang chủ
+// - Có ?next=...: quay lại trang khách đang xem trước đó, ví dụ bấm "Войти" ở trang giỏ hàng (?next=/cart) thì quay lại giỏ hàng
 // Chỉ nhận đường dẫn trong website (bắt đầu bằng 1 dấu /), không cho chuyển sang trang web khác
 // (ví dụ //trang-lua-dao.com hoặc /\trang-lua-dao.com trình duyệt hiểu là trang web khác)
-const getSafeRedirect = (value: any, defaultUrl: string = "/account"): string => {
+const getSafeRedirect = (value: any, defaultUrl: string = "/"): string => {
   if(typeof value === "string" && /^\/(?![\/\\])[^\s\\]*$/.test(value) && !value.startsWith("/account/login") && !value.startsWith("/account/register")){
     return value
   }
@@ -67,7 +69,7 @@ const loginAccount = async (req: Request, res: Response, account: any, remember:
 
 // Trang đăng nhập: /account/login
 export const login = (req: Request, res: Response) => {
-  // Đã đăng nhập thì vào thẳng trang tài khoản
+  // Đã đăng nhập thì không cần đăng nhập lại: về trang chủ (hoặc trang ?next=...)
   if(res.locals.clientAccount){
     res.redirect(getSafeRedirect(req.query.next))
     return
