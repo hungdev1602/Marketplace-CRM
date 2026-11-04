@@ -1,6 +1,7 @@
 extends ../layouts/default.pug
 include ../mixins/page-banner.pug
 include ../mixins/form-field.pug
+include ../mixins/google-button.pug
 
 block main
   - const account = clientAccount
@@ -21,6 +22,10 @@ block main
                 b #{account.fullName}
                 span #{account.email}
             p(class="sf-account-since") #{t("memberSince")} #{memberSince}
+            if account.googleId
+              p(class="sf-account-google")
+                +googleLogo()
+                span #{t("googleLinked")}
             ul(class="sf-account-links")
               li
                 a(href="/cart")
@@ -74,7 +79,13 @@ block main
                 ) #{t("save")}
 
           div(class="sf-account-box")
-            h2 #{t("changePassword")}
+            //- Tài khoản tạo bằng Google chưa có mật khẩu (hasPassword = false): đặt mật khẩu, không cần mật khẩu hiện tại
+            //- Đặt xong thì server bảo tải lại trang, hiện form đổi mật khẩu bình thường
+            if hasPassword
+              h2 #{t("changePassword")}
+            else
+              h2 #{t("setPassword")}
+              p(class="sf-account-box-sub") #{t("setPasswordSub")}
             //- data-reset: đổi xong thì xoá trắng các ô mật khẩu
             form(
               action="/account/password"
@@ -84,8 +95,9 @@ block main
               novalidate
               )
               .row.g-3
-                .col-12
-                  +formField("currentPassword", t("currentPassword"), "password", { autocomplete: "current-password", maxlength: 200 })
+                if hasPassword
+                  .col-12
+                    +formField("currentPassword", t("currentPassword"), "password", { autocomplete: "current-password", maxlength: 200 })
                 .col-md-6
                   +formField("password", t("newPassword"), "password", { autocomplete: "new-password", maxlength: 72, hint: t("passwordHint") })
                 .col-md-6
@@ -94,4 +106,4 @@ block main
               button(
                 type="submit"
                 class="sf-btn sf-btn-dark"
-                ) #{t("changePassword")}
+                ) #{hasPassword ? t("changePassword") : t("setPassword")}

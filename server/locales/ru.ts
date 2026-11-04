@@ -31,6 +31,7 @@ const ru = {
   categoryCount: ["категория", "категории", "категорий"],
   countryCount: ["страна", "страны", "стран"],
   articleCount: ["статья", "статьи", "статей"],
+  minuteCount: ["минута", "минуты", "минут"],
 
   // Chân trang
   footerAbout: "Магазин азиатских продуктов: лапша, соусы, специи, снеки и напитки — всё для любимых блюд Азии.",
@@ -267,6 +268,37 @@ const ru = {
   passwordMismatch: "Пароли не совпадают",
   agreeRequired: "Нужно согласие на обработку персональных данных",
 
+  // Đăng nhập bằng Google
+  orContinueWith: "или",
+  googleLogin: "Войти через Google",
+  googleAgree: "Нажимая «Войти через Google», вы соглашаетесь на обработку персональных данных",
+  googleLoginFailed: "Не удалось войти через Google. Попробуйте ещё раз или войдите по email и паролю.",
+  googleLoginCancelled: "Вход через Google отменён",
+  googleEmailNotVerified: "Email в аккаунте Google не подтверждён. Войдите по email и паролю.",
+  googleLinked: "Вход через Google подключён",
+
+  // Quên mật khẩu, đặt lại mật khẩu
+  forgotPassword: "Забыли пароль?",
+  forgotPasswordTitle: "Восстановление пароля",
+  forgotPasswordSub: "Укажите email вашего аккаунта — мы пришлём ссылку для создания нового пароля.",
+  sendResetLink: "Отправить ссылку",
+  resetEmailSent: "Если аккаунт с таким email существует, мы отправили на него письмо со ссылкой. Письмо не пришло? Проверьте папку «Спам» или запросите ещё раз через минуту.",
+  rememberedPassword: "Вспомнили пароль?",
+  resetPasswordTitle: "Новый пароль",
+  resetPasswordSub: "Придумайте новый пароль для аккаунта",
+  saveNewPassword: "Сохранить пароль",
+  passwordResetSuccess: "Пароль изменён, вы вошли в аккаунт",
+  resetLinkInvalid: "Ссылка недействительна или устарела. Запросите новую.",
+  resetLinkInvalidTitle: "Ссылка устарела",
+  resetLinkInvalidText: "Ссылка для восстановления пароля больше не действует: срок её действия истёк, она уже использована или вы запросили новую.",
+  requestNewLink: "Запросить новую ссылку",
+  resetEmailSubject: "Восстановление пароля — SFoodie",
+  resetEmailText: "Мы получили запрос на восстановление пароля для вашего аккаунта SFoodie. Нажмите на кнопку ниже, чтобы придумать новый пароль.",
+  resetEmailButton: "Создать новый пароль",
+  resetEmailExpire: "Ссылка действует",
+  resetEmailIgnore: "Если вы не запрашивали восстановление пароля, просто проигнорируйте это письмо — ваш пароль останется прежним.",
+  resetEmailLinkHint: "Если кнопка не работает, скопируйте ссылку в адресную строку браузера:",
+
   // Trang tài khoản
   hello: "Здравствуйте",
   memberSince: "С нами с",
@@ -280,6 +312,9 @@ const ru = {
   currentPasswordRequired: "Введите текущий пароль",
   currentPasswordWrong: "Текущий пароль неверный",
   passwordChanged: "Пароль изменён",
+  setPassword: "Установить пароль",
+  setPasswordSub: "Вы входите через Google. Задайте пароль, чтобы входить также по email и паролю.",
+  passwordSet: "Пароль установлен",
   myOrders: "Мои заказы",
   ordersSoon: "скоро",
 

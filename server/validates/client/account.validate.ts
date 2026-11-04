@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express"
 import Joi from "joi"
 
-// Kiểm tra dữ liệu form tài khoản khách (đăng ký, đăng nhập, sửa thông tin, đổi mật khẩu)
+// Kiểm tra dữ liệu form tài khoản khách (đăng ký, đăng nhập, sửa thông tin, đổi mật khẩu, quên mật khẩu)
 // Lời báo lỗi là key từ ngữ trong locales (ru.ts, vi.ts), dịch theo ngôn ngữ khách đang chọn
 // Trả về JSON { code: "error", message, field } (field: ô bị lỗi, main.js tô đỏ ô đó)
 
@@ -90,11 +90,28 @@ export const profilePatch = validate(Joi.object({
   phone: phoneSchema
 }))
 
+// Mật khẩu hiện tại để trống được: tài khoản tạo bằng Google chưa có mật khẩu thì đặt mật khẩu mới luôn
+// (tài khoản đã có mật khẩu thì controller bắt buộc nhập)
 export const passwordPatch = validate(Joi.object({
-  currentPassword: Joi.string().max(200).required().messages({
-    "string.empty": "currentPasswordRequired",
-    "any.required": "currentPasswordRequired",
+  currentPassword: Joi.string().max(200).allow("").messages({
     "string.max": "currentPasswordWrong"
+  }),
+  password: newPasswordSchema,
+  confirmPassword: confirmPasswordSchema("password")
+}))
+
+// Quên mật khẩu: POST /account/forgot-password { email }
+export const forgotPasswordPost = validate(Joi.object({
+  email: emailSchema
+}))
+
+// Đặt lại mật khẩu: POST /account/reset-password { token, password, confirmPassword }
+// token: mã trong link email (64 ký tự 0-9, a-f), sai định dạng thì báo link không hợp lệ
+export const resetPasswordPost = validate(Joi.object({
+  token: Joi.string().pattern(/^[a-f0-9]{64}$/).required().messages({
+    "string.empty": "resetLinkInvalid",
+    "any.required": "resetLinkInvalid",
+    "string.pattern.base": "resetLinkInvalid"
   }),
   password: newPasswordSchema,
   confirmPassword: confirmPasswordSchema("password")

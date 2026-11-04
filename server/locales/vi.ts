@@ -32,6 +32,7 @@ const vi: Record<keyof typeof ru, string> = {
   categoryCount: "danh mục",
   countryCount: "quốc gia",
   articleCount: "bài viết",
+  minuteCount: "phút",
 
   // Chân trang
   footerAbout: "Cửa hàng thực phẩm châu Á: mì, nước chấm, gia vị, đồ ăn vặt và đồ uống — đủ để nấu những món châu Á bạn yêu thích.",
@@ -268,6 +269,37 @@ const vi: Record<keyof typeof ru, string> = {
   passwordMismatch: "Mật khẩu nhập lại không khớp",
   agreeRequired: "Bạn cần đồng ý cho xử lý dữ liệu cá nhân",
 
+  // Đăng nhập bằng Google
+  orContinueWith: "hoặc",
+  googleLogin: "Đăng nhập bằng Google",
+  googleAgree: "Khi bấm «Đăng nhập bằng Google», bạn đồng ý cho cửa hàng xử lý dữ liệu cá nhân",
+  googleLoginFailed: "Không đăng nhập được bằng Google. Vui lòng thử lại hoặc đăng nhập bằng email và mật khẩu.",
+  googleLoginCancelled: "Bạn đã huỷ đăng nhập bằng Google",
+  googleEmailNotVerified: "Email của tài khoản Google chưa được xác minh. Vui lòng đăng nhập bằng email và mật khẩu.",
+  googleLinked: "Đã liên kết đăng nhập bằng Google",
+
+  // Quên mật khẩu, đặt lại mật khẩu
+  forgotPassword: "Quên mật khẩu?",
+  forgotPasswordTitle: "Khôi phục mật khẩu",
+  forgotPasswordSub: "Nhập email tài khoản của bạn — chúng tôi sẽ gửi link để tạo mật khẩu mới.",
+  sendResetLink: "Gửi link",
+  resetEmailSent: "Nếu email này đã có tài khoản, chúng tôi đã gửi link vào email đó. Chưa nhận được? Hãy xem thư mục Spam hoặc gửi lại sau 1 phút.",
+  rememberedPassword: "Đã nhớ ra mật khẩu?",
+  resetPasswordTitle: "Mật khẩu mới",
+  resetPasswordSub: "Tạo mật khẩu mới cho tài khoản",
+  saveNewPassword: "Lưu mật khẩu",
+  passwordResetSuccess: "Đã đổi mật khẩu, bạn đã đăng nhập",
+  resetLinkInvalid: "Link không hợp lệ hoặc đã hết hạn. Vui lòng gửi lại link mới.",
+  resetLinkInvalidTitle: "Link đã hết hạn",
+  resetLinkInvalidText: "Link khôi phục mật khẩu không còn dùng được: đã hết hạn, đã được dùng hoặc bạn đã yêu cầu link mới.",
+  requestNewLink: "Gửi lại link mới",
+  resetEmailSubject: "Khôi phục mật khẩu — SFoodie",
+  resetEmailText: "Chúng tôi nhận được yêu cầu khôi phục mật khẩu cho tài khoản SFoodie của bạn. Bấm nút bên dưới để tạo mật khẩu mới.",
+  resetEmailButton: "Tạo mật khẩu mới",
+  resetEmailExpire: "Link có hiệu lực trong",
+  resetEmailIgnore: "Nếu bạn không yêu cầu khôi phục mật khẩu, hãy bỏ qua email này — mật khẩu của bạn vẫn giữ nguyên.",
+  resetEmailLinkHint: "Nếu nút không bấm được, hãy sao chép link này vào thanh địa chỉ của trình duyệt:",
+
   // Trang tài khoản
   hello: "Xin chào",
   memberSince: "Thành viên từ",
@@ -281,6 +313,9 @@ const vi: Record<keyof typeof ru, string> = {
   currentPasswordRequired: "Vui lòng nhập mật khẩu hiện tại",
   currentPasswordWrong: "Mật khẩu hiện tại không đúng",
   passwordChanged: "Đã đổi mật khẩu",
+  setPassword: "Tạo mật khẩu",
+  setPasswordSub: "Bạn đang đăng nhập bằng Google. Tạo mật khẩu để có thể đăng nhập cả bằng email và mật khẩu.",
+  passwordSet: "Đã tạo mật khẩu",
   myOrders: "Đơn hàng của tôi",
   ordersSoon: "sắp có",
 

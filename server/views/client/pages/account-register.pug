@@ -1,6 +1,7 @@
 extends ../layouts/default.pug
 include ../mixins/form-field.pug
 include ../mixins/account-benefits.pug
+include ../mixins/google-button.pug
 
 block main
   section(class="sf-section sf-section-first sf-auth-page")
@@ -38,6 +39,7 @@ block main
               type="submit"
               class="sf-btn sf-btn-primary sf-auth-submit"
               ) #{t("registerAction")}
+          +googleButton(next)
           p(class="sf-auth-switch")
             | #{t("haveAccount")}
             a(href="/account/login" + (next ? `?next=${encodeURIComponent(next)}` : "")) #{t("loginAction")}
