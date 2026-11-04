@@ -12,6 +12,35 @@ if(mainMenu && siteHeader && "IntersectionObserver" in window) {
 }
 // Hết Menu dính trên đầu trang khi cuộn xuống
 
+// Menu tài khoản ở menu máy tính (đã đăng nhập): bấm tên khách để mở / đóng, trong menu có "Личный кабинет", "Выйти"
+// Bấm ra ngoài hoặc nhấn Esc thì đóng lại
+const accountMenu = document.querySelector("[account-menu]")
+if(accountMenu) {
+  const accountToggle = accountMenu.querySelector("[account-menu-toggle]")
+  const accountPanel = accountMenu.querySelector("[account-menu-panel]")
+
+  const setAccountMenuOpen = (isOpen) => {
+    accountPanel.hidden = !isOpen
+    accountToggle.setAttribute("aria-expanded", isOpen)
+  }
+
+  accountToggle.addEventListener("click", () => {
+    setAccountMenuOpen(accountPanel.hidden)
+  })
+
+  document.addEventListener("click", (event) => {
+    if(!accountMenu.contains(event.target)) setAccountMenuOpen(false)
+  })
+
+  document.addEventListener("keydown", (event) => {
+    if(event.key === "Escape" && !accountPanel.hidden) {
+      setAccountMenuOpen(false)
+      accountToggle.focus()
+    }
+  })
+}
+// Hết Menu tài khoản
+
 // Nút "Danh mục sản phẩm" ở menu: bấm để mở / đóng danh sách danh mục
 const menuCategoryBar = document.querySelector(".menu_category_bar")
 if(menuCategoryBar) {
