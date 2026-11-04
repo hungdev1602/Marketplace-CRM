@@ -14,11 +14,6 @@ router.get("/register", controller.register)
 
 router.post("/register", accountValidate.registerPost, controller.registerPost)
 
-// Đăng nhập bằng Google: chuyển sang trang Google, Google chuyển khách về /account/google/callback
-router.get("/google", controller.googleLogin)
-
-router.get("/google/callback", controller.googleCallback)
-
 // Quên mật khẩu: nhập email => gửi link qua email => mở link, nhập mật khẩu mới
 router.get("/forgot-password", controller.forgotPassword)
 

@@ -39,11 +39,10 @@ mixin formField(name, label, type, options)
         ) #{options.hint}
 
 //- Dòng báo lỗi / thành công dưới form (main.js điền nội dung)
-//- - errorText: lỗi hiện sẵn khi mở trang, ví dụ đăng nhập Google thất bại (trang đăng nhập ?error=...)
-mixin formMessage(errorText)
+mixin formMessage()
   p(
-    class="sf-form-message" + (errorText ? " is-error" : "")
+    class="sf-form-message"
     form-message
     role="alert"
-    hidden=!errorText
-    ) #{errorText}
+    hidden
+    )

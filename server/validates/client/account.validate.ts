@@ -74,8 +74,15 @@ export const registerPost = validate(Joi.object({
   next: Joi.string().allow("")
 }))
 
+// Ô "Email или телефон" (đăng nhập, quên mật khẩu): khách nhập email hoặc số điện thoại, controller tự phân biệt
+const loginSchema = Joi.string().trim().max(100).required().messages({
+  "string.empty": "loginIdRequired",
+  "any.required": "loginIdRequired",
+  "string.max": "loginFailed"
+})
+
 export const loginPost = validate(Joi.object({
-  email: emailSchema,
+  login: loginSchema,
   password: Joi.string().max(200).required().messages({
     "string.empty": "passwordRequired",
     "any.required": "passwordRequired",
@@ -90,19 +97,19 @@ export const profilePatch = validate(Joi.object({
   phone: phoneSchema
 }))
 
-// Mật khẩu hiện tại để trống được: tài khoản tạo bằng Google chưa có mật khẩu thì đặt mật khẩu mới luôn
-// (tài khoản đã có mật khẩu thì controller bắt buộc nhập)
 export const passwordPatch = validate(Joi.object({
-  currentPassword: Joi.string().max(200).allow("").messages({
+  currentPassword: Joi.string().max(200).required().messages({
+    "string.empty": "currentPasswordRequired",
+    "any.required": "currentPasswordRequired",
     "string.max": "currentPasswordWrong"
   }),
   password: newPasswordSchema,
   confirmPassword: confirmPasswordSchema("password")
 }))
 
-// Quên mật khẩu: POST /account/forgot-password { email }
+// Quên mật khẩu: POST /account/forgot-password { login } (email hoặc số điện thoại)
 export const forgotPasswordPost = validate(Joi.object({
-  email: emailSchema
+  login: loginSchema
 }))
 
 // Đặt lại mật khẩu: POST /account/reset-password { token, password, confirmPassword }

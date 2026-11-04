@@ -1,7 +1,6 @@
 extends ../layouts/default.pug
 include ../mixins/form-field.pug
 include ../mixins/account-benefits.pug
-include ../mixins/google-button.pug
 
 block main
   section(class="sf-section sf-section-first sf-auth-page")
@@ -23,7 +22,7 @@ block main
               )
             +formField("fullName", t("fullName"), "text", { autocomplete: "name", maxlength: 60 })
             +formField("email", t("email"), "email", { autocomplete: "email", inputmode: "email", maxlength: 100 })
-            +formField("phone", t("phone"), "tel", { autocomplete: "tel", inputmode: "tel", maxlength: 20, optional: true })
+            +formField("phone", t("phone"), "tel", { autocomplete: "tel", inputmode: "tel", maxlength: 20, optional: true, hint: t("phoneLoginHint") })
             +formField("password", t("password"), "password", { autocomplete: "new-password", maxlength: 72, hint: t("passwordHint") })
             +formField("confirmPassword", t("confirmPassword"), "password", { autocomplete: "new-password", maxlength: 72 })
             //- Đồng ý xử lý dữ liệu cá nhân: bắt buộc theo luật 152-ФЗ của Nga
@@ -39,7 +38,6 @@ block main
               type="submit"
               class="sf-btn sf-btn-primary sf-auth-submit"
               ) #{t("registerAction")}
-          +googleButton(next)
           p(class="sf-auth-switch")
             | #{t("haveAccount")}
             a(href="/account/login" + (next ? `?next=${encodeURIComponent(next)}` : "")) #{t("loginAction")}
