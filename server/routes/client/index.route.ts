@@ -6,6 +6,7 @@ import { languageRoute } from "./language.route"
 import { cartRoute } from "./cart.route"
 import { wishlistRoute } from "./wishlist.route"
 import { accountRoute } from "./account.route"
+import { searchRoute } from "./search.route"
 import * as languageMiddleware from "../../middlewares/client/language.middleware"
 import * as layoutMiddleware from "../../middlewares/client/layout.middleware"
 import * as authMiddleware from "../../middlewares/client/auth.middleware"
@@ -19,6 +20,11 @@ export const clientRoute = (app: Express) => {
   // Ngôn ngữ, tài khoản khách đang đăng nhập (nếu có) và dữ liệu chung (menu danh mục, giỏ hàng,...) cho tất cả trang khách hàng bên dưới
   // Đọc tài khoản trước layout, vì giỏ hàng / yêu thích của khách đã đăng nhập lấy theo tài khoản
   app.use(languageMiddleware.setLanguage)
+
+  // Gợi ý tìm kiếm (JSON, main.js gọi mỗi khi khách gõ): chỉ cần ngôn ngữ,
+  // đặt trước phần dữ liệu chung bên dưới để không phải đọc giỏ hàng, menu,... ở mỗi lần gõ
+  app.use("/search", searchRoute)
+
   app.use(authMiddleware.loadAccount)
   app.use(layoutMiddleware.loadLayoutData)
 

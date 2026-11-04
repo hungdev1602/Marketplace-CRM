@@ -23,6 +23,13 @@ export const clientProductSortList = [
   { id: "best-seller", key: "sortBestSeller", sort: { sold: "desc" } }
 ]
 
+// Kiểu sắp xếp ở trang kết quả tìm kiếm: mặc định là phù hợp nhất với từ khoá (sort: null,
+// xếp bằng findProductsByRelevance trong helpers/client-search.helper.ts), thay cho "Mặc định"
+export const clientSearchSortList = [
+  { id: "", key: "sortRelevance", sort: null },
+  ...clientProductSortList.slice(1)
+]
+
 // Thêm thông tin hiển thị ở thẻ sản phẩm và trang chi tiết: ảnh, giá đã định dạng, % giảm giá, sắp hết hàng
 export const addProductDisplayInfo = (productList: any[]) => {
   for (const item of productList) {

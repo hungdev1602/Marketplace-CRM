@@ -21,13 +21,30 @@ block main
   - categoryPath.forEach((item, index) => breadcrumbList.push({ name: tName(item), url: index < categoryPath.length - 1 ? `/category/${item.slug}` : "" }))
   - if (!category && keyword) breadcrumbList.push({ name: t("searchResult") })
   - if (!category && !keyword) breadcrumbList[0].url = ""
-  - const resetUrl = formAction + (keyword ? `?keyword=${encodeURIComponent(keyword)}` : "")
+  //- Danh mục chọn ở ô tìm kiếm (/products?category=slug): giữ lại khi lọc, sắp xếp, bỏ lọc
+  - const searchCategorySlug = category && !formAction.startsWith("/category/") ? category.slug : ""
+  //- Link giữ nguyên từ khoá, danh mục đang tìm (bỏ bộ lọc), ví dụ link "Сбросить"
+  - const buildSearchUrl = (params) => { const urlParams = new URLSearchParams(); Object.entries(params).forEach(([key, value]) => { if (value) urlParams.set(key, value) }); const text = urlParams.toString(); return formAction + (text ? `?${text}` : "") }
+  //- Từ khoá đang dùng để tìm (đã sửa nếu khách gõ nhầm bàn phím / sai chính tả): bộ lọc, nút "Сбросить" dùng từ khoá này
+  - const searchKeyword = searchInfo ? searchInfo.keyword : keyword
+  - const resetUrl = buildSearchUrl({ keyword: searchKeyword, category: searchCategorySlug })
 
   +pageBanner(title, breadcrumbList)
-    if keyword
+    if searchInfo && searchInfo.corrected
+      //- Từ khoá đã được sửa: bấm vào từ khoá đúng để tìm lại bằng từ đó, bên dưới nhắc chữ khách đã gõ
+      p(class="sf-page-banner-sub sf-search-corrected") #{t("searchCorrected")} #[a(href=buildSearchUrl({ keyword: searchInfo.keyword, category: searchCategorySlug })) «#{searchInfo.keyword}»]
+      p(class="sf-search-typed")
+        | #{t("searchYouTyped")} «#{keyword}»
+        if searchInfo.reason == "layout"
+          |  — #{t("searchWrongLayout")}
+    else if keyword
       p(class="sf-page-banner-sub") #{t("searchFor")} «#{keyword}»
 
-  section(class="sf-shop")
+  //- search-history-add: main.js lưu từ khoá vào lịch sử tìm kiếm trên trình duyệt của khách
+  section(
+    class="sf-shop"
+    search-history-add=searchInfo ? searchInfo.keyword : false
+    )
     .container
       if category && category.description
         div(class="sf-category-desc") !{category.description}
@@ -65,7 +82,13 @@ block main
                 input(
                   type="hidden"
                   name="keyword"
-                  value=keyword
+                  value=searchKeyword
+                  )
+              if searchCategorySlug
+                input(
+                  type="hidden"
+                  name="category"
+                  value=searchCategorySlug
                   )
 
               div(class="sf-filter-group")
@@ -170,9 +193,25 @@ block main
             div(class="sf-empty")
               i.fas.fa-search
               h3 #{t("noProducts")}
-              p #{t("noProductsText")}
+              p #{keyword && !hasFilter ? t("searchNoResultText") : t("noProductsText")}
               if hasFilter
                 a(
                   href=resetUrl
                   class="sf-btn sf-btn-primary"
                   ) #{t("filterReset")}
+              //- Từ khoá khách khác hay tìm
+              if popularQueryList.length > 0
+                div(class="sf-chip-list sf-search-try")
+                  span(class="sf-chip-label") #{t("searchTryPopular")}:
+                  each item in popularQueryList
+                    a(
+                      href=`/products?keyword=${encodeURIComponent(item)}`
+                      class="sf-chip"
+                      ) #{item}
+
+            //- Sản phẩm bán chạy (gợi ý khi không tìm thấy gì)
+            if recommendList.length > 0
+              h2(class="sf-search-recommend-title") #{t("searchRecommend")}
+              div(class="sf-product-grid")
+                each product in recommendList
+                  +productCard(product)

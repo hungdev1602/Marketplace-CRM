@@ -13,10 +13,19 @@ import { buildClientPagination } from "../../helpers/pagination.helper"
 import {
   addProductDisplayInfo,
   clientProductSortList,
+  clientSearchSortList,
   productOnSaleFind,
   productVisibleFind
 } from "../../helpers/client-product.helper"
-import { keywordToRegex } from "../admin/product.controller"
+import {
+  addKeywordFind,
+  cleanKeyword,
+  findProductByBarcode,
+  findProductsByRelevance,
+  getPopularQueries,
+  logSearchKeyword,
+  resolveSearchKeyword
+} from "../../helpers/client-search.helper"
 import { notFound } from "./error.controller"
 
 // Từ ngữ hạn sử dụng theo đơn vị (locales), ví dụ: 6 + month => "6 месяцев" / "6 tháng"
@@ -65,6 +74,10 @@ const findCategoryNode = (tree: any[], id: string): any => {
 // Trang danh sách sản phẩm
 // - /products: tất cả sản phẩm, tìm kiếm (?keyword=), lọc theo danh mục ở ô tìm kiếm (?category=slug)
 // - /category/:slug: sản phẩm theo danh mục (gồm cả danh mục con)
+// Tìm kiếm (helpers/client-search.helper.ts):
+// - Gõ / quét đúng mã vạch của 1 sản phẩm thì mở luôn trang sản phẩm đó
+// - Không có sản phẩm thì tự sửa từ khoá (gõ nhầm bàn phím, sai chính tả)
+// - Mặc định xếp theo mức độ phù hợp với từ khoá
 export const list = async (req: Request, res: Response) => {
   const allCategory: any[] = res.locals.allCategory
 
@@ -89,9 +102,27 @@ export const list = async (req: Request, res: Response) => {
   }
 
   // Tìm kiếm (không dấu, tìm được cả tên tiếng Nga, mã sản phẩm, mã vạch, thương hiệu)
-  const keyword = `${req.query.keyword || ""}`.trim()
-  if(keyword){
-    find.search = keywordToRegex(keyword)
+  const keyword = cleanKeyword(req.query.keyword)
+  const isFirstPage = !req.query.page || Number(req.query.page) <= 1
+
+  // Gõ / quét đúng mã vạch: mở luôn trang sản phẩm
+  if(keyword && isFirstPage){
+    const barcodeProduct = await findProductByBarcode(keyword)
+    if(barcodeProduct){
+      res.redirect(`/product/${barcodeProduct.slug}`)
+      return
+    }
+  }
+
+  // Từ khoá dùng để tìm (đã sửa nếu khách gõ nhầm bàn phím / sai chính tả)
+  const searchInfo = keyword ? await resolveSearchKeyword(keyword) : null
+  if(searchInfo){
+    addKeywordFind(find, searchInfo.keyword)
+
+    // Đã sửa từ khoá: ô tìm kiếm ở đầu trang hiện từ khoá đúng (лапша) thay cho chữ gõ nhầm (kfgif)
+    if(searchInfo.corrected){
+      res.locals.query = { ...req.query, keyword: searchInfo.keyword }
+    }
   }
 
   // Bộ lọc
@@ -126,21 +157,57 @@ export const list = async (req: Request, res: Response) => {
     Object.assign(find, productOnSaleFind)
   }
 
-  const sortItem = clientProductSortList.find(item => item.id === req.query.sort) || clientProductSortList[0]
+  const hasFilter = filter.origin.length + filter.storageType.length + filter.dietTags.length > 0
+    || filter.priceMin !== null || filter.priceMax !== null || filter.inStock || filter.onSale
+
+  // Kiểu sắp xếp: đang tìm kiếm thì mặc định là "phù hợp nhất"
+  const sortList: any[] = searchInfo ? clientSearchSortList : clientProductSortList
+  const sortItem = sortList.find(item => item.id === req.query.sort) || sortList[0]
 
   const totalRecord = await Product.countDocuments(find)
   const pagination = buildClientPagination(req, totalRecord, clientProductPerPage)
 
-  const productList: any = await Product
-    .find(find)
-    .sort({
-      ...sortItem.sort,
-      _id: "desc" // các sản phẩm bằng nhau (cùng giá,...) luôn giữ đúng thứ tự khi chuyển trang
-    } as any)
-    .limit(clientProductPerPage)
-    .skip(pagination.skip)
+  let productList: any = []
+  if(searchInfo && !sortItem.sort){
+    productList = await findProductsByRelevance(find, searchInfo.keyword, pagination.skip, clientProductPerPage)
+  }
+  else {
+    productList = await Product
+      .find(find)
+      .sort({
+        ...sortItem.sort,
+        _id: "desc" // các sản phẩm bằng nhau (cùng giá,...) luôn giữ đúng thứ tự khi chuyển trang
+      } as any)
+      .limit(clientProductPerPage)
+      .skip(pagination.skip)
+  }
 
   addProductDisplayInfo(productList)
+
+  // Lưu từ khoá để hiện "Часто ищут" (chỉ trang đầu, chưa lọc thêm gì, để không đếm 1 lượt tìm nhiều lần)
+  if(searchInfo && isFirstPage && !hasFilter && !category){
+    logSearchKeyword(searchInfo.keyword, res.locals.lang, totalRecord)
+  }
+
+  // Không tìm thấy sản phẩm nào: gợi ý từ khoá hay tìm và sản phẩm bán chạy
+  let recommendList: any = []
+  let popularQueryList: string[] = []
+  if(searchInfo && totalRecord === 0){
+    [recommendList, popularQueryList] = await Promise.all([
+      Product
+        .find({
+          ...productVisibleFind,
+          stock: { $gt: 0 }
+        })
+        .sort({
+          sold: "desc",
+          createdAt: "desc"
+        })
+        .limit(8),
+      getPopularQueries(res.locals.lang)
+    ])
+    addProductDisplayInfo(recommendList)
+  }
 
   // Xuất xứ có sản phẩm đang bán, để hiện trong bộ lọc
   const originCountList = await Product.aggregate([
@@ -174,16 +241,18 @@ export const list = async (req: Request, res: Response) => {
     metaDescription: category?.metaDescription || htmlToText(category?.description),
     title: title,
     keyword: keyword,
+    searchInfo: searchInfo,
+    recommendList: recommendList,
+    popularQueryList: popularQueryList,
     category: category,
     categoryPath: category ? getCategoryPath(allCategory, category) : [],
     subCategoryList: category ? findCategoryNode(res.locals.categoryTree, category.id)?.children || [] : [],
     productList: productList,
     pagination: pagination,
     filter: filter,
-    hasFilter: filter.origin.length + filter.storageType.length + filter.dietTags.length > 0
-      || filter.priceMin !== null || filter.priceMax !== null || filter.inStock || filter.onSale,
+    hasFilter: hasFilter,
     originFilterList: originFilterList,
-    sortList: clientProductSortList,
+    sortList: sortList,
     sort: sortItem.id,
     formAction: `${req.baseUrl}${req.path}`
   })

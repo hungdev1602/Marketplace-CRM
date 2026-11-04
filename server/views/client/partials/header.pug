@@ -1,3 +1,5 @@
+include ../mixins/search-box.pug
+
 //- Nút đổi giao diện sáng / tối (main.js xử lý khi bấm)
 mixin themeToggle()
   button(
@@ -125,42 +127,9 @@ header(class="header_2 sf-header")
               aria-label=t("menu")
               )
               i.fas.fa-bars(class="menu_icon_bar")
-      .col-xl-6.col-lg-6.d-none.d-lg-block
-        //- Tìm kiếm: chọn danh mục (không bắt buộc) + từ khoá
-        form(
-          action="/products"
-          method="GET"
-          class="sf-search"
-          )
-          select(
-            name="category"
-            class="sf-search-select"
-            aria-label=t("categories")
-            )
-            option(value="") #{t("allCategories")}
-            each item in categoryTree
-              option(
-                value=item.slug
-                selected=(item.slug == (query && query.category))
-                ) #{tName(item)}
-              each child in item.children
-                option(
-                  value=child.slug
-                  selected=(child.slug == (query && query.category))
-                  ) — #{tName(child)}
-          .sf-search-input
-            input(
-              placeholder=t("searchPlaceholder")
-              type="search"
-              name="keyword"
-              value=(query && query.keyword) || ""
-              aria-label=t("searchPlaceholder")
-              )
-            button(
-              type="submit"
-              aria-label=t("search")
-              )
-              i.fas.fa-search
+      //- Tìm kiếm: máy tính ở giữa đầu trang, điện thoại là 1 hàng riêng dưới logo
+      .col-12.col-lg-6.col-xl-6(class="sf-header-search")
+        +searchBox()
       .col-xl-4.col-lg-4.d-none.d-lg-flex.justify-content-end.align-items-center.gap-3
         if shopInfo.phone
           div(class="sf-header-phone")

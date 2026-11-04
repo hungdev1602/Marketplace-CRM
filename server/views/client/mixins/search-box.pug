@@ -1,0 +1,126 @@
+//- Ô tìm kiếm ở đầu trang (máy tính và điện thoại dùng chung 1 ô)
+//- main.js xử lý (phần "Tìm kiếm nâng cao"):
+//- - Gõ từ khoá: khung gợi ý sản phẩm, danh mục, thương hiệu, từ khoá hay tìm (/search/suggest)
+//- - Bấm vào ô còn trống: lịch sử tìm kiếm (lưu trên trình duyệt) và "Часто ищут" (/search/popular)
+//- - Nút micro (tìm bằng giọng nói), nút mã vạch (quét bằng camera điện thoại):
+//-   ẩn sẵn, main.js chỉ hiện khi trình duyệt của khách hỗ trợ
+mixin searchBox()
+  //- Từ ngữ dùng trong main.js (theo ngôn ngữ đang chọn)
+  - const searchText = { recent: t("searchRecent"), clearHistory: t("searchClearHistory"), removeHistory: t("searchRemoveHistory"), popular: t("searchPopular"), queries: t("searchQueries"), categories: t("categories"), brands: t("searchBrands"), products: t("products"), showAll: t("searchShowAll"), nothingFound: t("searchNothingFound"), corrected: t("searchCorrected"), outOfStock: t("outOfStock"), listening: t("voiceListening"), voiceHint: t("voiceHint"), voiceStop: t("voiceStop"), voiceErrorPermission: t("voiceErrorPermission"), voiceErrorNoMic: t("voiceErrorNoMic"), voiceErrorNoSpeech: t("voiceErrorNoSpeech"), voiceErrorNetwork: t("voiceErrorNetwork"), voiceErrorUnavailable: t("voiceErrorUnavailable"), scanFound: t("scanFound"), scanErrorPermission: t("scanErrorPermission"), scanErrorNoCamera: t("scanErrorNoCamera"), errorGeneral: t("errorGeneral") }
+
+  div(
+    class="sf-search-box"
+    search-box
+    )
+    form(
+      action="/products"
+      method="GET"
+      class="sf-search"
+      role="search"
+      search-form
+      )
+      //- Chọn danh mục (không bắt buộc), ẩn trên điện thoại cho ô nhập rộng hơn
+      select(
+        name="category"
+        class="sf-search-select"
+        aria-label=t("categories")
+        search-category
+        )
+        option(value="") #{t("allCategories")}
+        each item in categoryTree
+          option(
+            value=item.slug
+            selected=(item.slug == (query && query.category))
+            ) #{tName(item)}
+          each child in item.children
+            option(
+              value=child.slug
+              selected=(child.slug == (query && query.category))
+              ) — #{tName(child)}
+      .sf-search-input
+        input(
+          placeholder=t("searchPlaceholder")
+          type="search"
+          name="keyword"
+          value=(query && query.keyword) || ""
+          aria-label=t("searchPlaceholder")
+          maxlength="100"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          enterkeyhint="search"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded="false"
+          aria-controls="sf-search-dropdown"
+          search-input
+          )
+        button(
+          type="button"
+          class="sf-search-tool"
+          aria-label=t("voiceSearch")
+          title=t("voiceSearch")
+          aria-pressed="false"
+          search-voice
+          hidden
+          )
+          i.fas.fa-microphone
+        button(
+          type="button"
+          class="sf-search-tool"
+          aria-label=t("scanBarcode")
+          title=t("scanBarcode")
+          search-scan
+          hidden
+          )
+          i.fas.fa-barcode
+        button(
+          type="submit"
+          class="sf-search-submit"
+          aria-label=t("search")
+          )
+          i.fas.fa-search
+
+    //- Khung gợi ý (main.js thêm nội dung)
+    div(
+      id="sf-search-dropdown"
+      class="sf-search-dropdown"
+      role="listbox"
+      aria-label=t("searchSuggestions")
+      search-dropdown
+      hidden
+      )
+
+    script(
+      type="application/json"
+      search-text
+      ) !{JSON.stringify(searchText).replace(/</g, "\\u003c")}
+
+  //- Khung quét mã vạch bằng camera (bấm nút mã vạch để mở)
+  dialog(
+    class="sf-scan-dialog"
+    aria-labelledby="sf-scan-title"
+    scan-dialog
+    )
+    div(class="sf-scan-head")
+      h2#sf-scan-title #{t("scanTitle")}
+      button(
+        type="button"
+        class="sf-scan-close"
+        aria-label=t("close")
+        scan-close
+        )
+        i.fas.fa-times
+    div(class="sf-scan-video")
+      video(
+        muted
+        playsinline
+        scan-video
+        )
+      span(class="sf-scan-frame")
+      span(class="sf-scan-line")
+    p(
+      class="sf-scan-message"
+      aria-live="polite"
+      scan-message
+      ) #{t("scanHint")}
