@@ -5067,6 +5067,12 @@ a.sf-cart-name:hover {
     background: var(--sf-amber-light);
 }
 
+/* Bấm được: từ khoá đúng gạch chân */
+a.sf-sd-note b {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
 .sf-sd-note i {
     color: var(--sf-amber);
 }
@@ -5140,18 +5146,26 @@ a.sf-cart-name:hover {
     display: block;
 }
 
-.sf-search-instead {
+/* Từ khoá đã sửa: bấm được */
+.sf-page-banner .sf-search-corrected a {
+    font-weight: 900;
+    color: var(--sf-black) !important;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+}
+
+.sf-page-banner .sf-search-corrected a:hover {
+    text-decoration-thickness: 3px;
+}
+
+/* "Вы ввели «kfgif»" */
+.sf-search-typed {
     margin: 6px 0 0;
     font-size: 15px;
     font-weight: 600;
     color: var(--sf-black);
-}
-
-.sf-search-instead a {
-    font-weight: 900;
-    color: var(--sf-black) !important;
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    opacity: .75;
 }
 
 .sf-empty .sf-search-try {

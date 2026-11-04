@@ -405,38 +405,43 @@ const correctTypos = (keyword: string, vocabulary: VocabularyWord[]): string | n
 }
 
 // Từ khoá dùng để tìm sản phẩm
-// - Từ khoá của khách có sản phẩm (hoặc khách chọn "tìm đúng từ khoá đã gõ": exact) thì giữ nguyên
+// - Từ khoá của khách có sản phẩm thì giữ nguyên
 // - Không có sản phẩm nào thì lần lượt thử: đổi bàn phím, sửa lỗi chính tả, đổi bàn phím rồi sửa lỗi chính tả
-//   Cách nào có sản phẩm thì dùng (corrected: true, trang kết quả hiện "Показаны результаты по запросу ...")
+//   Cách nào có sản phẩm thì dùng (corrected: true, trang kết quả hiện "Показаны результаты по запросу «...»")
+//   - reason: "layout" là gõ nhầm bàn phím (kfgif => лапша), "typo" là sai chính tả (лапшв => лапша)
 // Chỉ đếm sản phẩm theo từ khoá (không tính bộ lọc giá, xuất xứ,...), vì sửa từ khoá là sửa chữ khách gõ
-export const resolveSearchKeyword = async (keyword: string, exact: boolean = false) => {
+export const resolveSearchKeyword = async (keyword: string) => {
   const countByKeyword = (text: string) => Product.countDocuments(addKeywordFind({ ...productVisibleFind }, text))
 
   const total = await countByKeyword(keyword)
-  if(total > 0 || exact){
-    return { keyword: keyword, original: keyword, corrected: false, total: total }
+  if(total > 0){
+    return { keyword: keyword, original: keyword, corrected: false, reason: "", total: total }
   }
 
-  const candidateList: string[] = []
+  const candidateList: { keyword: string, reason: string }[] = []
   const switched = switchKeyboardLayout(keyword)
-  if(switched) candidateList.push(switched)
+  if(switched) candidateList.push({ keyword: switched, reason: "layout" })
 
   const vocabulary = await getVocabulary()
   const fixed = correctTypos(keyword, vocabulary)
-  if(fixed) candidateList.push(fixed)
+  if(fixed) candidateList.push({ keyword: fixed, reason: "typo" })
   if(switched){
     const switchedFixed = correctTypos(switched, vocabulary)
-    if(switchedFixed) candidateList.push(switchedFixed)
+    if(switchedFixed) candidateList.push({ keyword: switchedFixed, reason: "layout" })
   }
 
-  for (const candidate of candidateList.filter((item, index, list) => list.indexOf(item) === index)) {
-    const candidateTotal = await countByKeyword(candidate)
+  const checkedList: string[] = []
+  for (const candidate of candidateList) {
+    if(checkedList.includes(candidate.keyword)) continue
+    checkedList.push(candidate.keyword)
+
+    const candidateTotal = await countByKeyword(candidate.keyword)
     if(candidateTotal > 0){
-      return { keyword: candidate, original: keyword, corrected: true, total: candidateTotal }
+      return { keyword: candidate.keyword, original: keyword, corrected: true, reason: candidate.reason, total: candidateTotal }
     }
   }
 
-  return { keyword: keyword, original: keyword, corrected: false, total: 0 }
+  return { keyword: keyword, original: keyword, corrected: false, reason: "", total: 0 }
 }
 
 // ===== Mã vạch =====

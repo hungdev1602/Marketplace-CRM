@@ -76,7 +76,7 @@ const findCategoryNode = (tree: any[], id: string): any => {
 // - /category/:slug: sản phẩm theo danh mục (gồm cả danh mục con)
 // Tìm kiếm (helpers/client-search.helper.ts):
 // - Gõ / quét đúng mã vạch của 1 sản phẩm thì mở luôn trang sản phẩm đó
-// - Không có sản phẩm thì tự sửa từ khoá (gõ nhầm bàn phím, sai chính tả), ?exact=1 là tìm đúng từ khoá đã gõ
+// - Không có sản phẩm thì tự sửa từ khoá (gõ nhầm bàn phím, sai chính tả)
 // - Mặc định xếp theo mức độ phù hợp với từ khoá
 export const list = async (req: Request, res: Response) => {
   const allCategory: any[] = res.locals.allCategory
@@ -103,7 +103,6 @@ export const list = async (req: Request, res: Response) => {
 
   // Tìm kiếm (không dấu, tìm được cả tên tiếng Nga, mã sản phẩm, mã vạch, thương hiệu)
   const keyword = cleanKeyword(req.query.keyword)
-  const isExact = req.query.exact === "1"
   const isFirstPage = !req.query.page || Number(req.query.page) <= 1
 
   // Gõ / quét đúng mã vạch: mở luôn trang sản phẩm
@@ -116,9 +115,14 @@ export const list = async (req: Request, res: Response) => {
   }
 
   // Từ khoá dùng để tìm (đã sửa nếu khách gõ nhầm bàn phím / sai chính tả)
-  const searchInfo = keyword ? await resolveSearchKeyword(keyword, isExact) : null
+  const searchInfo = keyword ? await resolveSearchKeyword(keyword) : null
   if(searchInfo){
     addKeywordFind(find, searchInfo.keyword)
+
+    // Đã sửa từ khoá: ô tìm kiếm ở đầu trang hiện từ khoá đúng (лапша) thay cho chữ gõ nhầm (kfgif)
+    if(searchInfo.corrected){
+      res.locals.query = { ...req.query, keyword: searchInfo.keyword }
+    }
   }
 
   // Bộ lọc
@@ -238,7 +242,6 @@ export const list = async (req: Request, res: Response) => {
     title: title,
     keyword: keyword,
     searchInfo: searchInfo,
-    isExact: isExact,
     recommendList: recommendList,
     popularQueryList: popularQueryList,
     category: category,

@@ -1013,10 +1013,13 @@ if(searchBox) {
     clearDropdown()
     const keyword = data.usedKeyword || data.keyword
 
-    // Từ khoá đã được sửa: "Показаны результаты по запросу «лапша»"
+    // Từ khoá đã được sửa: "Показаны результаты по запросу «лапша»", bấm vào để tìm bằng từ khoá đúng
     if(data.corrected) {
-      const note = createElement("p", "sf-sd-note")
-      note.append(createIcon("fas fa-spell-check"), document.createTextNode(`${searchText.corrected} `), createElement("b", "", `«${data.usedKeyword}»`))
+      const note = asOption(createElement("a", "sf-sd-note"))
+      note.href = searchUrl(data.usedKeyword)
+      const text = createElement("span")
+      text.append(document.createTextNode(`${searchText.corrected} `), createElement("b", "", `«${data.usedKeyword}»`))
+      note.append(createIcon("fas fa-spell-check"), text)
       dropdown.append(note)
     }
 
