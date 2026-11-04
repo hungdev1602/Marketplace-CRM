@@ -199,6 +199,20 @@ mixin mobileNavLink(category)
               cart-count
               hidden=!(cartQuantity > 0)
               ) #{cartQuantity > 99 ? "99+" : cartQuantity}
+        //- Đăng xuất (chỉ hiện khi đã đăng nhập), gửi bằng form POST
+        if clientAccount
+          li
+            form(
+              action="/account/logout"
+              method="POST"
+              )
+              button(
+                type="submit"
+                class="sf-mnav-link sf-mnav-logout"
+                )
+                span
+                  i.fas.fa-sign-out-alt
+                  | #{t("logout")}
 
     //- Các tầng danh mục con
     each item in categoryTree

@@ -9,7 +9,7 @@ block main
         div(class="sf-auth-card")
           h1 #{t("login")}
           p(class="sf-auth-sub") #{t("loginSub")}
-          //- main.js gửi form bằng fetch (JSON), đăng nhập xong chuyển sang trang "next" (mặc định trang tài khoản)
+          //- main.js gửi form bằng fetch (JSON), đăng nhập xong chuyển sang trang "next" (mặc định trang chủ)
           form(
             action="/account/login"
             method="POST"
@@ -21,16 +21,22 @@ block main
               name="next"
               value=next
               )
-            +formField("email", t("email"), "email", { autocomplete: "email", inputmode: "email", maxlength: 100 })
+            //- Khách nhập email hoặc số điện thoại đã đăng ký (server tự phân biệt: có @ là email)
+            +formField("login", t("loginId"), "text", { autocomplete: "username", maxlength: 100 })
             +formField("password", t("password"), "password", { autocomplete: "current-password", maxlength: 200 })
-            div(class="form-check sf-check")
-              input.form-check-input(
-                type="checkbox"
-                id="field-remember"
-                name="remember"
-                checked
-                )
-              label.form-check-label(for="field-remember") #{t("rememberMe")}
+            div(class="sf-auth-row")
+              div(class="form-check sf-check")
+                input.form-check-input(
+                  type="checkbox"
+                  id="field-remember"
+                  name="remember"
+                  checked
+                  )
+                label.form-check-label(for="field-remember") #{t("rememberMe")}
+              a(
+                href="/account/forgot-password"
+                class="sf-auth-forgot"
+                ) #{t("forgotPassword")}
             +formMessage()
             button(
               type="submit"

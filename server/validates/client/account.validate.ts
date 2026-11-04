@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express"
 import Joi from "joi"
 
-// Kiểm tra dữ liệu form tài khoản khách (đăng ký, đăng nhập, sửa thông tin, đổi mật khẩu)
+// Kiểm tra dữ liệu form tài khoản khách (đăng ký, đăng nhập, sửa thông tin, đổi mật khẩu, quên mật khẩu)
 // Lời báo lỗi là key từ ngữ trong locales (ru.ts, vi.ts), dịch theo ngôn ngữ khách đang chọn
 // Trả về JSON { code: "error", message, field } (field: ô bị lỗi, main.js tô đỏ ô đó)
 
@@ -74,8 +74,15 @@ export const registerPost = validate(Joi.object({
   next: Joi.string().allow("")
 }))
 
+// Ô "Email или телефон" (đăng nhập, quên mật khẩu): khách nhập email hoặc số điện thoại, controller tự phân biệt
+const loginSchema = Joi.string().trim().max(100).required().messages({
+  "string.empty": "loginIdRequired",
+  "any.required": "loginIdRequired",
+  "string.max": "loginFailed"
+})
+
 export const loginPost = validate(Joi.object({
-  email: emailSchema,
+  login: loginSchema,
   password: Joi.string().max(200).required().messages({
     "string.empty": "passwordRequired",
     "any.required": "passwordRequired",
@@ -95,6 +102,23 @@ export const passwordPatch = validate(Joi.object({
     "string.empty": "currentPasswordRequired",
     "any.required": "currentPasswordRequired",
     "string.max": "currentPasswordWrong"
+  }),
+  password: newPasswordSchema,
+  confirmPassword: confirmPasswordSchema("password")
+}))
+
+// Quên mật khẩu: POST /account/forgot-password { login } (email hoặc số điện thoại)
+export const forgotPasswordPost = validate(Joi.object({
+  login: loginSchema
+}))
+
+// Đặt lại mật khẩu: POST /account/reset-password { token, password, confirmPassword }
+// token: mã trong link email (64 ký tự 0-9, a-f), sai định dạng thì báo link không hợp lệ
+export const resetPasswordPost = validate(Joi.object({
+  token: Joi.string().pattern(/^[a-f0-9]{64}$/).required().messages({
+    "string.empty": "resetLinkInvalid",
+    "any.required": "resetLinkInvalid",
+    "string.pattern.base": "resetLinkInvalid"
   }),
   password: newPasswordSchema,
   confirmPassword: confirmPasswordSchema("password")

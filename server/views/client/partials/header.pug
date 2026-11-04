@@ -41,17 +41,53 @@ mixin shopIconLinks()
       hidden=!(cartQuantity > 0)
       ) #{countText(cartQuantity)}
 
-//- Nút tài khoản: chưa đăng nhập => "Войти" (trang đăng nhập), đã đăng nhập => tên khách (trang tài khoản)
+//- Nút tài khoản: chưa đăng nhập => "Войти" (trang đăng nhập)
+//- Đã đăng nhập => tên khách, bấm vào mở menu nhỏ: "Личный кабинет", "Выйти" (main.js mở / đóng menu)
 mixin accountLink()
   if clientAccount
-    a(
-      href="/account"
-      class="sf-icon-link sf-account-link" + (currentPath.startsWith("/account") ? " active" : "")
-      aria-label=t("myAccount")
-      title=t("myAccount")
+    div(
+      class="sf-account-menu"
+      account-menu
       )
-      i.fas.fa-user
-      span(class="sf-icon-text") #{(clientAccount.fullName || "").split(" ")[0]}
+      button(
+        type="button"
+        class="sf-icon-link sf-account-link sf-account-toggle" + (currentPath.startsWith("/account") ? " active" : "")
+        account-menu-toggle
+        aria-label=t("myAccount")
+        title=t("myAccount")
+        aria-haspopup="true"
+        aria-expanded="false"
+        aria-controls="sf-account-dropdown"
+        )
+        i.fas.fa-user
+        span(class="sf-icon-text") #{(clientAccount.fullName || "").split(" ")[0]}
+        i(class="fas fa-chevron-down sf-account-caret")
+      div(
+        class="sf-account-dropdown"
+        id="sf-account-dropdown"
+        account-menu-panel
+        hidden
+        )
+        div(class="sf-account-dropdown-head")
+          b #{clientAccount.fullName}
+          span #{clientAccount.email}
+        a(
+          href="/account"
+          class="sf-account-dropdown-item"
+          )
+          i.fas.fa-user-circle
+          span #{t("myAccount")}
+        //- Đăng xuất phải gửi bằng form POST (không dùng link), để trang web khác không đăng xuất được khách
+        form(
+          action="/account/logout"
+          method="POST"
+          )
+          button(
+            type="submit"
+            class="sf-account-dropdown-item is-logout"
+            )
+            i.fas.fa-sign-out-alt
+            span #{t("logout")}
   else
     a(
       href="/account/login"

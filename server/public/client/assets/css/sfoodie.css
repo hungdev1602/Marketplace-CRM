@@ -4126,6 +4126,120 @@ a.sf-cart-name:hover {
     white-space: nowrap;
 }
 
+/* Menu tài khoản (đã đăng nhập): bấm tên khách ở menu máy tính => menu nhỏ có "Личный кабинет", "Выйти" */
+.sf-account-menu {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.sf-account-toggle {
+    font-family: var(--sf-font-body);
+    cursor: pointer;
+}
+
+.sf-account-caret {
+    font-size: 11px;
+    transition: transform .2s ease;
+}
+
+.sf-account-toggle[aria-expanded="true"] .sf-account-caret {
+    transform: rotate(180deg);
+}
+
+/* Menu chỉ hiện biểu tượng (menu dính, màn nhỏ): ẩn mũi tên để nút vẫn tròn */
+.sfoodie .main_menu.is-stuck .sf-account-caret {
+    display: none;
+}
+
+@media (max-width: 1399.98px) {
+    .sfoodie .main_menu .sf-account-caret {
+        display: none;
+    }
+}
+
+.sf-account-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 100;
+    width: 260px;
+    padding: 8px;
+    border: 2px solid var(--sf-outline);
+    border-radius: 18px;
+    background: var(--sf-surface);
+    box-shadow: 4px 4px 0 var(--sf-cyan);
+}
+
+.sf-account-dropdown[hidden] {
+    display: none;
+}
+
+.sf-account-dropdown-head {
+    padding: 8px 10px 10px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--sf-line);
+}
+
+.sf-account-dropdown-head b {
+    display: block;
+    font-size: 15.5px;
+    font-weight: 900;
+    color: var(--sf-ink);
+    overflow-wrap: anywhere;
+}
+
+.sf-account-dropdown-head span {
+    display: block;
+    font-size: 13.5px;
+    color: var(--sf-muted);
+    overflow-wrap: anywhere;
+}
+
+.sf-account-dropdown-item {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    font-family: var(--sf-font-body);
+    font-size: 15.5px;
+    font-weight: 800;
+    line-height: 1.3;
+    color: var(--sf-ink) !important;
+    text-align: left;
+    cursor: pointer;
+}
+
+.sf-account-dropdown-item span {
+    font: inherit;
+    color: inherit;
+}
+
+.sf-account-dropdown-item i {
+    width: 20px;
+    text-align: center;
+    color: var(--sf-cyan-dark);
+}
+
+.sf-account-dropdown-item:hover,
+.sf-account-dropdown-item:focus-visible {
+    background: var(--sf-soft);
+}
+
+.sf-account-dropdown-item.is-logout,
+.sf-account-dropdown-item.is-logout i {
+    color: var(--sf-red-text) !important;
+}
+
+/* Menu điện thoại: dòng "Выйти" */
+.sf-mnav-logout,
+.sf-mnav-logout span i {
+    color: var(--sf-red-text) !important;
+}
+
 /* Trang đăng nhập, đăng ký: form + khối "Vì sao nên có tài khoản" */
 .sf-auth {
     display: grid;
@@ -4337,6 +4451,60 @@ a.sf-cart-name:hover {
 .sf-form-message.is-success {
     background: var(--sf-green-light);
     color: var(--sf-green) !important;
+}
+
+/* Trang đăng nhập: dòng "Запомнить меня" + link "Забыли пароль?" */
+.sf-auth-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 16px;
+    margin-top: 4px;
+}
+
+.sf-auth-card .sf-auth-row .sf-check {
+    margin-top: 0;
+}
+
+.sf-auth-forgot {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--sf-cyan-dark) !important;
+}
+
+.sf-auth-forgot:hover {
+    text-decoration: underline;
+}
+
+/* Trang quên mật khẩu, đặt lại mật khẩu: chỉ có 1 khung ở giữa */
+.sf-auth-single {
+    grid-template-columns: minmax(0, 520px);
+}
+
+.sf-auth-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    margin-bottom: 16px;
+    border: 2px solid var(--sf-black);
+    border-radius: 16px;
+    background: var(--sf-cyan);
+    color: var(--sf-black) !important;
+    font-size: 20px !important;
+}
+
+.sf-auth-icon.is-warning {
+    border-color: #F2C76B;
+    background: var(--sf-amber-light);
+    color: var(--sf-amber) !important;
+}
+
+.sf-auth-sub b {
+    color: var(--sf-ink);
+    overflow-wrap: anywhere;
 }
 
 /* Lời nhắc ở giỏ hàng, yêu thích */

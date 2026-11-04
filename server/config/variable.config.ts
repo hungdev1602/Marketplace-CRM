@@ -504,3 +504,10 @@ export const clientWishlistMaxItems: number = 200
 // - Tick "Запомнить меня": giữ đăng nhập số ngày bên dưới
 // - Không tick: đăng xuất khi tắt trình duyệt (và tối đa sau 1 ngày)
 export const clientLoginRememberDays: number = 30
+
+// Quên mật khẩu (trang khách hàng: /account/forgot-password)
+// Số phút link đặt lại mật khẩu trong email còn dùng được
+export const clientResetPasswordExpireMinutes: number = 30
+
+// Số giây phải chờ trước khi gửi lại email đặt lại mật khẩu cho cùng 1 tài khoản (chống gửi liên tục)
+export const clientResetPasswordResendSeconds: number = 60

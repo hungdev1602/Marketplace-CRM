@@ -14,6 +14,15 @@ router.get("/register", controller.register)
 
 router.post("/register", accountValidate.registerPost, controller.registerPost)
 
+// Quên mật khẩu: nhập email => gửi link qua email => mở link, nhập mật khẩu mới
+router.get("/forgot-password", controller.forgotPassword)
+
+router.post("/forgot-password", accountValidate.forgotPasswordPost, controller.forgotPasswordPost)
+
+router.get("/reset-password", controller.resetPassword)
+
+router.post("/reset-password", accountValidate.resetPasswordPost, controller.resetPasswordPost)
+
 router.post("/logout", controller.logoutPost)
 
 // Trang tài khoản: phải đăng nhập

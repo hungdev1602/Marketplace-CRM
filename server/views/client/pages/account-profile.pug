@@ -64,7 +64,7 @@ block main
                 .col-md-6
                   +formField("fullName", t("fullName"), "text", { value: account.fullName, autocomplete: "name", maxlength: 60 })
                 .col-md-6
-                  +formField("phone", t("phone"), "tel", { value: account.phone, autocomplete: "tel", inputmode: "tel", maxlength: 20, optional: true })
+                  +formField("phone", t("phone"), "tel", { value: account.phone, autocomplete: "tel", inputmode: "tel", maxlength: 20, optional: true, hint: t("phoneLoginHint") })
                 .col-12
                   +formField("email", t("email"), "email", { id: "field-email-readonly", value: account.email, readonly: true, hint: t("emailCannotChange") })
               +formMessage()

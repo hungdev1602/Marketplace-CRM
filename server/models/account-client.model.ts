@@ -6,7 +6,7 @@ const accountClientSchema = new mongoose.Schema(
   {
     fullName: String, // họ tên
     email: String, // email đăng nhập, luôn lưu chữ thường
-    phone: String, // số điện thoại (không bắt buộc), ví dụ: +79991234567
+    phone: String, // số điện thoại (không bắt buộc), dùng để đăng nhập thay email, mỗi số chỉ 1 tài khoản, ví dụ: +79991234567
     password: String, // mật khẩu đã mã hoá bằng bcrypt
     status: {
       type: String,
@@ -28,5 +28,8 @@ const accountClientSchema = new mongoose.Schema(
 
 // Đăng nhập, đăng ký đều tìm theo email
 accountClientSchema.index({ email: 1 })
+
+// Đăng nhập bằng số điện thoại tìm theo phone
+accountClientSchema.index({ phone: 1 })
 
 export const AccountClient = mongoose.model("AccountClient", accountClientSchema, "accounts-client")
