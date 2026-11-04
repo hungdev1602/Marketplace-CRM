@@ -904,58 +904,6 @@ a.sf-chip:hover {
     transition: background-color .2s ease, color .2s ease;
 }
 
-.sf-mnav-search-btn {
-    background: var(--sf-black);
-    color: #fff;
-}
-
-.sf-mnav-search-btn[aria-expanded="true"] {
-    background: var(--sf-cyan);
-    color: var(--sf-black);
-}
-
-/* Ô tìm kiếm (bấm nút kính lúp để mở / đóng) */
-.sf-mnav-search {
-    display: grid;
-    grid-template-rows: 0fr;
-    padding: 0 16px;
-    transition: grid-template-rows .25s ease, padding .25s ease;
-}
-
-.sf-mnav-search.is-open {
-    grid-template-rows: 1fr;
-    padding-bottom: 12px;
-}
-
-.sf-mnav-search-inner {
-    display: flex;
-    min-height: 0;
-    overflow: hidden;
-}
-
-.sf-mnav-search input {
-    flex: 1;
-    min-width: 0;
-    height: 46px;
-    padding: 0 16px;
-    border: 2px solid var(--sf-outline);
-    border-right: 0;
-    border-radius: 12px 0 0 12px;
-    background: var(--sf-surface);
-    color: var(--sf-ink);
-    font-size: 16px; /* 16px để iPhone không tự phóng to khi bấm vào ô */
-    font-weight: 600;
-}
-
-.sf-mnav-search button {
-    width: 52px;
-    border: 2px solid var(--sf-outline);
-    border-radius: 0 12px 12px 0;
-    background: var(--sf-cyan);
-    color: var(--sf-black);
-    font-size: 16px;
-}
-
 /* Các tầng menu: tầng đang xem trượt vào từ phải, tầng trước lùi sang trái */
 .sf-mnav-body {
     position: relative;
@@ -1019,10 +967,6 @@ a.sf-chip:hover {
         background: var(--sf-soft);
     }
 
-    .sf-mnav-search-btn:hover {
-        background: var(--sf-cyan);
-        color: var(--sf-black);
-    }
 }
 
 /* Giao diện mẫu đặt mọi thẻ span chữ mảnh, màu xám: ở đây cho chữ theo dòng menu */
@@ -4724,5 +4668,677 @@ a.sf-cart-name:hover {
 
     .sf-guest-note {
         padding: 14px;
+    }
+}
+
+/*===========================
+    TÌM KIẾM NÂNG CAO
+    Ô tìm kiếm ở đầu trang (mixins/search-box.pug): khung gợi ý, lịch sử, giọng nói, quét mã vạch
+===========================*/
+.sf-search-box {
+    position: relative;
+}
+
+/* Khung gợi ý đang mở: đầu trang nằm trên menu dính (khung gợi ý không bị menu che) */
+.sf-header.is-search-open {
+    z-index: 1000;
+    transition: none;
+}
+
+/* Nút micro, mã vạch trong ô tìm kiếm */
+.sf-header .sf-search-input .sf-search-tool {
+    width: 42px;
+    border-left: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--sf-muted);
+    font-size: 17px;
+}
+
+.sf-header .sf-search-input .sf-search-tool:hover,
+.sf-header .sf-search-input .sf-search-tool:focus-visible {
+    background: var(--sf-cyan-light);
+    color: var(--sf-cyan-dark);
+}
+
+.sf-header .sf-search-input .sf-search-tool[hidden] {
+    display: none;
+}
+
+/* Đang nghe giọng nói: nút micro đỏ, nhấp nháy */
+.sf-search-box.is-listening .sf-search-tool[search-voice] {
+    background: var(--sf-red);
+    color: #fff;
+    animation: sf-voice-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes sf-voice-pulse {
+    0%, 100% {
+        box-shadow: inset 0 0 0 0 rgb(255 255 255 / 0%);
+    }
+    50% {
+        box-shadow: inset 0 0 0 6px rgb(255 255 255 / 25%);
+    }
+}
+
+/* Khung gợi ý */
+.sf-search-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 10px;
+    right: 0;
+    z-index: 1000;
+    max-height: min(72vh, 620px);
+    padding: 8px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 2px solid var(--sf-outline);
+    border-radius: 20px;
+    background: var(--sf-surface);
+    box-shadow: 0 18px 40px rgb(17 20 23 / 16%);
+    line-height: 1.4;
+    text-align: left;
+}
+
+.sf-search-dropdown[hidden] {
+    display: none;
+}
+
+/* Giao diện mẫu đặt mọi thẻ span chữ mảnh, màu xám: trong khung gợi ý cho chữ theo dòng chứa nó
+   (:where để các class bên dưới vẫn ghi đè được) */
+:where(.sf-search-dropdown) span {
+    margin: 0;
+    font: inherit;
+    color: inherit;
+}
+
+/* Đang tải gợi ý: thanh chạy ở mép trên khung */
+.sf-search-box.is-loading .sf-search-dropdown::before {
+    content: "";
+    position: sticky;
+    top: -8px;
+    display: block;
+    height: 3px;
+    margin: -8px -8px 5px;
+    background: linear-gradient(90deg, transparent, var(--sf-cyan), transparent) 0 0 / 40% 100% no-repeat;
+    animation: sf-search-loading 1s linear infinite;
+}
+
+@keyframes sf-search-loading {
+    from {
+        background-position: -40% 0;
+    }
+    to {
+        background-position: 140% 0;
+    }
+}
+
+.sf-sd-section + .sf-sd-section,
+.sf-sd-note + .sf-sd-section {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--sf-line);
+}
+
+.sf-sd-note + .sf-sd-section {
+    border-top: 0;
+    padding-top: 0;
+}
+
+.sf-sd-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 10px 4px;
+}
+
+.sf-sd-title {
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--sf-muted);
+}
+
+.sf-sd-action {
+    padding: 2px 6px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--sf-cyan-dark);
+}
+
+.sf-sd-action:hover {
+    background: var(--sf-cyan-light);
+}
+
+/* Mục đang chọn bằng phím ↑ ↓ hoặc đang trỏ chuột */
+.sf-search-dropdown [search-option] {
+    cursor: pointer;
+    transition: background-color .15s ease;
+}
+
+.sf-search-dropdown mark {
+    padding: 0;
+    background: none;
+    color: inherit;
+    font-weight: 900;
+    text-decoration: underline;
+    text-decoration-color: var(--sf-cyan);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 2px;
+}
+
+/* Lịch sử tìm kiếm */
+.sf-sd-history li {
+    display: flex;
+    align-items: center;
+    border-radius: 12px;
+}
+
+.sf-sd-history-link,
+.sf-sd-query {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 9px 10px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--sf-ink) !important;
+}
+
+.sf-sd-history-link span,
+.sf-sd-query span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sf-sd-history-link i,
+.sf-sd-query i {
+    width: 16px;
+    color: var(--sf-muted);
+    font-size: 14px;
+    text-align: center;
+}
+
+.sf-sd-remove {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 10px;
+    background: none;
+    color: var(--sf-muted);
+    font-size: 13px;
+}
+
+.sf-sd-remove:hover {
+    background: var(--sf-red-light);
+    color: var(--sf-red-text);
+}
+
+/* Từ khoá hay tìm, danh mục, thương hiệu: nút tròn */
+.sf-sd-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 4px 10px 8px;
+}
+
+.sf-sd-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    max-width: 100%;
+    padding: 6px 13px;
+    border: 2px solid var(--sf-line);
+    border-radius: 999px;
+    background: var(--sf-surface);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--sf-ink) !important;
+}
+
+.sf-sd-chip i {
+    font-size: 12px;
+    color: var(--sf-cyan-dark);
+}
+
+.sf-sd-chip .fa-fire {
+    color: var(--sf-red);
+}
+
+/* Giao diện mẫu đặt mọi ảnh rộng 100% (!important) nên phải ghi đè bằng !important */
+.sf-sd-chip img {
+    flex: 0 0 auto;
+    width: 22px !important;
+    height: 22px !important;
+    margin: -3px 0 -3px -6px;
+    border-radius: 50%;
+    background: var(--sf-img-bg);
+    object-fit: cover !important;
+}
+
+/* Sản phẩm */
+.sf-sd-product {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 7px 10px;
+    border-radius: 14px;
+    color: var(--sf-ink) !important;
+}
+
+.sf-sd-product img {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 12px;
+    background: var(--sf-img-bg);
+    object-fit: contain !important;
+}
+
+.sf-sd-product-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.sf-sd-product-name {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.sf-sd-product-meta {
+    overflow: hidden;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--sf-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sf-sd-product-out {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--sf-red-text);
+}
+
+.sf-sd-product.is-out img {
+    opacity: .5;
+}
+
+.sf-sd-product-price {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    white-space: nowrap;
+}
+
+.sf-sd-product-price b {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--sf-ink);
+}
+
+.sf-sd-product-price.is-sale b {
+    color: var(--sf-red-text);
+}
+
+.sf-sd-product-price del {
+    font-size: 13px;
+    color: var(--sf-muted);
+}
+
+/* Mục đang chọn (phím ↑ ↓) */
+.sf-search-dropdown .is-active,
+.sf-sd-history li:has(.is-active) {
+    background: var(--sf-cyan-light);
+}
+
+.sf-sd-chip.is-active {
+    border-color: var(--sf-outline);
+}
+
+.sf-sd-history li:has(.is-active) .sf-sd-history-link {
+    background: none;
+}
+
+@media (hover: hover) {
+    .sf-sd-history li:hover,
+    .sf-sd-query:hover,
+    .sf-sd-product:hover,
+    .sf-sd-all:hover {
+        background: var(--sf-cyan-light);
+    }
+
+    .sf-sd-chip:hover {
+        border-color: var(--sf-outline);
+    }
+}
+
+/* "Показать все результаты" */
+.sf-sd-all {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 6px;
+    padding: 12px;
+    border: 0;
+    border-top: 1px solid var(--sf-line);
+    border-radius: 0 0 12px 12px;
+    background: none;
+    font-family: var(--sf-font-body);
+    font-size: 15px;
+    font-weight: 900;
+    color: var(--sf-cyan-dark);
+}
+
+/* Từ khoá đã được sửa / không có kết quả */
+.sf-sd-note,
+.sf-sd-empty {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--sf-text);
+}
+
+.sf-sd-note {
+    margin-bottom: 4px;
+    border-radius: 12px;
+    background: var(--sf-amber-light);
+}
+
+.sf-sd-note i {
+    color: var(--sf-amber);
+}
+
+.sf-sd-empty i {
+    color: var(--sf-muted);
+}
+
+.sf-sd-note b,
+.sf-sd-empty b {
+    color: var(--sf-ink);
+}
+
+/* Đang nghe giọng nói */
+.sf-sd-voice {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 12px;
+}
+
+.sf-sd-voice-icon {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--sf-red);
+    color: #fff;
+    font-size: 20px;
+    animation: sf-voice-ring 1.4s ease-out infinite;
+}
+
+@keyframes sf-voice-ring {
+    0% {
+        box-shadow: 0 0 0 0 rgb(229 72 77 / 45%);
+    }
+    100% {
+        box-shadow: 0 0 0 16px rgb(229 72 77 / 0%);
+    }
+}
+
+.sf-sd-voice div {
+    flex: 1;
+    min-width: 0;
+}
+
+.sf-sd-voice b {
+    display: block;
+    font-size: 17px;
+    font-weight: 900;
+    color: var(--sf-ink);
+}
+
+.sf-sd-voice p {
+    margin: 2px 0 0;
+    font-size: 15px;
+    color: var(--sf-muted);
+}
+
+.sf-sd-voice .sf-sd-voice-stop {
+    flex: 0 0 auto;
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+/* Trang kết quả: "Искать вместо этого «kfgif»", gợi ý khi không có kết quả */
+.sf-page-banner .sf-search-corrected {
+    display: block;
+}
+
+.sf-search-instead {
+    margin: 6px 0 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--sf-black);
+}
+
+.sf-search-instead a {
+    font-weight: 900;
+    color: var(--sf-black) !important;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.sf-empty .sf-search-try {
+    justify-content: center;
+    margin: 20px 0 0;
+}
+
+.sf-search-recommend-title {
+    margin: 36px 0 18px;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--sf-ink);
+}
+
+/* Khung quét mã vạch */
+.sf-scan-dialog {
+    width: min(440px, calc(100vw - 24px));
+    margin: auto; /* giữa màn hình (giao diện mẫu đặt margin: 0 cho mọi thẻ) */
+    padding: 0;
+    border: 2px solid var(--sf-outline);
+    border-radius: 22px;
+    background: var(--sf-surface);
+    color: var(--sf-text);
+    overflow: hidden;
+}
+
+.sf-scan-dialog::backdrop {
+    background: rgb(8 13 15 / 70%);
+}
+
+.sf-scan-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+}
+
+.sf-scan-head h2 {
+    margin: 0;
+    font-family: var(--sf-font-body);
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--sf-ink);
+}
+
+.sf-scan-close {
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--sf-soft);
+    color: var(--sf-ink);
+    font-size: 16px;
+}
+
+.sf-scan-video {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: #000;
+}
+
+.sf-scan-video video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Khung ngắm và vạch quét */
+.sf-scan-frame {
+    position: absolute;
+    inset: 22% 12%;
+    border: 3px solid var(--sf-cyan);
+    border-radius: 14px;
+    box-shadow: 0 0 0 999px rgb(0 0 0 / 35%);
+    pointer-events: none;
+}
+
+.sf-scan-line {
+    position: absolute;
+    left: 14%;
+    right: 14%;
+    top: 50%;
+    height: 2px;
+    background: var(--sf-red);
+    box-shadow: 0 0 8px var(--sf-red);
+    animation: sf-scan-move 1.6s ease-in-out infinite alternate;
+    pointer-events: none;
+}
+
+@keyframes sf-scan-move {
+    from {
+        transform: translateY(-40px);
+    }
+    to {
+        transform: translateY(40px);
+    }
+}
+
+.sf-scan-message {
+    margin: 0;
+    padding: 14px 16px 18px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--sf-ink);
+    text-align: center;
+}
+
+.sf-scan-message.is-error {
+    color: var(--sf-red-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sf-search-box.is-listening .sf-search-tool[search-voice],
+    .sf-sd-voice-icon,
+    .sf-scan-line,
+    .sf-search-box.is-loading .sf-search-dropdown::before {
+        animation: none;
+    }
+}
+
+/* Máy tính bảng, điện thoại: ô tìm kiếm là 1 hàng riêng dưới logo */
+@media (max-width: 991.98px) {
+    .sf-header-search {
+        margin-top: 10px;
+    }
+
+    .sf-header .sf-search {
+        width: 100%;
+        height: 46px;
+        margin-left: 0;
+    }
+
+    .sf-header .sf-search-input input {
+        padding: 0 14px;
+        font-size: 16px; /* 16px để iPhone không tự phóng to khi bấm vào ô */
+    }
+
+    .sf-header .sf-search-input button {
+        width: 50px;
+    }
+
+    .sf-header .sf-search-input .sf-search-tool {
+        width: 40px;
+    }
+
+    .sf-search-dropdown {
+        left: 0;
+        max-height: 65vh;
+    }
+}
+
+@media (max-width: 767.98px) {
+    /* Bỏ ô chọn danh mục cho ô nhập từ khoá rộng hơn */
+    .sf-header .sf-search-select {
+        display: none;
+    }
+
+    .sf-search-dropdown {
+        border-radius: 18px;
+    }
+
+    .sf-sd-product {
+        grid-template-columns: 48px minmax(0, 1fr) auto;
+        gap: 10px;
+        padding: 7px 8px;
+    }
+
+    .sf-sd-product img {
+        width: 48px !important;
+        height: 48px !important;
+    }
+
+    .sf-sd-product-name {
+        font-size: 14px;
+    }
+
+    .sf-sd-product-price b {
+        font-size: 15px;
+    }
+
+    .sf-sd-voice {
+        flex-wrap: wrap;
+    }
+
+    .sf-sd-voice .sf-sd-voice-stop {
+        width: 100%;
     }
 }

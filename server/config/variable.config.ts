@@ -511,3 +511,26 @@ export const clientResetPasswordExpireMinutes: number = 30
 
 // Số giây phải chờ trước khi gửi lại email đặt lại mật khẩu cho cùng 1 tài khoản (chống gửi liên tục)
 export const clientResetPasswordResendSeconds: number = 60
+
+// ===== Tìm kiếm nâng cao (trang khách hàng) =====
+// Khung gợi ý hiện ra khi khách gõ từ khoá vào ô tìm kiếm (sản phẩm, danh mục, thương hiệu, từ khoá hay tìm)
+// Số sản phẩm / danh mục / thương hiệu / từ khoá tối đa trong khung gợi ý
+export const clientSearchSuggestProductLimit: number = 6
+export const clientSearchSuggestCategoryLimit: number = 4
+export const clientSearchSuggestBrandLimit: number = 3
+export const clientSearchSuggestQueryLimit: number = 4
+
+// "Часто ищут" (từ khoá khách hay tìm): hiện khi khách bấm vào ô tìm kiếm còn trống, và ở trang không tìm thấy sản phẩm
+// - Chỉ hiện từ khoá có sản phẩm và được tìm ít nhất clientSearchPopularMinCount lần
+//   (tránh hiện từ khoá lạ chỉ 1 người gõ)
+// - Chỉ tính từ khoá còn được tìm trong clientSearchPopularDays ngày gần đây
+export const clientSearchPopularLimit: number = 8
+export const clientSearchPopularMinCount: number = 2
+export const clientSearchPopularDays: number = 30
+
+// Số ngày lưu từ khoá khách đã tìm (dùng cho "Часто ищут"), từ khoá lâu không ai tìm sẽ tự động bị xoá
+export const clientSearchLogRetentionDays: number = 180
+
+// Số giây lưu tạm danh sách danh mục, thương hiệu, từ vựng (dùng để sửa lỗi chính tả) trong bộ nhớ server
+// Sửa sản phẩm / danh mục ở trang admin thì sau tối đa chừng ấy giây khung gợi ý mới cập nhật
+export const clientSearchCacheSeconds: number = 60

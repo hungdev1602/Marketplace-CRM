@@ -11,6 +11,7 @@ import { scheduleDeleteOldLogs } from './helpers/activity-log.helper';
 import { deleteOldProductImports, stopInterruptedProductImports } from './helpers/product-import.helper';
 import { scheduleDeleteOldCarts } from './helpers/cart.helper';
 import { scheduleDeleteOldWishlists } from './helpers/wishlist.helper';
+import { scheduleDeleteOldSearchQueries } from './helpers/client-search.helper';
 
 // Load biến môi trường env
 dotenv.config()
@@ -22,12 +23,14 @@ const port: number = 3000
 // - bật tự động xoá nhật ký hoạt động cũ
 // - lượt nhập sản phẩm từ Excel đang xử lý dở (server bị tắt giữa chừng) chuyển thành thất bại, xoá lịch sử nhập file cũ
 // - bật tự động xoá giỏ hàng, danh sách yêu thích lâu không dùng
+// - bật tự động xoá từ khoá tìm kiếm lâu không ai tìm
 connectDB().then(() => {
   scheduleDeleteOldLogs()
   stopInterruptedProductImports()
   deleteOldProductImports()
   scheduleDeleteOldCarts()
   scheduleDeleteOldWishlists()
+  scheduleDeleteOldSearchQueries()
 })
 
 // Cho phép gửi data lên dạng json

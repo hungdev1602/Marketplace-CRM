@@ -54,7 +54,7 @@ mixin mobileNavLink(category)
   aria-label=t("menu")
   mnav
   )
-  //- Thanh trên cùng: đóng, logo, tìm kiếm, sáng / tối
+  //- Thanh trên cùng: đóng, logo, sáng / tối (ô tìm kiếm luôn hiện ở đầu trang, ngay dưới logo)
   div(class="sf-mnav-top")
     button(
       type="button"
@@ -74,36 +74,7 @@ mixin mobileNavLink(category)
         height="118"
         )
     div(class="sf-mnav-top-actions")
-      button(
-        type="button"
-        class="sf-mnav-icon-btn sf-mnav-search-btn"
-        mnav-search-toggle
-        aria-controls="sf-mnav-search"
-        aria-expanded="false"
-        aria-label=t("search")
-        )
-        i.fas.fa-search
       +themeToggle()
-
-  //- Ô tìm kiếm (bấm nút kính lúp để mở)
-  form#sf-mnav-search(
-    class="sf-mnav-search"
-    action="/products"
-    method="GET"
-    )
-    div(class="sf-mnav-search-inner")
-      input(
-        placeholder=t("searchPlaceholder")
-        type="search"
-        name="keyword"
-        value=(query && query.keyword) || ""
-        aria-label=t("searchPlaceholder")
-        )
-      button(
-        type="submit"
-        aria-label=t("search")
-        )
-        i.fas.fa-search
 
   div(class="sf-mnav-body")
     //- Tầng đầu tiên: danh mục gốc, sau đó là các trang

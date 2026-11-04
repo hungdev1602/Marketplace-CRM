@@ -110,16 +110,6 @@ if(mobileNav) {
     showPanel(getPanel("main"))
   })
 
-  // Nút kính lúp: mở / đóng ô tìm kiếm
-  const searchToggle = mobileNav.querySelector("[mnav-search-toggle]")
-  const searchForm = mobileNav.querySelector(".sf-mnav-search")
-  searchToggle.addEventListener("click", () => {
-    const isOpen = searchForm.classList.toggle("is-open")
-    searchToggle.setAttribute("aria-expanded", isOpen)
-    if(isOpen) {
-      searchForm.querySelector("input").focus()
-    }
-  })
 }
 // Hết Menu điện thoại
 
@@ -762,3 +752,716 @@ document.querySelectorAll("[password-toggle]").forEach((button) => {
   })
 })
 // Hết Tài khoản khách
+
+// ===== Tìm kiếm nâng cao (ô tìm kiếm ở đầu trang: views/client/mixins/search-box.pug) =====
+// - Gõ từ khoá: khung gợi ý sản phẩm, danh mục, thương hiệu, từ khoá hay tìm (server: /search/suggest)
+//   Server tự sửa từ khoá gõ nhầm bàn phím / sai chính tả, ví dụ "kfgif" => "лапша"
+// - Bấm vào ô còn trống: lịch sử tìm kiếm (lưu trên trình duyệt) và "Часто ищут" (server: /search/popular)
+// - Phím ↑ ↓ để chọn gợi ý, Enter để mở, Esc để đóng; máy tính: nhấn phím "/" để bắt đầu tìm
+// - Nút micro: tìm bằng giọng nói (trình duyệt có Web Speech API: Chrome, Edge, Safari; Firefox chưa có)
+// - Nút mã vạch: quét mã vạch bằng camera (điện thoại có BarcodeDetector: Chrome trên Android)
+// Các nút chỉ hiện khi trình duyệt của khách hỗ trợ
+const searchBox = document.querySelector("[search-box]")
+if(searchBox) {
+  const searchForm = searchBox.querySelector("[search-form]")
+  const searchInput = searchBox.querySelector("[search-input]")
+  const searchCategory = searchBox.querySelector("[search-category]")
+  const dropdown = searchBox.querySelector("[search-dropdown]")
+
+  // Từ ngữ theo ngôn ngữ đang chọn (có sẵn trong trang)
+  let searchText = {}
+  try {
+    searchText = JSON.parse(searchBox.querySelector("[search-text]").textContent)
+  } catch (error) {}
+
+  const cleanText = (text) => `${text || ""}`.replace(/\s+/g, " ").trim()
+  const getKeyword = () => cleanText(searchInput.value)
+  const isSearchFocused = () => searchBox.contains(document.activeElement)
+  const searchUrl = (keyword) => `/products?keyword=${encodeURIComponent(keyword)}`
+
+  // Tạo thẻ HTML, chữ gán bằng textContent (không chèn HTML lạ vào trang)
+  const createElement = (tag, className, text) => {
+    const element = document.createElement(tag)
+    if(className) element.className = className
+    if(text !== undefined && text !== null) element.textContent = text
+    return element
+  }
+  const createIcon = (className) => {
+    const icon = createElement("i", className)
+    icon.setAttribute("aria-hidden", "true")
+    return icon
+  }
+
+  // --- Lịch sử tìm kiếm (localStorage, tối đa 8 từ khoá, mới nhất lên đầu) ---
+  const historyKey = "sf-search-history"
+  const historyMax = 8
+
+  const getHistory = () => {
+    try {
+      const list = JSON.parse(localStorage.getItem(historyKey) || "[]")
+      return Array.isArray(list) ? list.filter(item => typeof item === "string" && cleanText(item)).slice(0, historyMax) : []
+    } catch (error) {
+      return []
+    }
+  }
+
+  const saveHistory = (list) => {
+    try {
+      localStorage.setItem(historyKey, JSON.stringify(list.slice(0, historyMax)))
+    } catch (error) {
+      // trình duyệt chặn lưu (chế độ ẩn danh,...) thì bỏ qua
+    }
+  }
+
+  const addHistory = (keyword) => {
+    keyword = cleanText(keyword).slice(0, 100)
+    if(!keyword) return
+    saveHistory([keyword, ...getHistory().filter(item => item.toLowerCase() !== keyword.toLowerCase())])
+  }
+
+  // Trang kết quả tìm kiếm: lưu từ khoá vừa tìm (kể cả tìm bằng giọng nói, mã vạch, bấm gợi ý)
+  const historyAddElement = document.querySelector("[search-history-add]")
+  if(historyAddElement) {
+    addHistory(historyAddElement.getAttribute("search-history-add"))
+  }
+
+  // --- "Часто ищут": chỉ tải 1 lần khi khách bấm vào ô tìm kiếm lần đầu ---
+  let popularPromise = null
+  const getPopular = () => {
+    if(!popularPromise) {
+      popularPromise = fetch("/search/popular", { headers: { "Accept": "application/json" } })
+        .then(response => response.json())
+        .then(data => Array.isArray(data.queries) ? data.queries : [])
+        .catch(() => {
+          popularPromise = null // lỗi mạng thì lần sau tải lại
+          return []
+        })
+    }
+    return popularPromise
+  }
+
+  // --- Tô đậm chữ khớp từ khoá (không phân biệt hoa thường, có dấu / không dấu) ---
+  // Đổi từng chữ về dạng không dấu, nhớ vị trí chữ gốc để tô đúng chỗ trong tên gốc
+  const foldText = (text) => {
+    let folded = ""
+    const indexList = []
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i].toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d")
+      for (const item of char) {
+        folded += item
+        indexList.push(i)
+      }
+    }
+    return { folded, indexList }
+  }
+
+  const highlightText = (text, keyword) => {
+    text = `${text || ""}`
+    const fragment = document.createDocumentFragment()
+    const { folded, indexList } = foldText(text)
+    const wordList = foldText(cleanText(keyword)).folded.split(" ").filter(Boolean)
+
+    const markList = new Array(text.length).fill(false)
+    for (const word of wordList) {
+      let position = folded.indexOf(word)
+      while(position !== -1) {
+        for (let i = position; i < position + word.length; i++) {
+          markList[indexList[i]] = true
+        }
+        position = folded.indexOf(word, position + word.length)
+      }
+    }
+
+    let start = 0
+    while(start < text.length) {
+      const isMark = markList[start]
+      let end = start
+      while(end < text.length && markList[end] === isMark) end++
+      const part = text.slice(start, end)
+      fragment.append(isMark ? createElement("mark", "", part) : document.createTextNode(part))
+      start = end
+    }
+    return fragment
+  }
+
+  // --- Khung gợi ý: mở / đóng, chọn bằng phím ↑ ↓ ---
+  let activeIndex = -1
+  let optionCount = 0
+
+  const getOptionList = () => [...dropdown.querySelectorAll("[search-option]")]
+
+  const setActive = (index) => {
+    const optionList = getOptionList()
+    activeIndex = index
+    optionList.forEach((option, optionIndex) => {
+      option.classList.toggle("is-active", optionIndex === index)
+      option.setAttribute("aria-selected", optionIndex === index)
+    })
+
+    const activeOption = optionList[index]
+    if(activeOption) {
+      searchInput.setAttribute("aria-activedescendant", activeOption.id)
+      activeOption.scrollIntoView({ block: "nearest" })
+    }
+    else {
+      searchInput.removeAttribute("aria-activedescendant")
+    }
+  }
+
+  const searchHeader = searchBox.closest(".sf-header")
+  const setOpen = (isOpen) => {
+    dropdown.hidden = !isOpen
+    searchInput.setAttribute("aria-expanded", isOpen)
+    searchBox.classList.toggle("is-open", isOpen)
+    // Đầu trang nằm dưới menu dính: đưa đầu trang lên trên để khung gợi ý không bị menu che
+    if(searchHeader) searchHeader.classList.toggle("is-search-open", isOpen)
+    if(!isOpen) setActive(-1)
+  }
+
+  // Xoá nội dung cũ của khung gợi ý
+  const clearDropdown = () => {
+    dropdown.replaceChildren()
+    activeIndex = -1
+    searchInput.removeAttribute("aria-activedescendant")
+  }
+
+  // Mục chọn được bằng phím ↑ ↓
+  const asOption = (element) => {
+    element.id = `sf-search-option-${optionCount++}`
+    element.setAttribute("role", "option")
+    element.setAttribute("aria-selected", "false")
+    element.setAttribute("search-option", "")
+    element.tabIndex = -1
+    return element
+  }
+
+  // 1 nhóm trong khung gợi ý: tiêu đề (+ nút bên phải) và danh sách
+  const createSection = (title, actionButton) => {
+    const section = createElement("div", "sf-sd-section")
+    section.setAttribute("role", "group")
+    section.setAttribute("aria-label", title)
+    const head = createElement("div", "sf-sd-head")
+    head.setAttribute("role", "presentation")
+    head.append(createElement("span", "sf-sd-title", title))
+    if(actionButton) head.append(actionButton)
+    section.append(head)
+    return section
+  }
+
+  // Từ khoá dạng nút tròn (lịch sử, "Часто ищут", thương hiệu)
+  const createChip = (text, url, iconClass, keyword) => {
+    const chip = asOption(createElement("a", "sf-sd-chip"))
+    chip.href = url
+    if(iconClass) chip.append(createIcon(iconClass))
+    const label = createElement("span")
+    label.append(keyword ? highlightText(text, keyword) : text)
+    chip.append(label)
+    return chip
+  }
+
+  // Ô còn trống: lịch sử tìm kiếm + "Часто ищут"
+  const renderEmptyState = async () => {
+    const historyList = getHistory()
+    const popularList = await getPopular()
+    // Trong lúc chờ khách đã gõ thêm / đã bấm ra ngoài
+    if(getKeyword().length >= 2 || !isSearchFocused() || searchBox.classList.contains("is-listening")) return
+
+    clearDropdown()
+
+    if(historyList.length > 0) {
+      const clearButton = createElement("button", "sf-sd-action", searchText.clearHistory)
+      clearButton.type = "button"
+      clearButton.setAttribute("search-history-clear", "")
+
+      const section = createSection(searchText.recent, clearButton)
+      const list = createElement("ul", "sf-sd-history")
+      for (const keyword of historyList) {
+        const item = createElement("li")
+        const link = asOption(createElement("a", "sf-sd-history-link"))
+        link.href = searchUrl(keyword)
+        link.append(createIcon("fas fa-history"), createElement("span", "", keyword))
+
+        const removeButton = createElement("button", "sf-sd-remove")
+        removeButton.type = "button"
+        removeButton.setAttribute("search-history-remove", keyword)
+        removeButton.setAttribute("aria-label", `${searchText.removeHistory}: ${keyword}`)
+        removeButton.title = searchText.removeHistory
+        removeButton.append(createIcon("fas fa-times"))
+
+        item.append(link, removeButton)
+        list.append(item)
+      }
+      section.append(list)
+      dropdown.append(section)
+    }
+
+    if(popularList.length > 0) {
+      const section = createSection(searchText.popular)
+      const chipList = createElement("div", "sf-sd-chips")
+      popularList.forEach((keyword, index) => {
+        chipList.append(createChip(keyword, searchUrl(keyword), index < 3 ? "fas fa-fire" : "fas fa-search"))
+      })
+      section.append(chipList)
+      dropdown.append(section)
+    }
+
+    setOpen(dropdown.childElementCount > 0)
+  }
+
+  // Có từ khoá: gợi ý từ server
+  const renderSuggestions = (data) => {
+    clearDropdown()
+    const keyword = data.usedKeyword || data.keyword
+
+    // Từ khoá đã được sửa: "Показаны результаты по запросу «лапша»"
+    if(data.corrected) {
+      const note = createElement("p", "sf-sd-note")
+      note.append(createIcon("fas fa-spell-check"), document.createTextNode(`${searchText.corrected} `), createElement("b", "", `«${data.usedKeyword}»`))
+      dropdown.append(note)
+    }
+
+    // Từ khoá hay tìm, bắt đầu bằng chữ đang gõ
+    if(data.queries.length > 0) {
+      const section = createSection(searchText.queries)
+      const list = createElement("div", "sf-sd-list")
+      for (const query of data.queries) {
+        const link = asOption(createElement("a", "sf-sd-query"))
+        link.href = searchUrl(query)
+        link.append(createIcon("fas fa-search"), createElement("span"))
+        link.lastChild.append(highlightText(query, keyword))
+        list.append(link)
+      }
+      section.append(list)
+      dropdown.append(section)
+    }
+
+    // Danh mục, thương hiệu
+    if(data.categories.length > 0 || data.brands.length > 0) {
+      const section = createSection(data.categories.length > 0 ? searchText.categories : searchText.brands)
+      const chipList = createElement("div", "sf-sd-chips")
+      for (const category of data.categories) {
+        const chip = createChip(category.name, category.url, "fas fa-th-large", keyword)
+        if(category.image) {
+          const image = createElement("img")
+          image.src = category.image
+          image.alt = ""
+          image.loading = "lazy"
+          chip.firstChild.replaceWith(image)
+        }
+        chipList.append(chip)
+      }
+      for (const brand of data.brands) {
+        chipList.append(createChip(brand.name, brand.url, "fas fa-tag", keyword))
+      }
+      section.append(chipList)
+      dropdown.append(section)
+    }
+
+    // Sản phẩm
+    if(data.products.length > 0) {
+      const section = createSection(searchText.products)
+      const list = createElement("div", "sf-sd-list")
+      for (const product of data.products) {
+        const link = asOption(createElement("a", "sf-sd-product" + (product.inStock ? "" : " is-out")))
+        link.href = product.url
+
+        const image = createElement("img")
+        image.src = product.image
+        image.alt = ""
+        image.loading = "lazy"
+
+        const info = createElement("span", "sf-sd-product-info")
+        const name = createElement("span", "sf-sd-product-name")
+        name.append(highlightText(product.name, keyword))
+        info.append(name)
+        if(product.meta) info.append(createElement("span", "sf-sd-product-meta", product.meta))
+        if(!product.inStock) info.append(createElement("span", "sf-sd-product-out", searchText.outOfStock))
+
+        const price = createElement("span", "sf-sd-product-price" + (product.priceOld ? " is-sale" : ""))
+        price.append(createElement("b", "", product.price))
+        if(product.priceOld) price.append(createElement("del", "", product.priceOld))
+
+        link.append(image, info, price)
+        list.append(link)
+      }
+      section.append(list)
+      dropdown.append(section)
+    }
+
+    if(data.total > 0) {
+      // "Показать все результаты (12)": gửi form (giữ danh mục đang chọn)
+      const showAll = asOption(createElement("button", "sf-sd-all"))
+      showAll.type = "button"
+      showAll.setAttribute("search-show-all", "")
+      showAll.append(createElement("span", "", `${searchText.showAll} (${data.total})`), createIcon("fas fa-arrow-right"))
+      dropdown.append(showAll)
+    }
+    else if(dropdown.childElementCount === 0 || (data.corrected && dropdown.childElementCount === 1)) {
+      const empty = createElement("p", "sf-sd-empty")
+      empty.append(createIcon("fas fa-search"), document.createTextNode(`${searchText.nothingFound} `), createElement("b", "", `«${data.keyword}»`))
+      dropdown.append(empty)
+    }
+
+    setOpen(true)
+  }
+
+  // --- Gọi server lấy gợi ý: đợi khách ngừng gõ 0,2 giây, lưu lại kết quả đã có ---
+  const suggestCache = new Map()
+  let suggestTimer = null
+  let suggestController = null
+
+  const requestSuggestions = () => {
+    clearTimeout(suggestTimer)
+    const keyword = getKeyword()
+
+    if(keyword.length < 2) {
+      if(suggestController) suggestController.abort()
+      searchBox.classList.remove("is-loading")
+      renderEmptyState()
+      return
+    }
+
+    const category = searchCategory ? searchCategory.value : ""
+    const cacheKey = `${category}|${keyword.toLowerCase()}`
+    if(suggestCache.has(cacheKey)) {
+      renderSuggestions(suggestCache.get(cacheKey))
+      return
+    }
+
+    suggestTimer = setTimeout(async () => {
+      if(suggestController) suggestController.abort()
+      const controller = new AbortController()
+      suggestController = controller
+      searchBox.classList.add("is-loading")
+
+      try {
+        const params = new URLSearchParams({ keyword: keyword })
+        if(category) params.set("category", category)
+        const response = await fetch(`/search/suggest?${params}`, {
+          headers: { "Accept": "application/json" },
+          signal: controller.signal
+        })
+        const data = await response.json()
+        if(data.code !== "success") throw new Error(data.message)
+
+        suggestCache.set(cacheKey, data)
+        // Chỉ giữ 50 kết quả gần nhất
+        if(suggestCache.size > 50) suggestCache.delete(suggestCache.keys().next().value)
+
+        // Khách đã gõ tiếp / đã bấm ra ngoài thì bỏ qua
+        if(getKeyword() === keyword && isSearchFocused() && !searchBox.classList.contains("is-listening")) {
+          renderSuggestions(data)
+        }
+      } catch (error) {
+        // Lỗi mạng: không hiện gì, khách vẫn bấm Enter để tìm được
+      } finally {
+        if(suggestController === controller) searchBox.classList.remove("is-loading")
+      }
+    }, 200)
+  }
+
+  searchInput.addEventListener("input", requestSuggestions)
+  searchInput.addEventListener("focus", requestSuggestions)
+  if(searchCategory) {
+    searchCategory.addEventListener("change", () => {
+      if(getKeyword().length >= 2) {
+        searchInput.focus()
+        requestSuggestions()
+      }
+    })
+  }
+
+  // Phím ↑ ↓ Enter Esc trong ô tìm kiếm
+  searchInput.addEventListener("keydown", (event) => {
+    const optionList = getOptionList()
+
+    if(event.key === "ArrowDown" || event.key === "ArrowUp") {
+      if(dropdown.hidden) {
+        requestSuggestions()
+        return
+      }
+      if(optionList.length === 0) return
+      event.preventDefault()
+      const step = event.key === "ArrowDown" ? 1 : -1
+      let index = activeIndex + step
+      if(index >= optionList.length) index = -1 // xuống quá mục cuối thì quay về ô nhập
+      if(index < -1) index = optionList.length - 1
+      setActive(index)
+      return
+    }
+
+    if(event.key === "Enter" && !dropdown.hidden && optionList[activeIndex]) {
+      event.preventDefault()
+      optionList[activeIndex].click()
+      return
+    }
+
+    if(event.key === "Escape" && !dropdown.hidden) {
+      event.preventDefault()
+      setOpen(false)
+    }
+  })
+
+  // Bấm trong khung gợi ý: giữ con trỏ ở ô tìm kiếm (không làm khung bị đóng trước khi mở link)
+  dropdown.addEventListener("mousedown", (event) => {
+    event.preventDefault()
+  })
+
+  dropdown.addEventListener("click", (event) => {
+    // Xoá 1 từ khoá khỏi lịch sử
+    const removeButton = event.target.closest("[search-history-remove]")
+    if(removeButton) {
+      const keyword = removeButton.getAttribute("search-history-remove")
+      saveHistory(getHistory().filter(item => item !== keyword))
+      searchInput.focus()
+      renderEmptyState()
+      return
+    }
+
+    // Xoá hết lịch sử
+    if(event.target.closest("[search-history-clear]")) {
+      saveHistory([])
+      searchInput.focus()
+      renderEmptyState()
+      return
+    }
+
+    // "Показать все результаты": gửi form tìm kiếm
+    if(event.target.closest("[search-show-all]")) {
+      event.preventDefault()
+      setOpen(false)
+      searchForm.requestSubmit()
+    }
+  })
+
+  // Bấm ra ngoài / chuyển sang phần khác của trang thì đóng khung gợi ý
+  document.addEventListener("click", (event) => {
+    if(!searchBox.contains(event.target)) setOpen(false)
+  })
+  searchBox.addEventListener("focusout", (event) => {
+    if(!searchBox.contains(event.relatedTarget) && !searchBox.classList.contains("is-listening")) {
+      setOpen(false)
+    }
+  })
+
+  // Gửi form: bỏ danh mục trống để link gọn (/products?keyword=лапша)
+  searchForm.addEventListener("formdata", (event) => {
+    if(event.formData.get("category") === "") event.formData.delete("category")
+    event.formData.set("keyword", getKeyword())
+  })
+
+  // Phím "/": đưa con trỏ vào ô tìm kiếm (khi không đang gõ ở ô khác)
+  document.addEventListener("keydown", (event) => {
+    if(event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return
+    if(event.key !== "/" && event.code !== "Slash") return
+    if(event.target.closest && event.target.closest("input, textarea, select, [contenteditable]")) return
+    if(searchInput.offsetParent === null) return // ô tìm kiếm đang bị ẩn
+
+    event.preventDefault()
+    searchInput.focus()
+    searchInput.select()
+  })
+
+  // --- Tìm bằng giọng nói (Web Speech API) ---
+  // Nói xong thì tự tìm. Trình duyệt gửi giọng nói tới dịch vụ nhận dạng (Google, Apple), cần mạng và trang chạy HTTPS
+  const voiceButton = searchBox.querySelector("[search-voice]")
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+  if(voiceButton && SpeechRecognition) {
+    voiceButton.hidden = false
+    searchBox.classList.add("has-voice")
+
+    const voiceLangList = { ru: "ru-RU", vi: "vi-VN" }
+    const voiceErrorList = {
+      "not-allowed": searchText.voiceErrorPermission,
+      "service-not-allowed": searchText.voiceErrorUnavailable,
+      "language-not-supported": searchText.voiceErrorUnavailable,
+      "audio-capture": searchText.voiceErrorNoMic,
+      "no-speech": searchText.voiceErrorNoSpeech,
+      "network": searchText.voiceErrorNetwork
+    }
+    let recognition = null
+
+    // Khung "Говорите…" kèm chữ đang nghe được
+    const renderListening = (text) => {
+      clearDropdown()
+      const panel = createElement("div", "sf-sd-voice")
+      const icon = createElement("span", "sf-sd-voice-icon")
+      icon.append(createIcon("fas fa-microphone"))
+      const content = createElement("div")
+      content.append(createElement("b", "", searchText.listening), createElement("p", "", text || searchText.voiceHint))
+      const stopButton = createElement("button", "sf-btn sf-btn-outline sf-sd-voice-stop", searchText.voiceStop)
+      stopButton.type = "button"
+      stopButton.addEventListener("click", () => {
+        if(recognition) recognition.stop()
+      })
+      panel.append(icon, content, stopButton)
+      dropdown.append(panel)
+      setOpen(true)
+    }
+
+    const setListening = (isListening) => {
+      searchBox.classList.toggle("is-listening", isListening)
+      voiceButton.setAttribute("aria-pressed", isListening)
+    }
+
+    voiceButton.addEventListener("click", () => {
+      // Bấm lần nữa khi đang nghe: dừng lại và tìm theo chữ đã nghe được
+      if(recognition) {
+        recognition.stop()
+        return
+      }
+
+      const startValue = searchInput.value
+      let finalText = ""
+      let errorCode = ""
+
+      recognition = new SpeechRecognition()
+      recognition.lang = voiceLangList[document.documentElement.lang] || "ru-RU"
+      recognition.interimResults = true
+      recognition.continuous = false
+      recognition.maxAlternatives = 1
+
+      recognition.onresult = (event) => {
+        let text = ""
+        finalText = ""
+        for (const result of event.results) {
+          text += result[0].transcript
+          if(result.isFinal) finalText += result[0].transcript
+        }
+        searchInput.value = cleanText(text)
+        renderListening(cleanText(text))
+      }
+
+      recognition.onerror = (event) => {
+        errorCode = event.error
+      }
+
+      recognition.onend = () => {
+        recognition = null
+        setListening(false)
+        const keyword = cleanText(finalText) || (errorCode ? "" : getKeyword())
+
+        if(keyword && keyword !== cleanText(startValue)) {
+          // Nghe được: tìm luôn
+          searchInput.value = keyword
+          setOpen(false)
+          searchForm.requestSubmit()
+          return
+        }
+
+        searchInput.value = startValue
+        setOpen(false)
+        if(errorCode && errorCode !== "aborted") {
+          showToast(voiceErrorList[errorCode] || searchText.errorGeneral, "error")
+        }
+      }
+
+      try {
+        recognition.start()
+        setListening(true)
+        renderListening("")
+      } catch (error) {
+        recognition = null
+        setListening(false)
+        showToast(searchText.voiceErrorUnavailable, "error")
+      }
+    })
+  }
+
+  // --- Quét mã vạch bằng camera (BarcodeDetector) ---
+  // Chỉ hiện trên điện thoại / máy tính bảng có trình duyệt hỗ trợ (Chrome trên Android)
+  // Quét được thì mở /products?keyword=mã: mã vạch đúng của 1 sản phẩm thì server mở luôn trang sản phẩm đó
+  const scanButton = searchBox.querySelector("[search-scan]")
+  const scanDialog = document.querySelector("[scan-dialog]")
+  const canScan = scanButton && scanDialog
+    && "BarcodeDetector" in window
+    && navigator.mediaDevices && navigator.mediaDevices.getUserMedia
+    && typeof scanDialog.showModal === "function"
+    && window.matchMedia("(pointer: coarse)").matches
+
+  if(canScan) {
+    window.BarcodeDetector.getSupportedFormats().then((supportedList) => {
+      const formatList = ["ean_13", "ean_8", "upc_a", "upc_e", "code_128"].filter(format => supportedList.includes(format))
+      if(!formatList.includes("ean_13")) return
+
+      scanButton.hidden = false
+      searchBox.classList.add("has-scan")
+
+      const video = scanDialog.querySelector("[scan-video]")
+      const message = scanDialog.querySelector("[scan-message]")
+      const hintText = message.textContent
+      let detector = null
+      let stream = null
+      let scanTimer = null
+
+      const stopScan = () => {
+        clearTimeout(scanTimer)
+        scanTimer = null
+        if(stream) {
+          stream.getTracks().forEach(track => track.stop())
+          stream = null
+        }
+        video.srcObject = null
+      }
+
+      // Cứ 0,25 giây đọc 1 lần cho đến khi thấy mã vạch
+      const detectLoop = async () => {
+        if(!stream) return
+        try {
+          if(video.readyState >= 2) {
+            const codeList = await detector.detect(video)
+            const code = codeList.map(item => item.rawValue).find(value => value)
+            if(code && stream) {
+              stopScan()
+              message.textContent = `${searchText.scanFound} ${code}`
+              if(navigator.vibrate) navigator.vibrate(80)
+              location.href = searchUrl(code)
+              return
+            }
+          }
+        } catch (error) {
+          // khung hình lỗi thì đọc khung tiếp theo
+        }
+        scanTimer = setTimeout(detectLoop, 250)
+      }
+
+      scanButton.addEventListener("click", async () => {
+        setOpen(false)
+        message.textContent = hintText
+        message.classList.remove("is-error")
+        scanDialog.showModal()
+
+        try {
+          detector = detector || new window.BarcodeDetector({ formats: formatList })
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "environment" } }, // camera sau
+            audio: false
+          })
+          // Khách đã đóng khung trong lúc chờ cho phép dùng camera
+          if(!scanDialog.open) {
+            stopScan()
+            return
+          }
+          video.srcObject = stream
+          await video.play()
+          detectLoop()
+        } catch (error) {
+          stopScan()
+          message.textContent = error.name === "NotAllowedError" ? searchText.scanErrorPermission
+            : (error.name === "NotFoundError" || error.name === "OverconstrainedError") ? searchText.scanErrorNoCamera
+            : searchText.errorGeneral
+          message.classList.add("is-error")
+        }
+      })
+
+      scanDialog.querySelector("[scan-close]").addEventListener("click", () => scanDialog.close())
+      // Bấm ra ngoài khung thì đóng
+      scanDialog.addEventListener("click", (event) => {
+        if(event.target === scanDialog) scanDialog.close()
+      })
+      // Đóng khung (nút ✕, phím Esc, nút Back) thì tắt camera
+      scanDialog.addEventListener("close", stopScan)
+    }).catch(() => {})
+  }
+}
+// Hết Tìm kiếm nâng cao
