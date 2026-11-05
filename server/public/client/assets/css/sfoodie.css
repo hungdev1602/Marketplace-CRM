@@ -5356,3 +5356,958 @@ a.sf-sd-note b {
         width: 100%;
     }
 }
+
+/*===========================
+    ĐẶT HÀNG, ĐƠN HÀNG
+    Trang đặt hàng (pages/checkout.pug), trang đơn hàng (pages/order-detail.pug), đơn hàng của tài khoản (pages/account-orders.pug)
+===========================*/
+/* Giao diện mẫu (style.css) đặt màu xám, cỡ chữ 16px cho mọi thẻ span: chữ trong nút, bước đơn hàng lấy theo thẻ cha */
+.sf-btn span,
+.sf-order-steps li > span:not(.sf-order-step-icon) {
+    font: inherit;
+    color: inherit;
+}
+
+.sf-checkout-alert {
+    margin-bottom: 24px;
+}
+
+.sf-checkout-box h2 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sf-step-num {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 2px solid var(--sf-black);
+    border-radius: 50%;
+    background: var(--sf-cyan);
+    color: var(--sf-black) !important;
+    font-family: var(--sf-font-heading);
+    font-size: 15px !important;
+}
+
+.sf-checkout-login {
+    margin: -6px 0 16px !important;
+    font-size: 14.5px !important;
+    color: var(--sf-muted) !important;
+}
+
+.sf-checkout-login a {
+    margin-left: 4px;
+    font-weight: 800;
+    color: var(--sf-cyan-dark) !important;
+}
+
+.sf-checkout-login a:hover {
+    text-decoration: underline;
+}
+
+/* Ô chọn dạng thẻ (cách giao hàng, hãng vận chuyển, điểm nhận hàng): ẩn nút tròn, cả thẻ là vùng bấm */
+.sf-choice,
+.sf-option,
+.sf-point {
+    position: relative;
+    display: block;
+    margin: 0;
+    cursor: pointer;
+}
+
+.sf-choice input,
+.sf-option input,
+.sf-point input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sf-delivery-types {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.sf-choice-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    height: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--sf-line);
+    border-radius: 16px;
+    background: var(--sf-surface);
+    transition: border-color .15s ease, background-color .15s ease;
+}
+
+.sf-choice-box > i {
+    margin-top: 3px;
+    font-size: 18px;
+    color: var(--sf-cyan-dark);
+}
+
+.sf-choice-box b {
+    display: block;
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--sf-ink);
+}
+
+.sf-choice-box small {
+    display: block;
+    margin-top: 2px;
+    font-size: 13.5px;
+    line-height: 1.4;
+    color: var(--sf-muted);
+}
+
+.sf-choice:hover .sf-choice-box,
+.sf-option:hover .sf-option-box,
+.sf-point:hover .sf-point-box {
+    border-color: var(--sf-cyan-soft);
+}
+
+.sf-choice input:checked + .sf-choice-box,
+.sf-option input:checked + .sf-option-box,
+.sf-point input:checked + .sf-point-box {
+    border-color: var(--sf-outline);
+    background: var(--sf-cyan-light);
+    box-shadow: 3px 3px 0 var(--sf-cyan);
+}
+
+.sf-choice input:focus-visible + .sf-choice-box,
+.sf-option input:focus-visible + .sf-option-box,
+.sf-point input:focus-visible + .sf-point-box {
+    outline: 3px solid var(--sf-cyan-soft);
+    outline-offset: 2px;
+}
+
+.sf-courier-fields {
+    margin-top: 16px;
+}
+
+.sf-checkout-box .sf-field {
+    margin-bottom: 0;
+}
+
+.sf-delivery-calc {
+    margin-top: 18px;
+}
+
+.sf-delivery-calc:disabled {
+    opacity: .6;
+    cursor: wait;
+}
+
+.sf-form-message.is-warning {
+    background: var(--sf-amber-light);
+    color: var(--sf-amber) !important;
+}
+
+.sf-form-message.is-info {
+    background: var(--sf-soft);
+    color: var(--sf-text) !important;
+}
+
+.sf-delivery-options,
+.sf-delivery-points {
+    margin-top: 22px;
+}
+
+.sf-delivery-options h3,
+.sf-delivery-points h3 {
+    margin-bottom: 12px;
+    font-family: var(--sf-font-body);
+    font-size: 17px;
+    font-weight: 900;
+    color: var(--sf-ink);
+}
+
+.sf-option-list {
+    display: grid;
+    gap: 10px;
+}
+
+.sf-option-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 16px;
+    border: 2px solid var(--sf-line);
+    border-radius: 14px;
+    background: var(--sf-surface);
+    transition: border-color .15s ease, background-color .15s ease;
+}
+
+.sf-option-main,
+.sf-option-side {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.sf-option-side {
+    flex: 0 0 auto;
+    align-items: flex-end;
+    text-align: right;
+}
+
+.sf-option-box b {
+    font-size: 15.5px;
+    font-weight: 900;
+    color: var(--sf-ink);
+}
+
+.sf-option-box b.sf-free {
+    color: var(--sf-green);
+}
+
+.sf-option-box small {
+    font-size: 13.5px;
+    color: var(--sf-muted);
+}
+
+.sf-point-search {
+    position: relative;
+    margin-bottom: 8px;
+}
+
+.sf-point-search i {
+    position: absolute;
+    top: 50%;
+    left: 16px;
+    color: var(--sf-muted);
+    transform: translateY(-50%);
+}
+
+.sf-point-search input {
+    width: 100%;
+    height: 46px;
+    padding: 0 16px 0 42px;
+    border: 2px solid var(--sf-line);
+    border-radius: 14px;
+    background: var(--sf-surface);
+    color: var(--sf-ink);
+    font-family: var(--sf-font-body);
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.sf-point-search input:focus {
+    border-color: var(--sf-cyan-dark);
+}
+
+.sf-point-count {
+    margin-bottom: 8px !important;
+    font-size: 13.5px !important;
+    color: var(--sf-muted) !important;
+}
+
+.sf-point-list {
+    display: grid;
+    gap: 8px;
+    max-height: 420px;
+    margin: 0;
+    padding: 2px 6px 6px 2px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.sf-point-box {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 14px;
+    border: 2px solid var(--sf-line);
+    border-radius: 12px;
+    background: var(--sf-surface);
+    transition: border-color .15s ease, background-color .15s ease;
+}
+
+.sf-point-box b {
+    font-size: 14.5px;
+    font-weight: 800;
+    color: var(--sf-ink);
+}
+
+.sf-point-box small {
+    font-size: 13px;
+    color: var(--sf-muted);
+}
+
+.sf-comment-field {
+    margin-top: 20px;
+}
+
+.sf-field textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--sf-line);
+    border-radius: 14px;
+    background: var(--sf-surface);
+    color: var(--sf-ink);
+    font-family: var(--sf-font-body);
+    font-size: 16px;
+    font-weight: 600;
+    resize: vertical;
+}
+
+.sf-field textarea:focus {
+    border-color: var(--sf-cyan-dark);
+}
+
+.sf-checkout-box .sf-cold-note {
+    margin-top: 20px !important;
+}
+
+.sf-pay-method {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 16px;
+    border: 2px solid var(--sf-outline);
+    border-radius: 16px;
+    background: var(--sf-cyan-light);
+}
+
+.sf-pay-method > i {
+    margin-top: 3px;
+    font-size: 20px;
+    color: var(--sf-cyan-dark);
+}
+
+.sf-pay-method b {
+    display: block;
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--sf-ink);
+}
+
+.sf-pay-method p {
+    margin-top: 2px !important;
+    font-size: 14px !important;
+    line-height: 1.5;
+    color: var(--sf-text) !important;
+}
+
+.sf-pay-note,
+.sf-test-note {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px !important;
+    font-size: 14px !important;
+    line-height: 1.5;
+    color: var(--sf-muted) !important;
+}
+
+.sf-pay-note i {
+    margin-top: 3px;
+    color: var(--sf-cyan-dark);
+}
+
+.sf-test-note {
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: var(--sf-amber-light);
+    font-weight: 700 !important;
+    color: var(--sf-amber) !important;
+}
+
+.sf-test-note i {
+    margin-top: 3px;
+}
+
+/* Khung tổng tiền ở trang đặt hàng */
+.sf-checkout-items {
+    display: grid;
+    gap: 10px;
+    max-height: 300px;
+    margin: 0 0 14px;
+    padding: 0 4px 12px 0;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--sf-line);
+}
+
+.sf-checkout-items li {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+}
+
+.sf-checkout-item-img {
+    position: relative;
+    display: block;
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: var(--sf-img-bg);
+}
+
+.sf-checkout-item-img img {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    object-fit: contain;
+}
+
+.sf-checkout-item-qty {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--sf-inverse-bg);
+    color: var(--sf-inverse-text) !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    line-height: 20px;
+    text-align: center;
+}
+
+.sf-checkout-item-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--sf-text);
+}
+
+.sf-checkout-items b {
+    font-size: 14.5px;
+    font-weight: 900;
+    color: var(--sf-ink);
+    white-space: nowrap;
+}
+
+.sf-checkout-unavailable,
+.sf-checkout-coupon-warning,
+.sf-checkout-free {
+    display: flex;
+    gap: 8px;
+    margin: 0 0 12px !important;
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    line-height: 1.45;
+    color: var(--sf-amber) !important;
+}
+
+.sf-checkout-unavailable i,
+.sf-checkout-coupon-warning i,
+.sf-checkout-free i {
+    margin-top: 3px;
+}
+
+.sf-checkout-free {
+    color: var(--sf-green) !important;
+}
+
+.sf-checkout-free.is-muted {
+    color: var(--sf-muted) !important;
+}
+
+.sf-checkout-agree {
+    align-items: flex-start;
+}
+
+.sf-checkout-agree .form-check-input {
+    margin-top: 2px;
+}
+
+.sf-checkout-agree .form-check-label {
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.sf-checkout-summary .sf-checkout-btn {
+    margin-top: 14px;
+}
+
+.sf-checkout-summary .sf-continue {
+    margin-top: 14px;
+    font-size: 14.5px;
+}
+
+/* Trang đơn hàng */
+.sf-order-status-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-bottom: 14px;
+}
+
+.sf-order-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 999px;
+    background: var(--sf-soft);
+    color: var(--sf-ink) !important;
+    font-size: 14px !important;
+    font-weight: 900 !important;
+    white-space: nowrap;
+}
+
+.sf-order-badge.is-pending {
+    background: var(--sf-amber-light);
+    color: var(--sf-amber) !important;
+}
+
+.sf-order-badge.is-paid,
+.sf-order-badge.is-shipping {
+    background: var(--sf-cyan-light);
+    color: var(--sf-cyan-dark) !important;
+}
+
+.sf-order-badge.is-delivered {
+    background: var(--sf-green-light);
+    color: var(--sf-green) !important;
+}
+
+.sf-order-badge.is-returned {
+    background: var(--sf-red-light);
+    color: var(--sf-red-text) !important;
+}
+
+.sf-order-status-box .sf-order-badge {
+    padding: 6px 16px;
+    font-size: 16px !important;
+}
+
+.sf-order-substatus {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--sf-muted);
+}
+
+.sf-order-message {
+    display: flex;
+    gap: 10px;
+    font-size: 16px !important;
+    line-height: 1.55;
+    color: var(--sf-text) !important;
+}
+
+.sf-order-message i {
+    margin-top: 4px;
+}
+
+.sf-order-message.is-success i {
+    color: var(--sf-green);
+}
+
+.sf-order-message.is-warning i {
+    color: var(--sf-amber);
+}
+
+.sf-order-deadline,
+.sf-order-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px !important;
+    font-size: 14.5px !important;
+    color: var(--sf-muted) !important;
+}
+
+.sf-order-pay-btn {
+    margin-top: 16px;
+    padding: 13px 26px;
+    font-size: 16px;
+}
+
+.sf-tracking {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    margin-top: 14px;
+    padding: 12px 16px;
+    border: 2px dashed var(--sf-line);
+    border-radius: 14px;
+}
+
+.sf-tracking span {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--sf-muted);
+}
+
+.sf-tracking b {
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: .03em;
+    color: var(--sf-ink);
+    overflow-wrap: anywhere;
+}
+
+.sf-order-steps {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 26px 0 4px;
+    padding: 0;
+    list-style: none;
+    counter-reset: none;
+}
+
+.sf-order-steps li {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    font-weight: 800;
+    line-height: 1.3;
+    color: var(--sf-muted);
+    text-align: center;
+}
+
+/* Đường nối giữa các bước */
+.sf-order-steps li::before {
+    content: "";
+    position: absolute;
+    top: 19px;
+    right: 50%;
+    width: 100%;
+    height: 3px;
+    background: var(--sf-line);
+    z-index: 0;
+}
+
+.sf-order-steps li:first-child::before {
+    display: none;
+}
+
+.sf-order-steps li.is-done::before {
+    background: var(--sf-cyan);
+}
+
+.sf-order-step-icon {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--sf-line);
+    border-radius: 50%;
+    background: var(--sf-surface);
+    color: var(--sf-muted);
+}
+
+.sf-order-steps li.is-done {
+    color: var(--sf-ink);
+}
+
+.sf-order-steps li.is-done .sf-order-step-icon {
+    border-color: var(--sf-black);
+    background: var(--sf-cyan);
+    color: var(--sf-black);
+}
+
+.sf-order-steps li.is-current .sf-order-step-icon {
+    box-shadow: 0 0 0 4px var(--sf-cyan-soft);
+}
+
+.sf-account-box h2 .sf-order-count {
+    margin-left: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--sf-muted);
+}
+
+.sf-order-items li {
+    display: grid;
+    grid-template-columns: 60px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--sf-line);
+}
+
+.sf-order-items li:last-child {
+    border-bottom: 0;
+}
+
+.sf-order-item-img {
+    display: block;
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background: var(--sf-img-bg);
+}
+
+.sf-order-item-img img {
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    object-fit: contain;
+}
+
+.sf-order-item-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.sf-order-item-info a,
+.sf-order-item-info span {
+    font-size: 15.5px;
+    font-weight: 800;
+    color: var(--sf-ink) !important;
+}
+
+.sf-order-item-info a:hover {
+    color: var(--sf-cyan-dark) !important;
+}
+
+.sf-order-item-info small {
+    font-size: 14px;
+    color: var(--sf-muted);
+}
+
+.sf-order-items b {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--sf-ink);
+    white-space: nowrap;
+}
+
+.sf-order-side h3 {
+    margin: 0 0 10px;
+    font-family: var(--sf-font-body);
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--sf-ink);
+}
+
+.sf-order-side h3 + dl {
+    margin-bottom: 18px;
+}
+
+.sf-order-info {
+    margin: 0;
+}
+
+.sf-order-info > div {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--sf-line);
+}
+
+.sf-order-info dt {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--sf-muted);
+}
+
+.sf-order-info dd {
+    margin: 2px 0 0;
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1.45;
+    color: var(--sf-ink);
+    overflow-wrap: anywhere;
+}
+
+.sf-order-info dd small {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--sf-muted);
+}
+
+.sf-order-side .sf-summary-total {
+    margin-bottom: 10px;
+}
+
+.sf-order-payment-status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 14.5px !important;
+    color: var(--sf-muted) !important;
+}
+
+.sf-order-payment-status b {
+    color: var(--sf-ink);
+}
+
+.sf-order-payment-status b.is-succeeded {
+    color: var(--sf-green);
+}
+
+.sf-order-payment-status b.is-pending,
+.sf-order-payment-status b.is-canceled {
+    color: var(--sf-amber);
+}
+
+.sf-order-save-link {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px !important;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: var(--sf-cyan-light);
+    font-size: 13.5px !important;
+    line-height: 1.5;
+    color: var(--sf-text) !important;
+}
+
+.sf-order-save-link i {
+    margin-top: 3px;
+    color: var(--sf-cyan-dark);
+}
+
+/* Đơn hàng của tài khoản */
+.sf-order-list {
+    display: grid;
+    gap: 12px;
+    max-width: 920px;
+    margin: 0 auto 24px;
+}
+
+.sf-order-row {
+    display: flex !important;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    border: 2px solid var(--sf-line);
+    border-radius: 18px;
+    background: var(--sf-surface);
+    transition: border-color .15s ease;
+}
+
+.sf-order-row:hover {
+    border-color: var(--sf-outline);
+}
+
+.sf-order-row-main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.sf-order-row-main b {
+    font-size: 17px;
+    font-weight: 900;
+    color: var(--sf-ink);
+}
+
+.sf-order-row-main span {
+    font-size: 14px;
+    color: var(--sf-muted);
+}
+
+.sf-order-row-delivery i {
+    margin-right: 6px;
+    color: var(--sf-cyan-dark);
+}
+
+.sf-order-row-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.sf-order-row-side b {
+    font-size: 17px;
+    font-weight: 900;
+    color: var(--sf-ink);
+    white-space: nowrap;
+}
+
+.sf-order-row-arrow {
+    color: var(--sf-muted);
+}
+
+/* Trang thanh toán giả */
+.sf-test-payment {
+    grid-template-columns: minmax(0, 520px);
+    justify-content: center;
+}
+
+.sf-test-payment .sf-test-note {
+    margin: 0 0 16px !important;
+}
+
+.sf-test-payment-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+@media (max-width: 991.98px) {
+    .sf-checkout-summary {
+        position: static;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .sf-delivery-types {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sf-option-box {
+        padding: 10px 12px;
+    }
+
+    .sf-order-steps li {
+        font-size: 12px;
+    }
+
+    .sf-order-step-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 13px;
+    }
+
+    .sf-order-steps li::before {
+        top: 16px;
+    }
+
+    .sf-order-items li {
+        grid-template-columns: 48px minmax(0, 1fr);
+    }
+
+    .sf-order-item-img {
+        width: 48px;
+        height: 48px;
+    }
+
+    .sf-order-items b {
+        grid-column: 2;
+    }
+
+    .sf-order-row {
+        flex-wrap: wrap;
+        padding: 14px 16px;
+    }
+
+    .sf-order-row-side {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .sf-order-row-arrow {
+        display: none;
+    }
+}

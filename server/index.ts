@@ -12,6 +12,7 @@ import { deleteOldProductImports, stopInterruptedProductImports } from './helper
 import { scheduleDeleteOldCarts } from './helpers/cart.helper';
 import { scheduleDeleteOldWishlists } from './helpers/wishlist.helper';
 import { scheduleDeleteOldSearchQueries } from './helpers/client-search.helper';
+import { scheduleOrderJobs } from './helpers/order.helper';
 
 // Load biến môi trường env
 dotenv.config()
@@ -24,6 +25,7 @@ const port: number = 3000
 // - lượt nhập sản phẩm từ Excel đang xử lý dở (server bị tắt giữa chừng) chuyển thành thất bại, xoá lịch sử nhập file cũ
 // - bật tự động xoá giỏ hàng, danh sách yêu thích lâu không dùng
 // - bật tự động xoá từ khoá tìm kiếm lâu không ai tìm
+// - bật tự động kiểm tra thanh toán (huỷ đơn quá hạn thanh toán) và cập nhật trạng thái giao hàng từ ApiShip
 connectDB().then(() => {
   scheduleDeleteOldLogs()
   stopInterruptedProductImports()
@@ -31,6 +33,7 @@ connectDB().then(() => {
   scheduleDeleteOldCarts()
   scheduleDeleteOldWishlists()
   scheduleDeleteOldSearchQueries()
+  scheduleOrderJobs()
 })
 
 // Cho phép gửi data lên dạng json

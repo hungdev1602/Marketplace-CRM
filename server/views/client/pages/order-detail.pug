@@ -1,0 +1,205 @@
+extends ../layouts/default.pug
+include ../mixins/page-banner.pug
+
+//- Trang đơn hàng của khách: /order/:code?key=... (controller/client/order.controller.ts)
+//- YooKassa chuyển khách về trang này sau khi thanh toán
+block main
+  - const view = orderView
+  - const order = view.order
+  - const delivery = order.delivery
+  - const shipment = order.shipment || {}
+  - const steps = [{ id: "pending", text: t("stepCreated"), icon: "fas fa-receipt" }, { id: "paid", text: t("stepPaid"), icon: "fas fa-credit-card" }, { id: "shipping", text: t("stepShipping"), icon: "fas fa-truck" }, { id: "delivered", text: t("stepDelivered"), icon: "fas fa-box-open" }]
+  - const breadcrumb = clientAccount && order.userId == clientAccount.id ? [{ name: t("myOrders"), url: "/account/orders" }, { name: order.code }] : [{ name: order.code }]
+
+  +pageBanner(`${t("orderTitle")} ${order.code}`, breadcrumb)
+    p(class="sf-page-banner-sub") #{t("orderFrom")} #{view.createdAtFormat}
+
+  section(class="sf-shop sf-order-page")
+    .container
+      .row.g-4
+        .col-lg-8
+          //- Trạng thái đơn hàng
+          div(class="sf-account-box sf-order-status-box is-" + order.status)
+            div(class="sf-order-status-head")
+              span(class="sf-order-badge is-" + order.status) #{view.statusName}
+              if order.status == "shipping" && shipment.statusName
+                span(class="sf-order-substatus") #{shipment.statusName}
+
+            if order.status == "pending"
+              if order.payment.status == "canceled"
+                p(class="sf-order-message is-warning")
+                  i.fas.fa-exclamation-circle
+                  | #{t("paymentFailedText")}
+              else
+                p(class="sf-order-message") #{t("orderPendingText")}
+              if view.canPay
+                p(class="sf-order-deadline")
+                  i.far.fa-clock
+                  | #{t("payBefore")} #{view.paymentExpireFormat} #{t("mskTime")}
+                form(
+                  action=`/order/${order.code}/pay`
+                  account-form
+                  novalidate
+                  )
+                  input(
+                    type="hidden"
+                    name="key"
+                    value=accessKey
+                    )
+                  button(
+                    type="submit"
+                    class="sf-btn sf-btn-primary sf-order-pay-btn"
+                    )
+                    i.fas.fa-lock
+                    span #{t("payNow")} #{formatPrice(order.total)}
+                  p(
+                    class="sf-form-message"
+                    form-message
+                    role="alert"
+                    hidden
+                    )
+            else if order.status == "paid"
+              p(class="sf-order-message is-success")
+                i.fas.fa-check-circle
+                | #{t("orderPaidText")}
+            else if order.status == "shipping"
+              p(class="sf-order-message") #{t("orderShippingText")} #{delivery.providerName}.
+              if shipment.providerNumber
+                div(class="sf-tracking")
+                  span #{t("trackingNumber")}
+                  b #{shipment.providerNumber}
+                  if shipment.trackingUrl
+                    a(
+                      href=shipment.trackingUrl
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="sf-btn sf-btn-dark sf-btn-sm"
+                      )
+                      | #{t("trackOrder")}
+                      i.fas.fa-external-link-alt
+              else
+                p(class="sf-order-note") #{t("trackingSoon")}
+            else if order.status == "delivered"
+              p(class="sf-order-message is-success")
+                i.fas.fa-check-circle
+                | #{t("orderDeliveredText")}
+            else if order.status == "returned"
+              p(class="sf-order-message is-warning")
+                i.fas.fa-undo
+                | #{t("orderReturnedText")}
+            else if order.status == "cancelled"
+              p(class="sf-order-message is-warning")
+                i.fas.fa-times-circle
+                if order.payment.status == "refunded"
+                  | #{t("orderRefundedText")}
+                else
+                  | #{t("orderCancelledText")}
+
+            //- Thanh tiến trình
+            if order.status != "cancelled" && order.status != "returned"
+              ol(class="sf-order-steps")
+                each step, index in steps
+                  li(class=(index <= view.stepIndex ? "is-done" : "") + (index == view.stepIndex ? " is-current" : ""))
+                    span(class="sf-order-step-icon")
+                      i(class=step.icon)
+                    span #{step.text}
+
+          //- Sản phẩm
+          div(class="sf-account-box")
+            h2 #{t("orderItems")}
+              span(class="sf-order-count") #{tCount(order.totalQuantity, "productCount")}
+            ul(class="sf-order-items")
+              each item in order.items
+                li
+                  span(class="sf-order-item-img")
+                    img(
+                      src=mediaUrl(item.image)
+                      alt=""
+                      loading="lazy"
+                      )
+                  div(class="sf-order-item-info")
+                    if item.slug
+                      a(href=`/product/${item.slug}`) #{tName(item)}
+                    else
+                      span #{tName(item)}
+                    small #{formatPrice(item.price)} × #{item.quantity}
+                  b #{formatPrice(item.lineTotal)}
+
+        .col-lg-4
+          aside(class="sf-account-card sf-order-side")
+            //- Giao hàng
+            h3 #{t("delivery")}
+            dl(class="sf-order-info")
+              div
+                dt #{t("deliveryMethod")}
+                dd #{view.deliveryTypeName}
+              div
+                dt #{t("deliveryService")}
+                dd
+                  | #{delivery.providerName}
+                  if delivery.tariffName
+                    small #{delivery.tariffName}
+              if delivery.type == "point" && delivery.point
+                div
+                  dt #{t("pickupPoint")}
+                  dd
+                    | #{delivery.point.address}
+                    if delivery.point.timetable
+                      small #{delivery.point.timetable}
+              else
+                div
+                  dt #{t("deliveryAddress")}
+                  dd #{delivery.address}
+              if delivery.daysMax
+                div
+                  dt #{t("deliveryTime")}
+                  dd
+                    if delivery.daysMin && delivery.daysMin != delivery.daysMax
+                      | #{delivery.daysMin}–#{delivery.daysMax} #{tWord(delivery.daysMax, "dayCount")}
+                    else
+                      | #{delivery.daysMax} #{tWord(delivery.daysMax, "dayCount")}
+              div
+                dt #{t("recipient")}
+                dd
+                  | #{order.customer.fullName}
+                  small #{order.customer.phone}
+                  small #{order.customer.email}
+              if delivery.comment
+                div
+                  dt #{t("deliveryComment")}
+                  dd #{delivery.comment}
+
+            //- Thanh toán
+            h3 #{t("paymentTitle")}
+            dl(class="sf-summary-list")
+              div
+                dt #{t("itemsTotal")}
+                dd #{formatPrice(order.oldSubtotal || order.subtotal)}
+              if order.oldSubtotal > order.subtotal
+                div(class="is-discount")
+                  dt #{t("productDiscount")}
+                  dd −#{formatPrice(order.oldSubtotal - order.subtotal)}
+              if order.couponDiscount > 0
+                div(class="is-discount")
+                  dt #{t("coupon")} #{order.couponCode}
+                  dd −#{formatPrice(order.couponDiscount)}
+              div
+                dt #{t("delivery")}
+                dd
+                  if order.deliveryCost > 0
+                    | #{formatPrice(order.deliveryCost)}
+                  else
+                    span(class="sf-free") #{t("free")}
+            div(class="sf-summary-total")
+              span #{t("total")}
+              b #{formatPrice(order.total)}
+            p(class="sf-order-payment-status")
+              | #{t("paymentStatus")}:
+              b(class="is-" + order.payment.status) #{view.paymentStatusName}
+            if view.paidAtFormat
+              p(class="sf-order-note") #{t("paidAt")} #{view.paidAtFormat}
+
+            if !clientAccount
+              p(class="sf-order-save-link")
+                i.far.fa-bookmark
+                | #{t("orderSaveLink")}

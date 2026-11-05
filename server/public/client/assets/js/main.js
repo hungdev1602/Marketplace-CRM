@@ -1468,3 +1468,374 @@ if(searchBox) {
   }
 }
 // Hết Tìm kiếm nâng cao
+
+// ===== Trang đặt hàng (/checkout: views/client/pages/checkout.pug) =====
+// 1. Khách chọn giao tận cửa / giao tới điểm nhận hàng, nhập địa chỉ, bấm "Рассчитать доставку"
+//    => server hỏi ApiShip giá của các hãng vận chuyển (POST /checkout/delivery), hiện danh sách để chọn
+// 2. Giao tới điểm nhận hàng: chọn hãng xong thì tải danh sách điểm nhận hàng của hãng (GET /checkout/points)
+// 3. Bấm "Перейти к оплате": gửi đơn hàng (POST /checkout), server trả về link trang thanh toán YooKassa
+// Giá giao hàng không gửi từ trình duyệt lên: server lưu kết quả tính phí (quoteId), khách chỉ gửi số thứ tự hãng đã chọn
+const checkoutForm = document.querySelector("[checkout-form]")
+if(checkoutForm) {
+  let checkoutText = {}
+  try {
+    checkoutText = JSON.parse(document.querySelector("[checkout-text]").textContent)
+  } catch (error) {}
+
+  const goodsTotal = Number(checkoutForm.getAttribute("data-goods-total")) || 0
+  const courierFields = checkoutForm.querySelector("[checkout-courier-fields]")
+  const calcButton = checkoutForm.querySelector("[checkout-calc]")
+  const deliveryMessage = checkoutForm.querySelector("[checkout-delivery-message]")
+  const optionsBox = checkoutForm.querySelector("[checkout-options]")
+  const optionList = checkoutForm.querySelector("[checkout-option-list]")
+  const pointsBox = checkoutForm.querySelector("[checkout-points]")
+  const pointSearch = checkoutForm.querySelector("[checkout-point-search]")
+  const pointCount = checkoutForm.querySelector("[checkout-point-count]")
+  const pointList = checkoutForm.querySelector("[checkout-point-list]")
+  const quoteInput = checkoutForm.querySelector("[name='quoteId']")
+  const optionInput = checkoutForm.querySelector("[name='optionIndex']")
+  const pointInput = checkoutForm.querySelector("[name='pointId']")
+  const commentField = checkoutForm.querySelector(".sf-comment-field")
+  const deliveryCostElement = checkoutForm.querySelector("[checkout-delivery-cost]")
+  const totalElement = checkoutForm.querySelector("[checkout-total]")
+  const formMessage = checkoutForm.querySelector("[form-message]")
+  const submitButton = checkoutForm.querySelector("[type='submit']")
+  const addressNames = ["city", "region", "postIndex", "street", "house"]
+  const deliveryFieldNames = ["quoteId", "optionIndex", "pointId"]
+
+  let currentOptions = []
+  let points = []
+  let pointsRequestId = 0
+  let calcRequestId = 0
+
+  const formatPriceText = (value) => {
+    return new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(value) + " ₽"
+  }
+
+  const getDeliveryType = () => {
+    const checked = checkoutForm.querySelector("[checkout-type]:checked")
+    return checked ? checked.value : "point"
+  }
+
+  const setMessage = (element, text, type = "error") => {
+    if(!element) return
+    element.textContent = text || ""
+    element.className = `sf-form-message is-${type}`
+    element.hidden = !text
+  }
+
+  // Phí giao hàng, tổng tiền ở khung bên phải: cost = null là chưa chọn hãng
+  const setDeliverySummary = (cost) => {
+    const span = document.createElement("span")
+    if(cost === null) {
+      span.className = "sf-muted"
+      span.textContent = checkoutText.choose || ""
+    }
+    else if(cost === 0) {
+      span.className = "sf-free"
+      span.textContent = checkoutText.free || "0 ₽"
+    }
+    else {
+      span.textContent = formatPriceText(cost)
+    }
+    deliveryCostElement.replaceChildren(span)
+    totalElement.textContent = formatPriceText(Math.round((goodsTotal + (cost || 0)) * 100) / 100)
+  }
+
+  // Bỏ kết quả tính phí cũ (đổi cách giao hàng, đổi địa chỉ)
+  const resetDelivery = (message = "") => {
+    calcRequestId++
+    pointsRequestId++
+    currentOptions = []
+    points = []
+    quoteInput.value = ""
+    optionInput.value = ""
+    pointInput.value = ""
+    optionList.replaceChildren()
+    pointList.replaceChildren()
+    optionsBox.hidden = true
+    pointsBox.hidden = true
+    setDeliverySummary(null)
+    setMessage(deliveryMessage, message, "warning")
+  }
+
+  // Giao tận cửa mới cần mã bưu chính, đường, số nhà, ghi chú cho người giao hàng
+  const updateTypeFields = () => {
+    const isCourier = getDeliveryType() === "courier"
+    courierFields.hidden = !isCourier
+    if(commentField) commentField.hidden = !isCourier
+  }
+
+  const markInvalid = (name) => {
+    const input = checkoutForm.querySelector(`[name="${name}"]`)
+    if(!input) return
+
+    if(deliveryFieldNames.includes(name)) {
+      // Chưa chọn hãng / điểm nhận hàng: cuộn tới phần giao hàng
+      const target = name === "pointId" && !pointsBox.hidden ? pointsBox : calcButton
+      target.scrollIntoView({ behavior: "smooth", block: "center" })
+      return
+    }
+
+    input.setAttribute("aria-invalid", "true")
+    input.focus()
+  }
+
+  // --- Tính phí giao hàng ---
+  const calculateDelivery = async () => {
+    const requestId = ++calcRequestId
+    checkoutForm.querySelectorAll("[aria-invalid]").forEach(input => input.removeAttribute("aria-invalid"))
+    setMessage(deliveryMessage, checkoutText.loading, "info")
+    optionsBox.hidden = true
+    pointsBox.hidden = true
+    calcButton.disabled = true
+
+    const data = { deliveryType: getDeliveryType() }
+    addressNames.forEach((name) => {
+      data[name] = checkoutForm.elements[name] ? checkoutForm.elements[name].value : ""
+    })
+
+    const result = await sendJson("/checkout/delivery", "POST", data)
+    if(requestId !== calcRequestId) return
+    calcButton.disabled = false
+
+    if(result.code !== "success") {
+      resetDelivery()
+      setMessage(deliveryMessage, result.message, "error")
+      if(result.field) markInvalid(result.field)
+      if(result.reload) setTimeout(() => location.reload(), 2000)
+      return
+    }
+
+    setMessage(deliveryMessage, "")
+    quoteInput.value = result.quoteId
+    currentOptions = result.options || []
+    renderOptions()
+
+    // Chọn sẵn hãng rẻ nhất (khách đổi được)
+    if(currentOptions.length > 0) {
+      const firstInput = optionList.querySelector("input")
+      firstInput.checked = true
+      selectOption(currentOptions[0].index)
+    }
+  }
+
+  const renderOptions = () => {
+    optionList.replaceChildren()
+    currentOptions.forEach((option) => {
+      const label = document.createElement("label")
+      label.className = "sf-option"
+
+      const input = document.createElement("input")
+      input.type = "radio"
+      input.name = "deliveryOption"
+      input.value = option.index
+
+      const box = document.createElement("span")
+      box.className = "sf-option-box"
+
+      const main = document.createElement("span")
+      main.className = "sf-option-main"
+      const provider = document.createElement("b")
+      provider.textContent = option.providerName
+      const tariff = document.createElement("small")
+      tariff.textContent = option.tariffName
+      main.append(provider, tariff)
+
+      const side = document.createElement("span")
+      side.className = "sf-option-side"
+      const cost = document.createElement("b")
+      cost.textContent = option.costFormat
+      if(option.cost === 0) cost.className = "sf-free"
+      side.append(cost)
+      if(option.daysText) {
+        const days = document.createElement("small")
+        days.textContent = option.daysText
+        side.append(days)
+      }
+
+      box.append(main, side)
+      label.append(input, box)
+      optionList.append(label)
+    })
+    optionsBox.hidden = currentOptions.length === 0
+  }
+
+  const selectOption = (index) => {
+    const option = currentOptions.find(item => item.index === Number(index))
+    if(!option) return
+
+    optionInput.value = option.index
+    pointInput.value = ""
+    setDeliverySummary(option.cost)
+    setMessage(formMessage, "")
+
+    if(getDeliveryType() === "point") {
+      loadPoints(option.index)
+    }
+    else {
+      pointsBox.hidden = true
+    }
+  }
+
+  // --- Điểm nhận hàng ---
+  const loadPoints = async (index) => {
+    const requestId = ++pointsRequestId
+    points = []
+    pointsBox.hidden = false
+    pointList.replaceChildren()
+    pointSearch.value = ""
+    pointCount.textContent = checkoutText.loading || ""
+
+    let result
+    try {
+      const response = await fetch(`/checkout/points?quoteId=${encodeURIComponent(quoteInput.value)}&option=${index}`, {
+        headers: { "Accept": "application/json" }
+      })
+      result = await response.json()
+    } catch (error) {
+      result = { code: "error", message: errorText }
+    }
+    if(requestId !== pointsRequestId) return
+
+    if(result.code !== "success") {
+      pointCount.textContent = result.message
+      return
+    }
+
+    points = result.points || []
+    renderPoints()
+  }
+
+  // Hiện tối đa 100 điểm (thành phố lớn có hàng trăm điểm), khách gõ địa chỉ để tìm
+  const renderPoints = () => {
+    const keyword = pointSearch.value.trim().toLowerCase()
+    const list = keyword
+      ? points.filter(point => `${point.address} ${point.name} ${point.code}`.toLowerCase().includes(keyword))
+      : points
+
+    pointList.replaceChildren()
+    if(list.length === 0) {
+      pointCount.textContent = checkoutText.noPoints || ""
+      return
+    }
+
+    pointCount.textContent = `${checkoutText.pointCount || ""} ${list.length}` + (list.length > 100 ? `. ${checkoutText.pointMore || ""}` : "")
+
+    list.slice(0, 100).forEach((point) => {
+      const item = document.createElement("li")
+      const label = document.createElement("label")
+      label.className = "sf-point"
+
+      const input = document.createElement("input")
+      input.type = "radio"
+      input.name = "deliveryPoint"
+      input.value = point.id
+      input.checked = pointInput.value === `${point.id}`
+
+      const box = document.createElement("span")
+      box.className = "sf-point-box"
+      const address = document.createElement("b")
+      address.textContent = point.address
+      box.append(address)
+      if(point.name && point.name !== point.address) {
+        const name = document.createElement("small")
+        name.textContent = point.name
+        box.append(name)
+      }
+      if(point.timetable) {
+        const timetable = document.createElement("small")
+        timetable.className = "sf-point-time"
+        timetable.textContent = point.timetable
+        box.append(timetable)
+      }
+
+      label.append(input, box)
+      item.append(label)
+      pointList.append(item)
+    })
+  }
+
+  // --- Sự kiện ---
+  checkoutForm.addEventListener("change", (event) => {
+    const target = event.target
+
+    if(target.matches("[checkout-type]")) {
+      updateTypeFields()
+      resetDelivery()
+      if(checkoutForm.elements.city.value.trim().length >= 2) calculateDelivery()
+      return
+    }
+
+    if(target.name === "deliveryOption") {
+      selectOption(target.value)
+      return
+    }
+
+    if(target.name === "deliveryPoint") {
+      pointInput.value = target.value
+      setMessage(formMessage, "")
+    }
+  })
+
+  checkoutForm.addEventListener("input", (event) => {
+    const target = event.target
+    target.removeAttribute("aria-invalid")
+
+    // Đổi địa chỉ sau khi đã tính phí: phải tính lại (phí phụ thuộc địa chỉ)
+    if(addressNames.includes(target.name) && quoteInput.value) {
+      resetDelivery(checkoutText.calcAgain)
+    }
+
+    if(target === pointSearch) {
+      renderPoints()
+    }
+  })
+
+  // Enter trong ô địa chỉ: tính phí giao hàng (không gửi đơn hàng)
+  checkoutForm.addEventListener("keydown", (event) => {
+    if(event.key !== "Enter") return
+    if(addressNames.includes(event.target.name)) {
+      event.preventDefault()
+      calculateDelivery()
+    }
+    else if(event.target === pointSearch) {
+      event.preventDefault()
+    }
+  })
+
+  calcButton.addEventListener("click", calculateDelivery)
+
+  // --- Đặt hàng ---
+  checkoutForm.addEventListener("submit", async (event) => {
+    event.preventDefault()
+    checkoutForm.querySelectorAll("[aria-invalid]").forEach(input => input.removeAttribute("aria-invalid"))
+    setMessage(formMessage, "")
+
+    const data = Object.fromEntries(new FormData(checkoutForm))
+    delete data.deliveryOption
+    delete data.deliveryPoint
+
+    submitButton.disabled = true
+    const result = await sendJson(checkoutForm.getAttribute("action"), "POST", data)
+
+    if(result.code === "success" && result.redirect) {
+      // Giữ nút bị khoá trong lúc chuyển sang trang thanh toán để khách không bấm 2 lần
+      location.href = result.redirect
+      return
+    }
+
+    submitButton.disabled = false
+    setMessage(formMessage, result.message, "error")
+    if(result.field) markInvalid(result.field)
+    if(result.recalc) resetDelivery(result.message)
+    if(result.reload) setTimeout(() => location.reload(), 2500)
+  })
+
+  updateTypeFields()
+  // Đã có địa chỉ (khách đặt hàng lần trước): tính phí luôn
+  if(!calcButton.disabled && checkoutForm.elements.city.value.trim().length >= 2) {
+    calculateDelivery()
+  }
+}
+// Hết Trang đặt hàng

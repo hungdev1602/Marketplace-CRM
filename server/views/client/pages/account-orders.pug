@@ -1,0 +1,42 @@
+extends ../layouts/default.pug
+include ../mixins/page-banner.pug
+include ../mixins/pagination.pug
+
+//- Đơn hàng của tài khoản: /account/orders (controller/client/order.controller.ts)
+block main
+  +pageBanner(t("myOrders"), [{ name: t("myAccount"), url: "/account" }, { name: t("myOrders") }])
+
+  section(class="sf-shop sf-account-page")
+    .container
+      if orderViewList.length == 0
+        div(class="sf-empty")
+          i.fas.fa-receipt
+          h3 #{t("noOrdersTitle")}
+          p #{t("noOrdersText")}
+          div(class="sf-hero-buttons justify-content-center")
+            a(
+              href="/products"
+              class="sf-btn sf-btn-primary"
+              ) #{t("goShopping")}
+      else
+        ul(class="sf-order-list")
+          each view in orderViewList
+            - const order = view.order
+            li
+              a(
+                href=view.orderUrl
+                class="sf-order-row"
+                )
+                div(class="sf-order-row-main")
+                  b #{order.code}
+                  span #{view.createdAtFormat} · #{tCount(order.totalQuantity, "productCount")}
+                  span(class="sf-order-row-delivery")
+                    i(class=order.delivery.type == "point" ? "fas fa-store" : "fas fa-truck")
+                    | #{order.delivery.providerName}
+                    if order.shipment && order.shipment.providerNumber
+                      |  · #{order.shipment.providerNumber}
+                div(class="sf-order-row-side")
+                  span(class="sf-order-badge is-" + order.status) #{view.statusName}
+                  b #{formatPrice(order.total)}
+                i(class="fas fa-chevron-right sf-order-row-arrow")
+        +pagination(pagination)

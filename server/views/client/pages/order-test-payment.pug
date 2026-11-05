@@ -1,0 +1,50 @@
+extends ../layouts/default.pug
+
+//- Trang thanh toán giả (PAYMENT_TEST_MODE=true trong file .env): chỉ để thử quy trình đặt hàng trên máy
+//- Trên server thật dùng YooKassa, trang này không mở được
+block main
+  section(class="sf-section sf-section-first sf-auth-page")
+    .container
+      div(class="sf-auth sf-test-payment")
+        div(class="sf-auth-card")
+          p(class="sf-test-note")
+            i.fas.fa-flask
+            | #{t("testPaymentNote")}
+          h1 #{t("testPaymentTitle")}
+          p(class="sf-auth-sub") #{t("orderTitle")} #{order.code}
+          div(class="sf-summary-total")
+            span #{t("total")}
+            b #{formatPrice(order.total)}
+          if canPay
+            div(class="sf-test-payment-buttons")
+              form(
+                action=`/order/${order.code}/test-payment`
+                account-form
+                novalidate
+                )
+                input(type="hidden" name="key" value=order.accessKey)
+                input(type="hidden" name="result" value="success")
+                button(
+                  type="submit"
+                  class="sf-btn sf-btn-primary"
+                  )
+                  i.fas.fa-check
+                  | #{t("testPaySuccess")}
+              form(
+                action=`/order/${order.code}/test-payment`
+                account-form
+                novalidate
+                )
+                input(type="hidden" name="key" value=order.accessKey)
+                input(type="hidden" name="result" value="cancel")
+                button(
+                  type="submit"
+                  class="sf-btn sf-btn-outline"
+                  )
+                  i.fas.fa-times
+                  | #{t("testPayCancel")}
+          else
+            a(
+              href=`/order/${order.code}?key=${order.accessKey}`
+              class="sf-btn sf-btn-dark"
+              ) #{t("backToOrder")}

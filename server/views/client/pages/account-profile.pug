@@ -35,10 +35,11 @@ block main
                   if wishlistCount > 0
                     b #{wishlistCount}
               li
-                span(class="is-disabled")
+                a(href="/account/orders")
                   i.fas.fa-receipt
                   span #{t("myOrders")}
-                  small #{t("ordersSoon")}
+                  if orderCount > 0
+                    b #{orderCount}
             form(
               action="/account/logout"
               method="POST"

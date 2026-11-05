@@ -2327,3 +2327,117 @@ if(listDashboardChart.length > 0) {
   })
 }
 // End Biểu đồ trang tổng quan
+
+// Trang chi tiết đơn hàng (views/admin/pages/order-detail.pug)
+// Nút [order-action]: gửi data-api (JSON), xong thì tải lại trang và hiện thông báo
+// - data-confirm: hỏi lại trước khi làm
+// - data-reason: hỏi thêm lý do (huỷ đơn)
+// - data-pickup-date: gửi kèm ngày giao hàng cho hãng vận chuyển (ô [order-pickup-date])
+// - data-open-url: server trả về { url } thì mở link trong tab mới (phiếu gửi hàng)
+const listOrderAction = document.querySelectorAll("[order-action]")
+listOrderAction.forEach(button => {
+  button.addEventListener("click", async () => {
+    const api = button.getAttribute("data-api")
+    const method = button.getAttribute("data-method") || "PATCH"
+    const confirmText = button.getAttribute("data-confirm")
+    const body = {}
+
+    if(button.hasAttribute("data-pickup-date")) {
+      const pickupDateInput = document.querySelector("[order-pickup-date]")
+      body.pickupDate = pickupDateInput ? pickupDateInput.value : ""
+    }
+
+    if(button.hasAttribute("data-reason") && typeof Swal === "undefined") {
+      const reason = prompt(`${confirmText}\n\nLý do huỷ (không bắt buộc):`, "")
+      if(reason === null) return
+      body.reason = reason
+    }
+    else if(confirmText && typeof Swal === "undefined") {
+      if(!confirm(confirmText)) return
+    }
+    else if(button.hasAttribute("data-reason")) {
+      const result = await Swal.fire({
+        title: confirmText,
+        input: "text",
+        inputPlaceholder: "Lý do huỷ (không bắt buộc), ví dụ: hết hàng, khách yêu cầu huỷ",
+        showCancelButton: true,
+        confirmButtonText: "Đồng ý",
+        cancelButtonText: "Không"
+      })
+      if(!result.isConfirmed) return
+      body.reason = result.value || ""
+    }
+    else if(confirmText) {
+      const result = await Swal.fire({
+        title: confirmText,
+        showCancelButton: true,
+        confirmButtonText: "Đồng ý",
+        cancelButtonText: "Không"
+      })
+      if(!result.isConfirmed) return
+    }
+
+    // Mở sẵn tab mới ngay khi bấm (trình duyệt chặn mở tab sau khi chờ server trả lời)
+    const newTab = button.hasAttribute("data-open-url") ? window.open("", "_blank") : null
+
+    button.disabled = true
+    const originalHtml = button.innerHTML
+    button.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Đang xử lý...`
+
+    try {
+      const response = await fetch(api, {
+        method: method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      })
+      const data = await response.json()
+
+      if(data.code === "success") {
+        if(data.url) {
+          if(newTab) newTab.location.href = data.url
+          else window.open(data.url, "_blank")
+          button.disabled = false
+          button.innerHTML = originalHtml
+          return
+        }
+        drawNotify("success", data.message)
+        return
+      }
+
+      if(newTab) newTab.close()
+      notyf.error(data.message)
+    } catch (error) {
+      if(newTab) newTab.close()
+      notyf.error("Có lỗi xảy ra, vui lòng thử lại!")
+    }
+
+    button.disabled = false
+    button.innerHTML = originalHtml
+  })
+})
+
+// Ghi chú nội bộ của đơn hàng
+const orderNoteForm = document.querySelector("[order-note-form]")
+if(orderNoteForm) {
+  orderNoteForm.addEventListener("submit", async (event) => {
+    event.preventDefault()
+    const submitButton = orderNoteForm.querySelector("[type='submit']")
+    submitButton.disabled = true
+
+    try {
+      const response = await fetch(orderNoteForm.getAttribute("data-api"), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminNote: orderNoteForm.adminNote.value })
+      })
+      const data = await response.json()
+      if(data.code === "success") notyf.success(data.message)
+      else notyf.error(data.message)
+    } catch (error) {
+      notyf.error("Có lỗi xảy ra, vui lòng thử lại!")
+    }
+
+    submitButton.disabled = false
+  })
+}
+// End Trang chi tiết đơn hàng

@@ -1,0 +1,109 @@
+extends ../layouts/default.pug
+include ../mixins/pagination.pug
+
+block main
+  .row
+    .col-12
+      .card
+        .card-header
+          .row.align-items-center
+            .col
+              h4.card-title #{pageTitle}
+            .col-auto
+              if waitingShipmentCount > 0
+                a.btn.btn-info(href=`/${pathAdmin}/order/list?status=paid`)
+                  i.fa-solid.fa-box.me-1
+                  | #{waitingShipmentCount} đơn chờ gửi hàng
+        .card-body.pt-0
+          //- Bộ lọc
+          form.row.g-2.align-items-end.mb-3(form-filter)
+            .col-md-6.col-lg-3
+              label.form-label(for="filterKeyword") Từ khoá
+              input.form-control(
+                id="filterKeyword"
+                type="text"
+                name="keyword"
+                placeholder="Mã đơn, tên, số điện thoại, email..."
+                value=filter.keyword
+                )
+            .col-md-6.col-lg-3
+              label.form-label(for="filterStatus") Trạng thái đơn
+              select.form-select(id="filterStatus" name="status")
+                option(value="") -- Tất cả --
+                each item in options.statusList
+                  option(value=item.id selected=(item.id == filter.status)) #{item.name}
+            .col-md-6.col-lg-2
+              label.form-label(for="filterPaymentStatus") Thanh toán
+              select.form-select(id="filterPaymentStatus" name="paymentStatus")
+                option(value="") -- Tất cả --
+                each item in options.paymentStatusList
+                  option(value=item.id selected=(item.id == filter.paymentStatus)) #{item.name}
+            .col-md-6.col-lg-2
+              label.form-label(for="filterDeliveryType") Cách giao
+              select.form-select(id="filterDeliveryType" name="deliveryType")
+                option(value="") -- Tất cả --
+                each item in options.deliveryTypeList
+                  option(value=item.id selected=(item.id == filter.deliveryType)) #{item.name}
+            .col-md-12.col-lg-2
+              button.btn.btn-primary.me-1(type="submit")
+                i.fa-solid.fa-filter.me-1
+                | Lọc
+              a.btn.btn-secondary(href=`/${pathAdmin}/order/list`) Xoá lọc
+          p.text-muted.mb-2 Tìm thấy #{pagination.totalRecord} đơn hàng
+        .table-responsive
+          table.table.table-striped.mb-0.align-middle
+            thead.table-light
+              tr
+                th Mã đơn
+                th Khách hàng
+                th Giao hàng
+                th.text-end Tổng tiền
+                th Thanh toán
+                th Trạng thái
+                th.text-end Xem
+            tbody
+              if orderList.length > 0
+                each order in orderList
+                  tr
+                    td.text-nowrap
+                      a.fw-bold.font-monospace(href=`/${pathAdmin}/order/detail/${order.id}`) #{order.code}
+                      div.small.text-muted #{order.createdAtFormat}
+                    td(style="min-width: 180px;")
+                      div.fw-medium #{order.customer.fullName}
+                      div.small #{order.customer.phone}
+                      div.small.text-muted #{order.customer.email}
+                    td(style="min-width: 200px;")
+                      div
+                        i(class=order.delivery.type == "point" ? "fa-solid fa-store me-1 text-secondary" : "fa-solid fa-truck me-1 text-secondary")
+                        | #{order.delivery.providerName}
+                        span.text-muted  · #{order.delivery.tariffName}
+                      div.small.text-muted
+                        if order.delivery.type == "point" && order.delivery.point
+                          | #{order.delivery.point.address}
+                        else
+                          | #{order.delivery.address}
+                      if order.shipment && order.shipment.providerNumber
+                        div.small
+                          | Mã vận đơn:
+                          span.fw-bold.font-monospace  #{order.shipment.providerNumber}
+                    td.text-end.text-nowrap
+                      div.fw-bold #{order.totalFormat}
+                      div.small.text-muted #{order.totalQuantity} sản phẩm
+                    td
+                      span(class=`badge ${order.paymentStatusInfo.color}`) #{order.paymentStatusInfo.name}
+                    td
+                      span(class=`badge ${order.statusInfo.color}`) #{order.statusInfo.name}
+                      if order.shipment && order.shipment.error && order.status == "paid"
+                        div.small.text-danger.mt-1
+                          i.fa-solid.fa-triangle-exclamation.me-1
+                          | Lỗi vận đơn
+                    td.text-end
+                      a(
+                        href=`/${pathAdmin}/order/detail/${order.id}`
+                        title="Xem chi tiết"
+                        )
+                        i.fa-solid.fa-eye.text-secondary(style="font-size: 1.2rem;")
+              else
+                tr
+                  td(colspan=7 class="text-center") Không tìm thấy đơn hàng
+          +pagination(pagination, page)

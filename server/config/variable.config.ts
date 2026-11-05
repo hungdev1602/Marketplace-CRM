@@ -80,6 +80,18 @@ export const permissionList = [
     name: "Thùng rác mã giảm giá (khôi phục, xoá vĩnh viễn)"
   },
   {
+    id: "order-list",
+    name: "Danh sách đơn hàng (xem chi tiết đơn)"
+  },
+  {
+    id: "order-edit",
+    name: "Xử lý đơn hàng (tạo vận đơn ApiShip, cập nhật trạng thái, ghi chú)"
+  },
+  {
+    id: "order-cancel",
+    name: "Huỷ đơn hàng, hoàn tiền cho khách"
+  },
+  {
     id: "article-list",
     name: "Danh sách bài viết"
   },
@@ -195,6 +207,10 @@ export const activityLogModuleList = [
     name: "Mã giảm giá"
   },
   {
+    id: "order",
+    name: "Đơn hàng"
+  },
+  {
     id: "article",
     name: "Bài viết"
   },
@@ -298,6 +314,21 @@ export const activityLogActionList = [
     id: "export",
     name: "Xuất file Excel",
     color: "bg-secondary"
+  },
+  {
+    id: "shipment",
+    name: "Tạo / huỷ vận đơn",
+    color: "bg-primary"
+  },
+  {
+    id: "change-status",
+    name: "Đổi trạng thái",
+    color: "bg-info"
+  },
+  {
+    id: "cancel",
+    name: "Huỷ đơn / hoàn tiền",
+    color: "bg-danger"
   }
 ]
 // ===== Sản phẩm (thực phẩm châu Á bán tại Nga) =====
@@ -534,3 +565,134 @@ export const clientSearchLogRetentionDays: number = 180
 // Số giây lưu tạm danh sách danh mục, thương hiệu, từ vựng (dùng để sửa lỗi chính tả) trong bộ nhớ server
 // Sửa sản phẩm / danh mục ở trang admin thì sau tối đa chừng ấy giây khung gợi ý mới cập nhật
 export const clientSearchCacheSeconds: number = 60
+
+// ===== Đặt hàng, thanh toán, giao hàng (trang khách hàng: /checkout) =====
+// Quy trình: khách đặt hàng => thanh toán online trước (YooKassa) => cửa hàng tạo vận đơn ApiShip => gửi hàng
+// Không nhận thanh toán khi nhận hàng (COD): chưa thanh toán thì không tạo được vận đơn
+// Tài khoản, mật khẩu, khoá bí mật của ApiShip, YooKassa điền trong file .env (xem .env.example)
+
+// Giá trị đơn hàng tối thiểu (tiền hàng sau giảm giá, chưa gồm phí giao hàng), 0 là không yêu cầu
+export const checkoutMinOrderValue: number = 0
+
+// Miễn phí giao hàng cho đơn từ số tiền này (tiền hàng sau giảm giá), 0 là không áp dụng
+// (mã giảm giá loại "Miễn phí giao hàng" vẫn dùng được như bình thường)
+export const checkoutFreeDeliveryFrom: number = 0
+
+// Cộng thêm vào phí giao hàng ApiShip tính ra (₽), ví dụ tiền hộp, túi giữ lạnh, 0 là không cộng
+// Phí giao hàng khách trả luôn được làm tròn lên số rúp chẵn
+export const checkoutDeliveryMarkup: number = 0
+
+// Số phút giữ hàng cho đơn chưa thanh toán: quá thời gian này đơn tự huỷ,
+// sản phẩm trả lại kho, mã giảm giá được trả lại lượt dùng
+export const orderPaymentTimeoutMinutes: number = 60
+
+// Trạng thái đơn hàng
+// - id: giá trị lưu trong database, không đổi id đã dùng
+// - name: tên hiển thị ở trang admin, nameRu: tên hiển thị cho khách (tiếng Nga)
+// - color: màu nhãn ở trang admin (class badge của bootstrap)
+export const orderStatusList = [
+  { id: "pending", name: "Chờ thanh toán", nameRu: "Ожидает оплаты", color: "bg-warning" },
+  { id: "paid", name: "Đã thanh toán, chờ gửi hàng", nameRu: "Оплачен, готовим к отправке", color: "bg-info" },
+  { id: "shipping", name: "Đang giao hàng", nameRu: "Передан в службу доставки", color: "bg-primary" },
+  { id: "delivered", name: "Đã giao hàng", nameRu: "Доставлен", color: "bg-success" },
+  { id: "returned", name: "Bị hoàn về", nameRu: "Возвращён отправителю", color: "bg-danger" },
+  { id: "cancelled", name: "Đã huỷ", nameRu: "Отменён", color: "bg-secondary" }
+]
+
+// Trạng thái thanh toán
+export const orderPaymentStatusList = [
+  { id: "pending", name: "Chờ thanh toán", nameRu: "Ожидает оплаты", color: "bg-warning" },
+  { id: "succeeded", name: "Đã thanh toán", nameRu: "Оплачен", color: "bg-success" },
+  { id: "canceled", name: "Chưa thanh toán (huỷ / lỗi)", nameRu: "Не оплачен", color: "bg-secondary" },
+  { id: "refunded", name: "Đã hoàn tiền", nameRu: "Деньги возвращены", color: "bg-dark" }
+]
+
+// Cách giao hàng
+// - apishipType: deliveryType trong API của ApiShip (1 - giao tận cửa, 2 - giao tới điểm nhận hàng / ПВЗ)
+export const orderDeliveryTypeList = [
+  { id: "courier", name: "Giao tận cửa (курьер)", nameRu: "Курьером до двери", apishipType: 1 },
+  { id: "point", name: "Giao tới điểm nhận hàng (ПВЗ, постамат)", nameRu: "В пункт выдачи", apishipType: 2 }
+]
+
+// ===== ApiShip (kết nối các hãng vận chuyển: СДЭК, Boxberry, Почта России, 5Post, Яндекс Доставка,...) =====
+// Chỉ lấy giá của các hãng này (key của hãng trong ApiShip, ví dụ ["cdek", "boxberry"]), để trống [] là lấy tất cả hãng
+// đã kết nối trong tài khoản ApiShip
+export const apishipProviderKeys: string[] = []
+
+// Giỏ hàng có hàng bảo quản mát / đông lạnh thì chỉ cho chọn các hãng này (ví dụ hãng có xe lạnh), để trống [] là không giới hạn
+export const apishipColdProviderKeys: string[] = []
+
+// Cách giao hàng cho hãng vận chuyển (pickupType trong API ApiShip)
+// - 1: hãng cử người tới kho lấy hàng (địa chỉ kho ở apishipSender bên dưới)
+// - 2: cửa hàng tự mang hàng tới điểm nhận của hãng (cần điền apishipPointInIds)
+export const apishipPickupType: number = 1
+
+// pickupType = 2: id điểm nhận hàng (ПВЗ) mà cửa hàng tự mang hàng tới, theo từng hãng, ví dụ { cdek: 12345 }
+// (id lấy trong tài khoản ApiShip hoặc API /lists/points)
+export const apishipPointInIds: { [providerKey: string]: number } = {}
+
+// Địa chỉ kho gửi hàng + người liên hệ (in trên vận đơn, hãng vận chuyển tới đây lấy hàng)
+// Bắt buộc điền city (và nên điền đủ các ô) trước khi bán hàng thật
+export const apishipSender = {
+  countryCode: "RU",
+  postIndex: "", // mã bưu chính, ví dụ: 101000
+  region: "", // ví dụ: Москва
+  city: "Москва", // thành phố
+  street: "", // ví dụ: ул. Тверская
+  house: "", // số nhà, ví dụ: 1
+  block: "", // корпус / строение
+  office: "", // căn hộ / văn phòng / kho
+  companyName: "", // tên cửa hàng / ИП, ví dụ: ИП Иванов И.И.
+  contactName: "", // người liên hệ (họ tên)
+  phone: "", // số điện thoại, ví dụ: +79991234567
+  email: "" // email
+}
+
+// Kích thước, khối lượng mặc định của 1 sản phẩm chưa nhập "Vận chuyển" ở trang sửa sản phẩm
+export const apishipDefaultItemWeight: number = 500 // gram
+export const apishipDefaultItemSize = { length: 15, width: 10, height: 10 } // cm
+
+// Khối lượng bao bì (thùng carton, túi giữ lạnh,...) cộng thêm vào mỗi đơn (gram)
+export const apishipPackagingWeight: number = 200
+
+// Các cỡ thùng đóng hàng (cm), từ nhỏ đến lớn: chọn thùng nhỏ nhất vừa với tất cả sản phẩm trong đơn
+// Dùng để tính phí giao hàng và in trên vận đơn
+export const apishipBoxList = [
+  { length: 20, width: 15, height: 10 },
+  { length: 30, width: 20, height: 15 },
+  { length: 40, width: 30, height: 20 },
+  { length: 50, width: 40, height: 30 },
+  { length: 60, width: 40, height: 40 }
+]
+
+// Tự động tạo vận đơn ApiShip ngay khi khách thanh toán xong
+// - false (mặc định): nhân viên kiểm tra, đóng hàng rồi bấm "Tạo vận đơn" ở trang chi tiết đơn hàng (admin)
+// - true: tạo ngay sau khi thanh toán, ngày gửi hàng là ngày làm việc tiếp theo
+export const apishipAutoCreateShipment: boolean = false
+
+// Số phút giữa 2 lần tự động cập nhật trạng thái giao hàng từ ApiShip
+export const apishipStatusSyncMinutes: number = 30
+
+// ===== YooKassa (thanh toán online: thẻ ngân hàng, СБП, SberPay, ЮMoney,...) =====
+// Gửi thông tin hoá đơn điện tử (чек 54-ФЗ) cùng với yêu cầu thanh toán
+// Chỉ bật khi tài khoản YooKassa đã kết nối "Чеки от ЮKassa" hoặc máy tính tiền online,
+// nếu không YooKassa sẽ báo lỗi và khách không thanh toán được
+export const yookassaSendReceipt: boolean = false
+
+// Mã thuế VAT (vat_code) của YooKassa theo thuế VAT của sản phẩm (productVatList)
+// Kiểm tra lại với YooKassa / kế toán trước khi bật yookassaSendReceipt (mã có thể thay đổi theo luật thuế)
+export const yookassaVatCodeMap: { [vat: string]: number } = {
+  "none": 1, // без НДС
+  "0": 2, // 0%
+  "10": 3, // 10%
+  "5": 7, // 5% (УСН)
+  "7": 8, // 7% (УСН)
+  "22": 11 // 22%
+}
+
+// Mã thuế VAT của phí giao hàng trên hoá đơn (dòng "Доставка")
+export const yookassaDeliveryVatCode: number = 1
+
+// Hình thức thanh toán trên hoá đơn (payment_mode): "full_prepayment" - trả trước 100% (giao hàng sau),
+// "full_payment" - thanh toán đủ. Hỏi kế toán nên dùng loại nào
+export const yookassaReceiptPaymentMode: string = "full_prepayment"
