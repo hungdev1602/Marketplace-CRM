@@ -1,35 +1,36 @@
 import { Request, Response } from "express"
 import { Order } from "../../models/order.model"
-import { getPaymentProvider, getYookassaPaymentById } from "../../helpers/payment.helper"
+import { getPaymentProvider, getTbankPaymentState, verifyTbankNotification } from "../../helpers/payment.helper"
 import { applyPaymentInfo } from "../../helpers/order.helper"
 
-// ===== Thông báo từ YooKassa (webhook): POST /payment/yookassa =====
-// Cài trong trang YooKassa: Интеграция => HTTP-уведомления, URL: https://ten-mien-cua-ban.ru/payment/yookassa,
-// chọn sự kiện payment.succeeded, payment.canceled
-// Không tin dữ liệu trong thông báo (người lạ có thể gửi thông báo giả): chỉ lấy id thanh toán rồi hỏi lại YooKassa
-// Trả 200 để YooKassa không gửi lại; lỗi phía server (mất kết nối database, YooKassa) trả 500 để YooKassa gửi lại sau
-export const yookassaWebhook = async (req: Request, res: Response) => {
-  const paymentId = req.body?.object?.id
-  const event = `${req.body?.event || ""}`
-
-  if(getPaymentProvider() !== "yookassa" || typeof paymentId !== "string" || !/^[\w-]{10,60}$/.test(paymentId) || !event.startsWith("payment.")){
-    res.status(200).json({ code: "ignored" })
+// ===== Thông báo từ Т-Банк (webhook): POST /payment/tbank =====
+// Т-Банк gửi thông báo mỗi khi trạng thái thanh toán thay đổi, tới NotificationURL gửi kèm lúc tạo thanh toán
+// (chỉ gửi khi SITE_URL là địa chỉ https công khai), hoặc địa chỉ cài trong cài đặt terminal
+// - Kiểm tra chữ ký Token bằng mật khẩu terminal: thông báo giả (sai chữ ký) bị từ chối
+// - Lấy trạng thái mới nhất bằng GetState rồi cập nhật đơn hàng
+// - Phải trả lời đúng chữ "OK" (HTTP 200), nếu không Т-Банк sẽ gửi lại thông báo nhiều lần
+export const tbankWebhook = async (req: Request, res: Response) => {
+  if(getPaymentProvider() !== "tbank" || !verifyTbankNotification(req.body)){
+    res.status(403).send("Forbidden")
     return
   }
 
   try {
-    const order: any = await Order.findOne({ "payment.paymentId": paymentId, "payment.provider": "yookassa" })
-    if(!order){
-      res.status(200).json({ code: "ignored" })
-      return
+    const paymentId = `${req.body.PaymentId || ""}`
+    const order: any = paymentId
+      ? await Order.findOne({ "payment.paymentId": paymentId, "payment.provider": "tbank" })
+      : null
+
+    // Thanh toán không thuộc đơn nào (ví dụ thanh toán cũ đã được thay bằng lần thanh toán lại): bỏ qua
+    if(order){
+      const info = await getTbankPaymentState(paymentId)
+      await applyPaymentInfo(order, info)
     }
 
-    const payment = await getYookassaPaymentById(paymentId)
-    await applyPaymentInfo(order, payment)
-
-    res.status(200).json({ code: "success" })
+    res.status(200).type("text/plain").send("OK")
   } catch (error) {
-    console.log("Xử lý thông báo YooKassa thất bại:", (error as Error).message)
-    res.status(500).json({ code: "error" })
+    // Lỗi phía server (mất kết nối database, Т-Банк): không trả "OK" để Т-Банк gửi lại sau
+    console.log("Xử lý thông báo Т-Банк thất bại:", (error as Error).message)
+    res.status(500).send("ERROR")
   }
 }

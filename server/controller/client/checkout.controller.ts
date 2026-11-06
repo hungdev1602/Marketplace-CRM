@@ -43,7 +43,7 @@ import { normalizePhone } from "./account.controller"
 // 1. Khách nhập thông tin người nhận, chọn giao tận cửa / giao tới điểm nhận hàng, nhập địa chỉ
 // 2. Bấm "Рассчитать доставку": server hỏi ApiShip giá của các hãng vận chuyển (POST /checkout/delivery)
 // 3. Khách chọn hãng / tariff (giao tới điểm nhận hàng thì chọn thêm điểm nhận: GET /checkout/points)
-// 4. Bấm "Перейти к оплате": tạo đơn hàng, giữ hàng trong kho, chuyển khách tới trang thanh toán YooKassa (POST /checkout)
+// 4. Bấm "Перейти к оплате": tạo đơn hàng, giữ hàng trong kho, chuyển khách tới trang thanh toán Т-Банк (POST /checkout)
 // Khách phải thanh toán trước, cửa hàng mới tạo vận đơn và gửi hàng
 
 const sendError = (res: Response, key: string, field: string = "", extra: object = {}) => {
@@ -304,7 +304,7 @@ export const points = async (req: Request, res: Response) => {
 }
 
 // Đặt hàng: POST /checkout
-// Tạo đơn "Chờ thanh toán", giữ hàng trong kho, tạo thanh toán YooKassa rồi trả về link trang thanh toán (redirect)
+// Tạo đơn "Chờ thanh toán", giữ hàng trong kho, tạo thanh toán Т-Банк rồi trả về link trang thanh toán (redirect)
 // Đơn không được thanh toán trong orderPaymentTimeoutMinutes phút thì tự huỷ (helpers/order.helper.ts)
 export const orderPost = async (req: Request, res: Response) => {
   try {
@@ -552,7 +552,8 @@ export const orderPost = async (req: Request, res: Response) => {
       await Order.updateOne({ _id: order.id }, {
         $set: {
           "payment.paymentId": payment.paymentId,
-          "payment.confirmationUrl": payment.confirmationUrl
+          "payment.confirmationUrl": payment.confirmationUrl,
+          "payment.attempt": payment.attempt
         }
       })
 

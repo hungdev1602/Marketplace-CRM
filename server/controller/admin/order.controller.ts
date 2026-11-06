@@ -133,8 +133,8 @@ export const detail = async (req: Request, res: Response) => {
     return
   }
 
-  // Đơn đang chờ thanh toán YooKassa: hỏi trạng thái mới nhất
-  if(order.payment?.status === "pending" && order.payment?.provider === "yookassa"){
+  // Đơn đang chờ thanh toán Т-Банк: hỏi trạng thái mới nhất
+  if(order.payment?.status === "pending" && order.payment?.provider === "tbank"){
     await syncOrderPayment(order)
     order = await Order.findById(order.id)
   }
@@ -291,7 +291,7 @@ export const deliveredPatch = async (req: Request, res: Response) => {
   }
 }
 
-// Huỷ đơn (đã thanh toán thì hoàn tiền qua YooKassa): PATCH /admin/order/cancel/:id { reason }
+// Huỷ đơn (đã thanh toán thì hoàn tiền qua Т-Банк): PATCH /admin/order/cancel/:id { reason }
 export const cancelPatch = async (req: Request, res: Response) => {
   try {
     const order: any = await findOrder(req.params.id)

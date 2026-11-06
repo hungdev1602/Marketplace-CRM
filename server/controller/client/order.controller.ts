@@ -14,7 +14,7 @@ import {
 import * as errorController from "./error.controller"
 
 // ===== Đơn hàng của khách =====
-// - Trang đơn hàng: /order/:code?key=... (link gửi trong email, YooKassa chuyển khách về đây sau khi thanh toán)
+// - Trang đơn hàng: /order/:code?key=... (link gửi trong email, Т-Банк chuyển khách về đây sau khi thanh toán)
 //   Khách chưa đăng nhập xem đơn bằng mã bí mật key trong link, khách đã đăng nhập xem được đơn của tài khoản
 // - Danh sách đơn hàng của tài khoản: /account/orders
 
@@ -68,8 +68,8 @@ export const detail = async (req: Request, res: Response) => {
       return
     }
 
-    // Khách vừa thanh toán xong quay lại: hỏi YooKassa trạng thái mới nhất
-    if(order.payment?.status === "pending" && order.payment?.provider === "yookassa"){
+    // Khách vừa thanh toán xong quay lại: hỏi Т-Банк trạng thái mới nhất
+    if(order.payment?.status === "pending" && order.payment?.provider === "tbank"){
       await syncOrderPayment(order)
       order = await Order.findById(order.id)
     }
@@ -86,7 +86,7 @@ export const detail = async (req: Request, res: Response) => {
 }
 
 // Thanh toán (lần đầu chưa xong, hoặc thanh toán trước bị lỗi): POST /order/:code/pay { key }
-// - Thanh toán YooKassa trước đó vẫn đang chờ: mở lại đúng trang thanh toán đó (không tạo thanh toán mới)
+// - Thanh toán Т-Банк trước đó vẫn đang chờ: mở lại đúng trang thanh toán đó (không tạo thanh toán mới)
 // - Thanh toán trước bị huỷ / lỗi: tạo thanh toán mới
 export const payPost = async (req: Request, res: Response) => {
   try {
@@ -96,7 +96,7 @@ export const payPost = async (req: Request, res: Response) => {
       return
     }
 
-    if(order.payment?.status === "pending" && order.payment?.provider === "yookassa"){
+    if(order.payment?.status === "pending" && order.payment?.provider === "tbank"){
       await syncOrderPayment(order)
       order = await Order.findById(order.id)
     }
@@ -117,6 +117,7 @@ export const payPost = async (req: Request, res: Response) => {
         "payment.provider": getPaymentProvider(),
         "payment.paymentId": payment.paymentId,
         "payment.confirmationUrl": payment.confirmationUrl,
+        "payment.attempt": payment.attempt,
         "payment.status": "pending",
         "payment.cancelReason": ""
       }

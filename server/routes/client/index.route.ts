@@ -17,7 +17,7 @@ import * as errorController from "../../controller/client/error.controller"
 
 // Lưu ý: gọi clientRoute sau adminRoute (index.ts), vì cuối cùng có trang 404 bắt tất cả đường dẫn còn lại
 export const clientRoute = (app: Express) => {
-  // YooKassa báo kết quả thanh toán (webhook): không cần ngôn ngữ, tài khoản, dữ liệu chung bên dưới
+  // Т-Банк báo kết quả thanh toán (webhook): không cần ngôn ngữ, tài khoản, dữ liệu chung bên dưới
   app.use("/payment", paymentRoute)
 
   // Đổi ngôn ngữ (chỉ lưu cookie rồi chuyển trang, không cần dữ liệu bên dưới)

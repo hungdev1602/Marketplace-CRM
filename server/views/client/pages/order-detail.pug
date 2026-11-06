@@ -2,7 +2,7 @@ extends ../layouts/default.pug
 include ../mixins/page-banner.pug
 
 //- Trang đơn hàng của khách: /order/:code?key=... (controller/client/order.controller.ts)
-//- YooKassa chuyển khách về trang này sau khi thanh toán
+//- Т-Банк chuyển khách về trang này sau khi thanh toán
 block main
   - const view = orderView
   - const order = view.order

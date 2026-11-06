@@ -3,7 +3,7 @@ import * as controller from "../../controller/client/payment.controller"
 
 const router = Router()
 
-// YooKassa gửi thông báo khi thanh toán thành công / bị huỷ
-router.post("/yookassa", controller.yookassaWebhook)
+// Т-Банк gửi thông báo khi trạng thái thanh toán thay đổi (đã thanh toán, bị từ chối, hoàn tiền,...)
+router.post("/tbank", controller.tbankWebhook)
 
 export const paymentRoute = router

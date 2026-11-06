@@ -291,7 +291,7 @@ block main
             span(class=`badge ${order.paymentStatusInfo.color}`) #{order.paymentStatusInfo.name}
           div.small
             | Cổng thanh toán:
-            b  #{payment.provider == "test" ? "Thanh toán giả (thử trên máy)" : "YooKassa"}
+            b  #{payment.provider == "test" ? "Thanh toán giả (thử trên máy)" : "Т-Банк Интернет-эквайринг"}
           if payment.paymentId
             div.small.text-muted.text-break Mã giao dịch: #{payment.paymentId}
           if payment.method
@@ -332,7 +332,7 @@ block main
                 data-api=`/${pathAdmin}/order/cancel/${order.id}`
                 data-method="PATCH"
                 data-reason
-                data-confirm=(order.status == "paid" ? `Huỷ đơn và hoàn ${order.totalFormat} cho khách qua YooKassa? Sản phẩm được trả lại kho.` : "Huỷ đơn hàng chưa thanh toán? Sản phẩm được trả lại kho.")
+                data-confirm=(order.status == "paid" ? `Huỷ đơn và hoàn ${order.totalFormat} cho khách qua Т-Банк? Sản phẩm được trả lại kho.` : "Huỷ đơn hàng chưa thanh toán? Sản phẩm được trả lại kho.")
                 )
                 i.fa-solid.fa-xmark.me-1
                 | #{order.status == "paid" ? "Huỷ đơn và hoàn tiền" : "Huỷ đơn"}

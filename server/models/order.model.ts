@@ -91,8 +91,9 @@ const orderSchema = new mongoose.Schema(
 
     // Thanh toán
     payment: {
-      provider: String, // yookassa | test (thanh toán giả khi thử trên máy)
-      paymentId: String, // id giao dịch của YooKassa
+      provider: String, // tbank | test (thanh toán giả khi thử trên máy)
+      paymentId: String, // id giao dịch (PaymentId) của Т-Банк
+      attempt: Number, // số lần tạo thanh toán (mỗi lần thanh toán lại dùng mã OrderId mới gửi cho Т-Банк)
       status: {
         type: String,
         default: "pending"
@@ -102,7 +103,7 @@ const orderSchema = new mongoose.Schema(
       paidAt: Date,
       refundId: String,
       refundedAt: Date,
-      cancelReason: String // lý do thanh toán bị huỷ (YooKassa trả về)
+      cancelReason: String // lý do thanh toán không thành công (trạng thái Т-Банк trả về, ví dụ REJECTED)
     },
     paymentExpireAt: Date, // hết thời gian này chưa thanh toán thì đơn tự huỷ
 

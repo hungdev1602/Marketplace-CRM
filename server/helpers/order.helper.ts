@@ -49,7 +49,7 @@ export const isValidOrderAccessKey = (key: any): key is string => {
   return typeof key === "string" && /^[a-f0-9]{32}$/.test(key)
 }
 
-// Link xem đơn hàng của khách (gửi trong email, YooKassa chuyển khách về link này sau khi thanh toán)
+// Link xem đơn hàng của khách (gửi trong email, Т-Банк chuyển khách về link này sau khi thanh toán)
 export const getOrderUrl = (order: any, absolute: boolean = false): string => {
   return `${absolute ? getSiteUrl() : ""}/order/${order.code}?key=${order.accessKey}`
 }
@@ -194,10 +194,10 @@ export const applyPaymentInfo = async (order: any, info: PaymentInfo | null) => 
   }
 }
 
-// Hỏi trạng thái thanh toán (YooKassa) rồi cập nhật đơn hàng
+// Hỏi trạng thái thanh toán (Т-Банк) rồi cập nhật đơn hàng
 // Gọi khi khách quay lại trang đơn hàng sau khi thanh toán, và tự động mỗi phút (đơn đang chờ thanh toán)
 export const syncOrderPayment = async (order: any) => {
-  if(order.payment?.status !== "pending" || order.payment?.provider !== "yookassa") return
+  if(order.payment?.status !== "pending" || order.payment?.provider !== "tbank") return
   try {
     const info = await getPayment(order)
     await applyPaymentInfo(order, info)
@@ -210,7 +210,7 @@ export const syncOrderPayment = async (order: any) => {
 // - Đơn đang chờ thanh toán: chuyển sang "Đã thanh toán", cộng số lượng đã bán
 // - Đơn đã tự huỷ vì quá hạn nhưng khách vẫn thanh toán xong (thanh toán chậm): mở lại đơn, trừ lại tồn kho
 //   (có thể bị âm nếu hàng đã bán cho khách khác, ghi chú để nhân viên kiểm tra / hoàn tiền)
-// Dùng lệnh cập nhật có điều kiện để chỉ xử lý 1 lần (YooKassa báo về, khách mở trang đơn hàng, tự động kiểm tra cùng lúc)
+// Dùng lệnh cập nhật có điều kiện để chỉ xử lý 1 lần (Т-Банк báo về, khách mở trang đơn hàng, tự động kiểm tra cùng lúc)
 export const markOrderPaid = async (order: any, info: PaymentInfo) => {
   const paymentSet = {
     "payment.status": "succeeded",
@@ -273,7 +273,7 @@ export const markOrderPaid = async (order: any, info: PaymentInfo) => {
   }
 }
 
-// Thanh toán bị huỷ / lỗi (khách bấm huỷ, thẻ bị từ chối, hết hạn thanh toán của YooKassa)
+// Thanh toán bị huỷ / lỗi (khách bấm huỷ, thẻ bị từ chối, hết hạn link thanh toán của Т-Банк)
 // Đơn vẫn giữ trạng thái "Chờ thanh toán" để khách bấm "Оплатить" thử lại, đến hạn thanh toán thì đơn tự huỷ
 export const markPaymentCanceled = async (order: any, reason: string) => {
   await Order.updateOne({
@@ -467,8 +467,8 @@ export const cancelOrderShipment = async (order: any, by: string) => {
 
 // ===== Huỷ đơn (trang admin) =====
 // - Chưa thanh toán: huỷ, trả hàng vào kho
-// - Đã thanh toán, chưa gửi hàng: hoàn tiền cho khách qua YooKassa rồi huỷ
-// - Đang giao: phải huỷ vận đơn trước; đã giao / bị hoàn về: không huỷ được (hoàn tiền trong trang YooKassa nếu cần)
+// - Đã thanh toán, chưa gửi hàng: hoàn tiền cho khách qua Т-Банк rồi huỷ
+// - Đang giao: phải huỷ vận đơn trước; đã giao / bị hoàn về: không huỷ được (hoàn tiền trong trang Т-Бизнес nếu cần)
 export const cancelOrderByAdmin = async (order: any, reason: string, by: string) => {
   if(order.status === "pending"){
     const ok = await cancelUnpaidOrder(order, reason || "Cửa hàng huỷ đơn", by)
@@ -484,14 +484,29 @@ export const cancelOrderByAdmin = async (order: any, reason: string, by: string)
     throw new Error("Không huỷ được đơn hàng ở trạng thái này")
   }
 
-  const refund = await createRefund(order, reason)
-  if(refund.status === "canceled"){
-    throw new Error("YooKassa từ chối hoàn tiền, vui lòng hoàn tiền trong trang quản lý của YooKassa")
+  // Khoá đơn trong lúc hoàn tiền (chuyển trạng thái thanh toán sang "refunding"):
+  // bấm 2 lần / 2 nhân viên cùng bấm thì chỉ 1 lần gửi yêu cầu hoàn tiền sang Т-Банк
+  const locked = await Order.findOneAndUpdate({
+    _id: order._id,
+    status: "paid",
+    "payment.status": "succeeded"
+  }, {
+    $set: { "payment.status": "refunding" }
+  })
+  if(!locked) throw new Error("Đơn hàng đã thay đổi trạng thái, vui lòng tải lại trang")
+
+  let refund
+  try {
+    refund = await createRefund(order, reason)
+  } catch (error) {
+    await Order.updateOne({ _id: order._id, "payment.status": "refunding" }, { $set: { "payment.status": "succeeded" } })
+    throw error
   }
 
   const cancelled = await Order.findOneAndUpdate({
     _id: order._id,
-    status: "paid"
+    status: "paid",
+    "payment.status": "refunding"
   }, {
     $set: {
       status: "cancelled",
@@ -503,7 +518,7 @@ export const cancelOrderByAdmin = async (order: any, reason: string, by: string)
     $push: {
       statusHistory: historyEntry(
         "cancelled",
-        `Huỷ đơn và hoàn ${formatPrice(order.total)} cho khách${refund.status === "pending" ? " (YooKassa đang xử lý hoàn tiền)" : ""}${reason ? `. Lý do: ${reason}` : ""}`,
+        `Huỷ đơn và hoàn ${formatPrice(order.total)} cho khách${refund.status === "pending" ? " (Т-Банк đang xử lý hoàn tiền)" : ""}${reason ? `. Lý do: ${reason}` : ""}`,
         by
       )
     }
@@ -531,15 +546,15 @@ export const markOrderDelivered = async (order: any, by: string) => {
 
 // ===== Tự động chạy định kỳ =====
 // Mỗi phút:
-// - hỏi YooKassa trạng thái các thanh toán đang chờ (phòng khi YooKassa không gửi được thông báo về webhook,
+// - hỏi Т-Банк trạng thái các thanh toán đang chờ (phòng khi Т-Банк không gửi được thông báo về webhook,
 //   ví dụ chạy trên máy cá nhân không có địa chỉ công khai)
 // - huỷ đơn quá hạn thanh toán (orderPaymentTimeoutMinutes), trả hàng vào kho
 export const checkPendingPayments = async () => {
   try {
     // Thanh toán đang chờ trong 2 ngày gần đây (kể cả đơn đã tự huỷ: khách có thể thanh toán chậm)
-    if(getPaymentProvider() === "yookassa"){
+    if(getPaymentProvider() === "tbank"){
       const pendingList: any[] = await Order.find({
-        "payment.provider": "yookassa",
+        "payment.provider": "tbank",
         "payment.status": "pending",
         "payment.paymentId": { $nin: [null, ""] },
         createdAt: {

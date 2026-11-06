@@ -567,9 +567,9 @@ export const clientSearchLogRetentionDays: number = 180
 export const clientSearchCacheSeconds: number = 60
 
 // ===== Đặt hàng, thanh toán, giao hàng (trang khách hàng: /checkout) =====
-// Quy trình: khách đặt hàng => thanh toán online trước (YooKassa) => cửa hàng tạo vận đơn ApiShip => gửi hàng
+// Quy trình: khách đặt hàng => thanh toán online trước (Т-Банк) => cửa hàng tạo vận đơn ApiShip => gửi hàng
 // Không nhận thanh toán khi nhận hàng (COD): chưa thanh toán thì không tạo được vận đơn
-// Tài khoản, mật khẩu, khoá bí mật của ApiShip, YooKassa điền trong file .env (xem .env.example)
+// Tài khoản, mật khẩu của ApiShip, Т-Банк điền trong file .env (xem .env.example)
 
 // Giá trị đơn hàng tối thiểu (tiền hàng sau giảm giá, chưa gồm phí giao hàng), 0 là không yêu cầu
 export const checkoutMinOrderValue: number = 0
@@ -604,6 +604,7 @@ export const orderPaymentStatusList = [
   { id: "pending", name: "Chờ thanh toán", nameRu: "Ожидает оплаты", color: "bg-warning" },
   { id: "succeeded", name: "Đã thanh toán", nameRu: "Оплачен", color: "bg-success" },
   { id: "canceled", name: "Chưa thanh toán (huỷ / lỗi)", nameRu: "Не оплачен", color: "bg-secondary" },
+  { id: "refunding", name: "Đang hoàn tiền", nameRu: "Возврат денег обрабатывается", color: "bg-warning" },
   { id: "refunded", name: "Đã hoàn tiền", nameRu: "Деньги возвращены", color: "bg-dark" }
 ]
 
@@ -673,26 +674,36 @@ export const apishipAutoCreateShipment: boolean = false
 // Số phút giữa 2 lần tự động cập nhật trạng thái giao hàng từ ApiShip
 export const apishipStatusSyncMinutes: number = 30
 
-// ===== YooKassa (thanh toán online: thẻ ngân hàng, СБП, SberPay, ЮMoney,...) =====
-// Gửi thông tin hoá đơn điện tử (чек 54-ФЗ) cùng với yêu cầu thanh toán
-// Chỉ bật khi tài khoản YooKassa đã kết nối "Чеки от ЮKassa" hoặc máy tính tiền online,
-// nếu không YooKassa sẽ báo lỗi và khách không thanh toán được
-export const yookassaSendReceipt: boolean = false
+// ===== Т-Банк: Интернет-эквайринг (thanh toán online: thẻ ngân hàng, СБП, T-Pay, SberPay, Mir Pay,...) =====
+// Mã terminal (TerminalKey) và mật khẩu terminal điền trong file .env (TBANK_TERMINAL_KEY, TBANK_PASSWORD)
+// Các cách thanh toán khách thấy trên trang thanh toán bật / tắt trong trang Т-Бизнес (Интернет-эквайринг => Магазины)
 
-// Mã thuế VAT (vat_code) của YooKassa theo thuế VAT của sản phẩm (productVatList)
-// Kiểm tra lại với YooKassa / kế toán trước khi bật yookassaSendReceipt (mã có thể thay đổi theo luật thuế)
-export const yookassaVatCodeMap: { [vat: string]: number } = {
-  "none": 1, // без НДС
-  "0": 2, // 0%
-  "10": 3, // 10%
-  "5": 7, // 5% (УСН)
-  "7": 8, // 7% (УСН)
-  "22": 11 // 22%
+// Gửi thông tin hoá đơn điện tử (чек 54-ФЗ) cùng với yêu cầu thanh toán
+// Chỉ bật khi cửa hàng đã kết nối máy tính tiền online (онлайн-касса) trong Интернет-эквайринг của Т-Банк,
+// nếu không Т-Банк sẽ báo lỗi và khách không thanh toán được
+export const tbankSendReceipt: boolean = false
+
+// Hệ thống thuế của ИП (in trên hoá đơn), hỏi kế toán:
+// "osn" - ОСН, "usn_income" - УСН доходы, "usn_income_outcome" - УСН доходы минус расходы, "patent" - патент
+export const tbankTaxation: string = "usn_income"
+
+// Phiên bản định dạng hoá đơn (ФФД) của máy tính tiền online: "1.2" hoặc "1.05" (xem trong cài đặt онлайн-касса)
+export const tbankFfdVersion: string = "1.2"
+
+// Thuế VAT trên hoá đơn (Tax) theo thuế VAT của sản phẩm (productVatList)
+// Kiểm tra lại với kế toán trước khi bật tbankSendReceipt
+export const tbankTaxMap: { [vat: string]: string } = {
+  "none": "none", // без НДС
+  "0": "vat0", // 0%
+  "5": "vat5", // 5% (УСН)
+  "7": "vat7", // 7% (УСН)
+  "10": "vat10", // 10%
+  "22": "vat22" // 22%
 }
 
-// Mã thuế VAT của phí giao hàng trên hoá đơn (dòng "Доставка")
-export const yookassaDeliveryVatCode: number = 1
+// Thuế VAT của phí giao hàng trên hoá đơn (dòng "Доставка")
+export const tbankDeliveryTax: string = "none"
 
-// Hình thức thanh toán trên hoá đơn (payment_mode): "full_prepayment" - trả trước 100% (giao hàng sau),
+// Hình thức thanh toán trên hoá đơn (PaymentMethod): "full_prepayment" - trả trước 100% (giao hàng sau),
 // "full_payment" - thanh toán đủ. Hỏi kế toán nên dùng loại nào
-export const yookassaReceiptPaymentMode: string = "full_prepayment"
+export const tbankReceiptPaymentMethod: string = "full_prepayment"

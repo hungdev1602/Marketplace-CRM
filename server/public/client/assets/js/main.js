@@ -1473,7 +1473,7 @@ if(searchBox) {
 // 1. Khách chọn giao tận cửa / giao tới điểm nhận hàng, nhập địa chỉ, bấm "Рассчитать доставку"
 //    => server hỏi ApiShip giá của các hãng vận chuyển (POST /checkout/delivery), hiện danh sách để chọn
 // 2. Giao tới điểm nhận hàng: chọn hãng xong thì tải danh sách điểm nhận hàng của hãng (GET /checkout/points)
-// 3. Bấm "Перейти к оплате": gửi đơn hàng (POST /checkout), server trả về link trang thanh toán YooKassa
+// 3. Bấm "Перейти к оплате": gửi đơn hàng (POST /checkout), server trả về link trang thanh toán Т-Банк
 // Giá giao hàng không gửi từ trình duyệt lên: server lưu kết quả tính phí (quoteId), khách chỉ gửi số thứ tự hãng đã chọn
 const checkoutForm = document.querySelector("[checkout-form]")
 if(checkoutForm) {
