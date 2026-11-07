@@ -8,6 +8,8 @@ import {
   apishipProviderKeys,
   checkoutDeliveryMarkup,
   checkoutFreeDeliveryFrom,
+  checkoutMapAttribution,
+  checkoutMapTileUrl,
   checkoutMinOrderValue,
   orderDeliveryTypeList,
   orderPaymentTimeoutMinutes
@@ -145,7 +147,9 @@ export const index = async (req: Request, res: Response) => {
     belowMinOrder: checkoutMinOrderValue > 0 && cartView.total < checkoutMinOrderValue,
     paymentProvider: paymentProvider,
     canOrder: !!paymentProvider && isApishipConfigured(),
-    paymentTimeoutMinutes: orderPaymentTimeoutMinutes
+    paymentTimeoutMinutes: orderPaymentTimeoutMinutes,
+    mapTileUrl: checkoutMapTileUrl,
+    mapAttribution: checkoutMapAttribution
   })
 }
 
@@ -294,7 +298,9 @@ export const points = async (req: Request, res: Response) => {
         name: point.name,
         address: point.address,
         timetable: point.timetable,
-        code: point.code
+        code: point.code,
+        lat: point.lat, // toạ độ để hiện trên bản đồ (null nếu ApiShip không có toạ độ)
+        lng: point.lng
       }))
     })
   } catch (error) {

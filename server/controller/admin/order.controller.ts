@@ -12,7 +12,7 @@ import {
 import { formatPrice } from "../../helpers/format.helper"
 import { formatShopDateTime } from "../../helpers/coupon.helper"
 import { writeLog } from "../../helpers/activity-log.helper"
-import { getNextPickupDate, getWaybills, isApishipConfigured, isApishipTest } from "../../helpers/apiship.helper"
+import { getNextPickupDate, getOrderProviderName, getWaybills, isApishipConfigured, isApishipTest } from "../../helpers/apiship.helper"
 import { getPaymentProvider } from "../../helpers/payment.helper"
 import {
   buildOrderKeywordFind,
@@ -56,6 +56,7 @@ const addOrderDisplayInfo = (order: any) => {
   order.statusInfo = orderStatusList.find(item => item.id === order.status) || orderStatusList[0]
   order.paymentStatusInfo = orderPaymentStatusList.find(item => item.id === order.payment?.status) || orderPaymentStatusList[0]
   order.deliveryTypeInfo = orderDeliveryTypeList.find(item => item.id === order.delivery?.type)
+  order.providerNameText = getOrderProviderName(order.delivery)
   order.createdAtFormat = formatShopDateTime(order.createdAt)
   order.totalFormat = formatPrice(order.total)
 }
@@ -190,7 +191,7 @@ export const shipmentPost = async (req: Request, res: Response) => {
     await writeLog(req, res, {
       module: "order",
       action: "shipment",
-      description: `Tạo vận đơn ApiShip cho đơn hàng ${order.code} (${order.delivery.providerName})`,
+      description: `Tạo vận đơn ApiShip cho đơn hàng ${order.code} (${getOrderProviderName(order.delivery)})`,
       targetId: order.id
     })
 

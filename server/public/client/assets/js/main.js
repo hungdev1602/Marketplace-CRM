@@ -1553,6 +1553,7 @@ if(checkoutForm) {
     pointInput.value = ""
     optionList.replaceChildren()
     pointList.replaceChildren()
+    clearPointMarkers()
     optionsBox.hidden = true
     pointsBox.hidden = true
     setDeliverySummary(null)
@@ -1678,7 +1679,7 @@ if(checkoutForm) {
     }
   }
 
-  // --- Điểm nhận hàng ---
+  // --- Điểm nhận hàng: danh sách + bản đồ ---
   const loadPoints = async (index) => {
     const requestId = ++pointsRequestId
     points = []
@@ -1686,6 +1687,7 @@ if(checkoutForm) {
     pointList.replaceChildren()
     pointSearch.value = ""
     pointCount.textContent = checkoutText.loading || ""
+    clearPointMarkers()
 
     let result
     try {
@@ -1704,16 +1706,40 @@ if(checkoutForm) {
     }
 
     points = result.points || []
-    renderPoints()
+    renderPoints({ fitMap: true })
   }
 
-  // Hiện tối đa 100 điểm (thành phố lớn có hàng trăm điểm), khách gõ địa chỉ để tìm
-  const renderPoints = () => {
+  const hasCoords = (point) => typeof point.lat === "number" && typeof point.lng === "number"
+
+  // Khoảng cách gần đúng (km) từ vị trí của khách tới 1 điểm, để xếp điểm gần trước
+  const distanceTo = (point) => {
+    if(!userLatLng || !hasCoords(point)) return Infinity
+    const toRad = Math.PI / 180
+    const x = (point.lng - userLatLng[1]) * toRad * Math.cos((point.lat + userLatLng[0]) / 2 * toRad)
+    const y = (point.lat - userLatLng[0]) * toRad
+    return Math.sqrt(x * x + y * y) * 6371
+  }
+
+  // Điểm đang hiện: lọc theo từ khoá tìm kiếm, khách đã bấm "Рядом со мной" thì xếp điểm gần trước
+  const getVisiblePoints = () => {
     const keyword = pointSearch.value.trim().toLowerCase()
     const list = keyword
       ? points.filter(point => `${point.address} ${point.name} ${point.code}`.toLowerCase().includes(keyword))
-      : points
+      : [...points]
+    if(userLatLng) list.sort((a, b) => distanceTo(a) - distanceTo(b))
+    return list
+  }
 
+  // - fitMap: phóng bản đồ vừa các điểm đang hiện (lần đầu tải điểm, khi gõ tìm kiếm)
+  const renderPoints = (options = {}) => {
+    const list = getVisiblePoints()
+    renderPointList(list)
+    renderPointMap(list, options.fitMap)
+  }
+
+  // Danh sách: hiện tối đa 100 điểm (thành phố lớn có hàng trăm điểm), khách gõ địa chỉ để tìm hoặc chọn trên bản đồ
+  // - selectedFirst: đưa điểm đang chọn lên đầu danh sách (khách vừa chọn trên bản đồ)
+  const renderPointList = (list, selectedFirst = false) => {
     pointList.replaceChildren()
     if(list.length === 0) {
       pointCount.textContent = checkoutText.noPoints || ""
@@ -1721,6 +1747,11 @@ if(checkoutForm) {
     }
 
     pointCount.textContent = `${checkoutText.pointCount || ""} ${list.length}` + (list.length > 100 ? `. ${checkoutText.pointMore || ""}` : "")
+
+    if(selectedFirst && pointInput.value) {
+      const selected = list.find(point => `${point.id}` === pointInput.value)
+      if(selected) list = [selected, ...list.filter(point => point !== selected)]
+    }
 
     list.slice(0, 100).forEach((point) => {
       const item = document.createElement("li")
@@ -1749,12 +1780,202 @@ if(checkoutForm) {
         timetable.textContent = point.timetable
         box.append(timetable)
       }
+      const distance = distanceTo(point)
+      if(Number.isFinite(distance)) {
+        const distanceText = document.createElement("small")
+        distanceText.className = "sf-point-distance"
+        distanceText.textContent = distance < 1 ? `${Math.round(distance * 1000)} м` : `${distance.toFixed(1).replace(".", ",")} км`
+        box.append(distanceText)
+      }
 
       label.append(input, box)
       item.append(label)
       pointList.append(item)
     })
   }
+
+  // Khách chọn 1 điểm (source: "list" - bấm trong danh sách, "map" - bấm trên bản đồ)
+  const selectPoint = (id, source) => {
+    const previousMarker = markerById[pointInput.value]
+    if(previousMarker) previousMarker.setStyle(markerStyle(false))
+
+    pointInput.value = `${id}`
+    setMessage(formMessage, "")
+
+    const marker = markerById[pointInput.value]
+    if(marker) {
+      marker.setStyle(markerStyle(true))
+      marker.bringToFront()
+      if(source === "list" && pointMap) {
+        pointMap.setView(marker.getLatLng(), Math.max(pointMap.getZoom(), 15))
+      }
+      marker.openPopup()
+    }
+
+    // Chọn trên bản đồ: đưa điểm lên đầu danh sách và tick chọn
+    if(source === "map") {
+      renderPointList(getVisiblePoints(), true)
+      pointList.scrollTop = 0
+    }
+  }
+
+  // --- Bản đồ điểm nhận hàng (thư viện Leaflet, bản đồ OpenStreetMap) ---
+  // Thư viện bản đồ chỉ tải khi cần (lần đầu có điểm nhận hàng có toạ độ), trang đặt hàng mở nhanh hơn
+  // ApiShip không có toạ độ của điểm nào thì ẩn bản đồ, khách chọn trong danh sách
+  const mapBox = checkoutForm.querySelector("[checkout-point-map]")
+  const mapCanvas = checkoutForm.querySelector("[checkout-point-map-canvas]")
+  const locateButton = checkoutForm.querySelector("[checkout-map-locate]")
+  const mapTiles = checkoutForm.getAttribute("data-map-tiles")
+  const mapAttribution = checkoutForm.getAttribute("data-map-attribution") || ""
+  let leafletPromise = null
+  let pointMap = null
+  let markerLayer = null
+  let userMarker = null
+  let userLatLng = null
+  let markerById = {}
+  let mapRequestId = 0
+
+  const loadLeaflet = () => {
+    if(window.L) return Promise.resolve(window.L)
+    if(!leafletPromise) {
+      leafletPromise = new Promise((resolve, reject) => {
+        const css = document.createElement("link")
+        css.rel = "stylesheet"
+        css.href = "/client/assets/libs/leaflet/leaflet.css"
+        document.head.append(css)
+
+        const script = document.createElement("script")
+        script.src = "/client/assets/libs/leaflet/leaflet.js"
+        script.onload = () => resolve(window.L)
+        script.onerror = () => {
+          leafletPromise = null
+          reject(new Error("Leaflet"))
+        }
+        document.head.append(script)
+      })
+    }
+    return leafletPromise
+  }
+
+  // Điểm trên bản đồ: chấm xanh (màu logo), điểm đang chọn to hơn, màu vàng
+  const markerStyle = (isSelected) => isSelected
+    ? { radius: 11, color: "#111417", weight: 3, fillColor: "#FFC53D", fillOpacity: 1 }
+    : { radius: 7, color: "#111417", weight: 2, fillColor: "#02CAE5", fillOpacity: 1 }
+
+  const buildPopup = (point) => {
+    const box = document.createElement("div")
+    box.className = "sf-map-popup"
+    const address = document.createElement("b")
+    address.textContent = point.address
+    box.append(address)
+    if(point.name && point.name !== point.address) {
+      const name = document.createElement("small")
+      name.textContent = point.name
+      box.append(name)
+    }
+    if(point.timetable) {
+      const timetable = document.createElement("small")
+      timetable.textContent = point.timetable
+      box.append(timetable)
+    }
+    const selected = document.createElement("span")
+    selected.className = "sf-map-popup-selected"
+    selected.textContent = `✓ ${checkoutText.selected || ""}`
+    box.append(selected)
+    return box
+  }
+
+  const clearPointMarkers = () => {
+    mapRequestId++
+    if(markerLayer) markerLayer.clearLayers()
+    markerById = {}
+  }
+
+  const renderPointMap = async (list, fit) => {
+    const requestId = ++mapRequestId
+
+    if(!mapTiles || !points.some(hasCoords)) {
+      mapBox.hidden = true
+      return
+    }
+
+    let L
+    try {
+      L = await loadLeaflet()
+    } catch (error) {
+      mapBox.hidden = true
+      return
+    }
+    if(requestId !== mapRequestId) return
+
+    // Hiện khung bản đồ trước khi tạo bản đồ (Leaflet cần biết kích thước khung)
+    mapBox.hidden = false
+    const located = list.filter(hasCoords)
+
+    if(!pointMap) {
+      pointMap = L.map(mapCanvas, {
+        preferCanvas: true, // vẽ hàng trăm điểm nhanh hơn
+        scrollWheelZoom: false
+      })
+      // Dòng ghi nguồn bản đồ: chỉ chữ "Leaflet" (bỏ biểu tượng cờ mặc định của thư viện)
+      pointMap.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>')
+      L.tileLayer(mapTiles, { maxZoom: 19, attribution: mapAttribution }).addTo(pointMap)
+      markerLayer = L.layerGroup().addTo(pointMap)
+
+      // Lăn chuột chỉ phóng to / thu nhỏ bản đồ sau khi khách bấm vào bản đồ (không cản trở cuộn trang)
+      pointMap.on("click focus", () => pointMap.scrollWheelZoom.enable())
+      pointMap.on("blur mouseout", () => pointMap.scrollWheelZoom.disable())
+
+      const allLocated = points.filter(hasCoords)
+      pointMap.fitBounds(L.latLngBounds(allLocated.map(point => [point.lat, point.lng])), { padding: [24, 24], maxZoom: 15 })
+    }
+    pointMap.invalidateSize()
+
+    markerLayer.clearLayers()
+    markerById = {}
+    located.forEach((point) => {
+      const marker = L.circleMarker([point.lat, point.lng], markerStyle(pointInput.value === `${point.id}`))
+      marker.bindPopup(() => buildPopup(point), { closeButton: false })
+      marker.on("click", () => selectPoint(point.id, "map"))
+      markerLayer.addLayer(marker)
+      markerById[point.id] = marker
+    })
+
+    const selectedMarker = markerById[pointInput.value]
+    if(selectedMarker) selectedMarker.bringToFront()
+
+    if(fit && located.length > 0) {
+      pointMap.fitBounds(L.latLngBounds(located.map(point => [point.lat, point.lng])), { padding: [24, 24], maxZoom: 15 })
+    }
+  }
+
+  // Nút "Рядом со мной": lấy vị trí của khách (trình duyệt hỏi khách cho phép), xếp điểm gần trước
+  locateButton.addEventListener("click", () => {
+    if(!navigator.geolocation || !pointMap || !window.L) {
+      setMessage(deliveryMessage, checkoutText.noLocation, "warning")
+      return
+    }
+
+    locateButton.disabled = true
+    navigator.geolocation.getCurrentPosition((position) => {
+      locateButton.disabled = false
+      setMessage(deliveryMessage, "")
+      userLatLng = [position.coords.latitude, position.coords.longitude]
+
+      if(userMarker) {
+        userMarker.setLatLng(userLatLng)
+      }
+      else {
+        userMarker = window.L.circleMarker(userLatLng, { radius: 8, color: "#FFFFFF", weight: 3, fillColor: "#2F80ED", fillOpacity: 1, interactive: false }).addTo(pointMap)
+      }
+      pointMap.setView(userLatLng, 14)
+      renderPointList(getVisiblePoints())
+      pointList.scrollTop = 0
+    }, () => {
+      locateButton.disabled = false
+      setMessage(deliveryMessage, checkoutText.noLocation, "warning")
+    }, { timeout: 10000, maximumAge: 10 * 60 * 1000 })
+  })
 
   // --- Sự kiện ---
   checkoutForm.addEventListener("change", (event) => {
@@ -1773,8 +1994,7 @@ if(checkoutForm) {
     }
 
     if(target.name === "deliveryPoint") {
-      pointInput.value = target.value
-      setMessage(formMessage, "")
+      selectPoint(target.value, "list")
     }
   })
 
@@ -1787,8 +2007,9 @@ if(checkoutForm) {
       resetDelivery(checkoutText.calcAgain)
     }
 
+    // Gõ tìm điểm nhận hàng: lọc danh sách và điểm trên bản đồ, phóng bản đồ vừa các điểm tìm được
     if(target === pointSearch) {
-      renderPoints()
+      renderPoints({ fitMap: true })
     }
   })
 

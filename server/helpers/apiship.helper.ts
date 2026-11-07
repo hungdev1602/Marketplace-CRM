@@ -172,8 +172,16 @@ export const getProviderNames = async (): Promise<{ [key: string]: string }> => 
   return names
 }
 
+// Tên hãng hiển thị cho khách: hãng quen thuộc dùng tên có sẵn ở trên (ví dụ "СДЭК" thay vì "cdek"),
+// hãng khác dùng tên ApiShip trả về
 export const getProviderName = (names: { [key: string]: string }, key: string): string => {
-  return names[key] || defaultProviderNames[key] || key.toUpperCase()
+  return defaultProviderNames[key] || names[key] || key.toUpperCase()
+}
+
+// Tên hãng của đơn hàng đã lưu (đơn cũ có thể lưu tên dạng "cdek")
+export const getOrderProviderName = (delivery: any): string => {
+  const key = `${delivery?.providerKey || ""}`
+  return defaultProviderNames[key] || delivery?.providerName || key
 }
 
 // ===== Kiện hàng: khối lượng, kích thước =====

@@ -578,6 +578,11 @@ export const checkoutMinOrderValue: number = 0
 // (mã giảm giá loại "Miễn phí giao hàng" vẫn dùng được như bình thường)
 export const checkoutFreeDeliveryFrom: number = 0
 
+// Bản đồ chọn điểm nhận hàng (ПВЗ) ở trang đặt hàng: thư viện Leaflet + bản đồ OpenStreetMap (miễn phí, không cần khoá API)
+// Muốn dùng bản đồ khác (có link dạng .../{z}/{x}/{y}.png) thì đổi link và dòng ghi nguồn bản đồ bên dưới
+export const checkoutMapTileUrl: string = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+export const checkoutMapAttribution: string = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
+
 // Cộng thêm vào phí giao hàng ApiShip tính ra (₽), ví dụ tiền hộp, túi giữ lạnh, 0 là không cộng
 // Phí giao hàng khách trả luôn được làm tròn lên số rúp chẵn
 export const checkoutDeliveryMarkup: number = 0
@@ -616,9 +621,10 @@ export const orderDeliveryTypeList = [
 ]
 
 // ===== ApiShip (kết nối các hãng vận chuyển: СДЭК, Boxberry, Почта России, 5Post, Яндекс Доставка,...) =====
-// Chỉ lấy giá của các hãng này (key của hãng trong ApiShip, ví dụ ["cdek", "boxberry"]), để trống [] là lấy tất cả hãng
-// đã kết nối trong tài khoản ApiShip
-export const apishipProviderKeys: string[] = []
+// Chỉ lấy giá của các hãng này (key của hãng trong ApiShip), để trống [] là lấy tất cả hãng đã kết nối trong tài khoản ApiShip
+// - "cdek": СДЭК, "yataxi": Яндекс Доставка, "rupost": Почта России
+// - hãng khác, ví dụ: "boxberry": Boxberry, "x5": 5Post, "dpd": DPD (danh sách đầy đủ: https://docs.apiship.ru/docs/delivery-services/list-delivery-services/)
+export const apishipProviderKeys: string[] = ["cdek", "yataxi", "rupost"]
 
 // Giỏ hàng có hàng bảo quản mát / đông lạnh thì chỉ cho chọn các hãng này (ví dụ hãng có xe lạnh), để trống [] là không giới hạn
 export const apishipColdProviderKeys: string[] = []

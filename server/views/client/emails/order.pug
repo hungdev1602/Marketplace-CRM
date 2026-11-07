@@ -45,7 +45,7 @@ html(lang=lang)
             if type == "shipped"
               tr
                 td(style="padding:0 32px 8px;font-size:15px;line-height:1.6;")
-                  p(style="margin:0 0 6px;") #{t("deliveryService")}: #{delivery.providerName}
+                  p(style="margin:0 0 6px;") #{t("deliveryService")}: #{providerName}
                   if shipment.providerNumber
                     p(style="margin:0 0 6px;")
                       | #{t("trackingNumber")}:
@@ -77,7 +77,7 @@ html(lang=lang)
                         td(style="padding:8px 0;color:#B42318;") #{t("coupon")} #{order.couponCode}
                         td(align="right" style="padding:8px 0 8px 12px;color:#B42318;white-space:nowrap;") −#{formatPrice(order.couponDiscount)}
                     tr
-                      td(style="padding:8px 0;") #{t("delivery")} (#{delivery.providerName})
+                      td(style="padding:8px 0;") #{t("delivery")} (#{providerName})
                       td(align="right" style="padding:8px 0 8px 12px;white-space:nowrap;") #{order.deliveryCost > 0 ? formatPrice(order.deliveryCost) : t("free")}
                     tr
                       td(style="padding:10px 0;font-size:16px;font-weight:bold;") #{t("total")}

@@ -59,7 +59,7 @@ block main
               div.fw-medium #{order.deliveryTypeInfo ? order.deliveryTypeInfo.name : delivery.type}
             .col-md-6
               div.text-muted.small Hãng vận chuyển / tariff
-              div.fw-medium #{delivery.providerName}
+              div.fw-medium #{order.providerNameText}
                 span.text-muted  · #{delivery.tariffName} (id #{delivery.tariffId})
             if delivery.type == "point" && delivery.point
               .col-md-6

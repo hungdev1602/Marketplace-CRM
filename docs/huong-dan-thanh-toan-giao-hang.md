@@ -48,6 +48,10 @@ Cùng phần đó còn có các tuỳ chọn: miễn phí giao hàng từ bao nh
 
 Ở trang sửa sản phẩm, nên nhập phần **Vận chuyển** (khối lượng cả bao bì, kích thước) để phí giao hàng tính đúng.
 
+**Hãng vận chuyển:** hiện chỉ dùng 3 hãng — СДЭК (`cdek`), Яндекс Доставка (`yataxi`), Почта России (`rupost`) — trong `apishipProviderKeys` (`variable.config.ts`). Muốn thêm / bớt hãng thì sửa danh sách này (để trống `[]` là dùng tất cả hãng đã kết nối trong ApiShip). Khi bán thật, mỗi hãng phải được kết nối trong tài khoản ApiShip thì mới có giá.
+
+**Bản đồ điểm nhận hàng:** khi khách chọn giao tới điểm nhận hàng và chọn hãng, trang đặt hàng hiện bản đồ các điểm (ПВЗ) của hãng đó: bấm vào điểm trên bản đồ hoặc chọn trong danh sách, nút «Рядом со мной» xếp các điểm gần khách lên trước. Bản đồ dùng OpenStreetMap, miễn phí, không cần khoá API (đổi bản đồ khác ở `checkoutMapTileUrl`). Điểm nào ApiShip không có toạ độ thì chỉ hiện trong danh sách.
+
 ## Bước 4 — Chạy và thử
 
 ```bash

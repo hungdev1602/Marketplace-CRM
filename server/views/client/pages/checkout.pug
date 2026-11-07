@@ -8,7 +8,7 @@ block main
   - const view = cartView
   - const coupon = view.coupon
   - const couponOk = coupon && !coupon.errorKey
-  - const checkoutText = { free: t("free"), days: t("deliveryDays"), loading: t("loading"), noPoints: t("pointNotFound"), pointCount: t("pointCount"), selected: t("selected"), choose: t("deliveryNotChosen"), calcAgain: t("deliveryAddressChanged"), pointMore: t("pointMore") }
+  - const checkoutText = { free: t("free"), days: t("deliveryDays"), loading: t("loading"), noPoints: t("pointNotFound"), pointCount: t("pointCount"), selected: t("selected"), choose: t("deliveryNotChosen"), calcAgain: t("deliveryAddressChanged"), pointMore: t("pointMore"), noLocation: t("mapNoLocation") }
 
   +pageBanner(t("checkoutTitle"), [{ name: t("cart"), url: "/cart" }, { name: t("checkoutTitle") }])
 
@@ -39,6 +39,8 @@ block main
         checkout-form
         novalidate
         data-goods-total=view.total
+        data-map-tiles=mapTileUrl
+        data-map-attribution=mapAttribution
         )
         .row.g-4
           .col-lg-8
@@ -134,32 +136,55 @@ block main
                   aria-label=t("deliveryChooseTitle")
                   )
 
-              //- Điểm nhận hàng (giao tới điểm nhận hàng)
+              //- Điểm nhận hàng (giao tới điểm nhận hàng): bản đồ + danh sách, chọn ở đâu cũng được
+              //- main.js tải thư viện bản đồ Leaflet khi cần (lần đầu hiện danh sách điểm có toạ độ)
               div(
                 class="sf-delivery-points"
                 checkout-points
                 hidden
                 )
                 h3 #{t("pointChooseTitle")}
-                div(class="sf-point-search")
-                  i.fas.fa-search
-                  input(
-                    type="search"
-                    checkout-point-search
-                    placeholder=t("pointSearch")
-                    aria-label=t("pointSearch")
-                    autocomplete="off"
+                p(class="sf-point-hint") #{t("pointMapHint")}
+                div(class="sf-points-layout")
+                  div(
+                    class="sf-point-map"
+                    checkout-point-map
+                    hidden
                     )
-                p(
-                  class="sf-point-count"
-                  checkout-point-count
-                  )
-                ul(
-                  class="sf-point-list"
-                  checkout-point-list
-                  role="radiogroup"
-                  aria-label=t("pointChooseTitle")
-                  )
+                    div(
+                      class="sf-point-map-canvas"
+                      checkout-point-map-canvas
+                      role="application"
+                      aria-label=t("pointMap")
+                      )
+                    button(
+                      type="button"
+                      class="sf-map-locate"
+                      checkout-map-locate
+                      title=t("mapNearMe")
+                      )
+                      i.fas.fa-location-arrow
+                      span #{t("mapNearMe")}
+                  div(class="sf-point-side")
+                    div(class="sf-point-search")
+                      i.fas.fa-search
+                      input(
+                        type="search"
+                        checkout-point-search
+                        placeholder=t("pointSearch")
+                        aria-label=t("pointSearch")
+                        autocomplete="off"
+                        )
+                    p(
+                      class="sf-point-count"
+                      checkout-point-count
+                      )
+                    ul(
+                      class="sf-point-list"
+                      checkout-point-list
+                      role="radiogroup"
+                      aria-label=t("pointChooseTitle")
+                      )
 
               input(type="hidden" name="quoteId")
               input(type="hidden" name="optionIndex")

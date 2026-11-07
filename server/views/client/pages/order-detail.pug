@@ -63,7 +63,7 @@ block main
                 i.fas.fa-check-circle
                 | #{t("orderPaidText")}
             else if order.status == "shipping"
-              p(class="sf-order-message") #{t("orderShippingText")} #{delivery.providerName}.
+              p(class="sf-order-message") #{t("orderShippingText")} #{view.providerName}.
               if shipment.providerNumber
                 div(class="sf-tracking")
                   span #{t("trackingNumber")}
@@ -136,7 +136,7 @@ block main
               div
                 dt #{t("deliveryService")}
                 dd
-                  | #{delivery.providerName}
+                  | #{view.providerName}
                   if delivery.tariffName
                     small #{delivery.tariffName}
               if delivery.type == "point" && delivery.point

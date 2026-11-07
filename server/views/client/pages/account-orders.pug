@@ -32,7 +32,7 @@ block main
                   span #{view.createdAtFormat} · #{tCount(order.totalQuantity, "productCount")}
                   span(class="sf-order-row-delivery")
                     i(class=order.delivery.type == "point" ? "fas fa-store" : "fas fa-truck")
-                    | #{order.delivery.providerName}
+                    | #{view.providerName}
                     if order.shipment && order.shipment.providerNumber
                       |  · #{order.shipment.providerNumber}
                 div(class="sf-order-row-side")

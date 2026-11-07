@@ -18,6 +18,7 @@ import {
   createShipment,
   getNextPickupDate,
   getShipmentStatus,
+  getOrderProviderName,
   getShipmentStatuses,
   isApishipConfigured
 } from "./apiship.helper"
@@ -351,7 +352,7 @@ export const createOrderShipment = async (order: any, pickupDate: string, by: st
       },
       $unset: { "shipment.lockedAt": "" },
       $push: {
-        statusHistory: historyEntry("shipping", `Tạo vận đơn ApiShip #${orderId} (${order.delivery.providerName}), ngày gửi hàng ${pickupDate}`, by)
+        statusHistory: historyEntry("shipping", `Tạo vận đơn ApiShip #${orderId} (${getOrderProviderName(order.delivery)}), ngày gửi hàng ${pickupDate}`, by)
       }
     })
 
@@ -636,6 +637,7 @@ const renderEmail = (order: any, type: "paid" | "shipped"): { subject: string, h
     order: order,
     type: type,
     orderUrl: orderUrl,
+    providerName: getOrderProviderName(order.delivery),
     subject: subject
   })
 
@@ -646,7 +648,7 @@ const renderEmail = (order: any, type: "paid" | "shipped"): { subject: string, h
     `${t("orderNumber")}: ${order.code}`
   ]
   if(type === "shipped"){
-    lines.push(`${t("deliveryService")}: ${order.delivery.providerName}`)
+    lines.push(`${t("deliveryService")}: ${getOrderProviderName(order.delivery)}`)
     if(order.shipment?.providerNumber) lines.push(`${t("trackingNumber")}: ${order.shipment.providerNumber}`)
     if(order.shipment?.trackingUrl) lines.push(order.shipment.trackingUrl)
   }
@@ -677,7 +679,7 @@ export const sendOrderPaidEmails = async (order: any) => {
       `Đơn hàng mới đã thanh toán: ${order.code}`,
       `Khách hàng: ${order.customer.fullName}, ${order.customer.phone}, ${order.customer.email}`,
       `Tổng tiền: ${formatPrice(order.total)} (phí giao hàng ${formatPrice(order.deliveryCost)})`,
-      `Giao hàng: ${order.delivery.providerName} — ${order.delivery.tariffName}`,
+      `Giao hàng: ${getOrderProviderName(order.delivery)} — ${order.delivery.tariffName}`,
       deliveryText,
       "",
       ...order.items.map((item: any) => `- ${item.name} × ${item.quantity} = ${formatPrice(item.lineTotal)}`),

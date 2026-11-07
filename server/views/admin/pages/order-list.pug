@@ -75,7 +75,7 @@ block main
                     td(style="min-width: 200px;")
                       div
                         i(class=order.delivery.type == "point" ? "fa-solid fa-store me-1 text-secondary" : "fa-solid fa-truck me-1 text-secondary")
-                        | #{order.delivery.providerName}
+                        | #{order.providerNameText}
                         span.text-muted  · #{order.delivery.tariffName}
                       div.small.text-muted
                         if order.delivery.type == "point" && order.delivery.point

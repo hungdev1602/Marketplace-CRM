@@ -5574,6 +5574,155 @@ a.sf-sd-note b {
     color: var(--sf-muted);
 }
 
+/* Điểm nhận hàng: bản đồ + danh sách (màn hình lớn: 2 cột, bản đồ bên phải; nhỏ hơn: bản đồ trên, danh sách dưới) */
+.sf-point-hint {
+    margin: -4px 0 12px !important;
+    font-size: 14px !important;
+    color: var(--sf-muted) !important;
+}
+
+.sf-points-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+}
+
+.sf-point-map {
+    position: relative;
+    height: 320px;
+    border: 2px solid var(--sf-line);
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--sf-soft);
+}
+
+.sf-point-map[hidden] {
+    display: none;
+}
+
+.sf-point-map-canvas {
+    width: 100%;
+    height: 100%;
+    font-family: var(--sf-font-body);
+}
+
+/* Giao diện tối: đảo màu nền bản đồ cho tối theo (điểm, khung thông tin giữ nguyên màu) */
+:root[data-theme="dark"] .sf-point-map .leaflet-tile-pane {
+    filter: invert(1) hue-rotate(180deg) brightness(.9) contrast(.9);
+}
+
+.sf-map-locate {
+    position: absolute;
+    right: 10px;
+    bottom: 26px;
+    z-index: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border: 2px solid var(--sf-black);
+    border-radius: 999px;
+    background: #FFFFFF;
+    color: var(--sf-black);
+    font-family: var(--sf-font-body);
+    font-size: 13.5px;
+    font-weight: 800;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
+    cursor: pointer;
+}
+
+.sf-map-locate span {
+    font: inherit;
+    color: inherit;
+}
+
+.sf-map-locate:hover {
+    background: var(--sf-cyan);
+}
+
+.sf-map-locate:disabled {
+    opacity: .6;
+    cursor: wait;
+}
+
+.sf-map-popup {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 180px;
+    font-family: var(--sf-font-body);
+}
+
+.sf-map-popup b {
+    font-size: 14px;
+    font-weight: 800;
+    color: #111417;
+}
+
+.sf-map-popup small {
+    font-size: 12.5px;
+    color: #5D6B70;
+}
+
+.sf-map-popup-selected {
+    margin-top: 4px;
+    font-size: 12.5px !important;
+    font-weight: 800 !important;
+    color: #138A4B !important;
+}
+
+.sf-point-side {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.sf-point-distance {
+    font-weight: 800;
+    color: var(--sf-cyan-dark) !important;
+}
+
+@media (min-width: 1200px) {
+    .sf-points-layout {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+        height: 440px;
+    }
+
+    .sf-point-map {
+        order: 2;
+        height: 100%;
+    }
+
+    .sf-point-side {
+        height: 100%;
+    }
+
+    .sf-point-side .sf-point-list {
+        flex: 1;
+        max-height: none;
+    }
+
+    /* Không có bản đồ: danh sách chiếm cả hàng */
+    .sf-points-layout:has(.sf-point-map[hidden]) {
+        grid-template-columns: minmax(0, 1fr);
+        height: auto;
+    }
+
+    .sf-points-layout:has(.sf-point-map[hidden]) .sf-point-list {
+        max-height: 420px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .sf-point-map {
+        height: 280px;
+    }
+
+    .sf-point-side .sf-point-list {
+        max-height: 340px;
+    }
+}
+
 .sf-point-search {
     position: relative;
     margin-bottom: 8px;
@@ -5612,6 +5761,7 @@ a.sf-sd-note b {
 
 .sf-point-list {
     display: grid;
+    align-content: start;
     gap: 8px;
     max-height: 420px;
     margin: 0;

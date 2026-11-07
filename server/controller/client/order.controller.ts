@@ -4,6 +4,7 @@ import { orderDeliveryTypeList, orderPaymentStatusList, orderStatusList } from "
 import { formatShopDateTime } from "../../helpers/coupon.helper"
 import { buildClientPagination } from "../../helpers/pagination.helper"
 import { createPayment, getPaymentProvider, PaymentError } from "../../helpers/payment.helper"
+import { getOrderProviderName } from "../../helpers/apiship.helper"
 import {
   getOrderUrl,
   isValidOrderAccessKey,
@@ -47,6 +48,7 @@ const buildOrderView = (order: any, res: Response) => {
     statusName: res.locals.tName(statusInfo),
     paymentStatusName: res.locals.tName(paymentStatusInfo),
     deliveryTypeName: deliveryTypeInfo ? res.locals.tName(deliveryTypeInfo) : "",
+    providerName: getOrderProviderName(order.delivery),
     stepIndex: orderStepList.indexOf(order.status),
     createdAtFormat: formatShopDateTime(order.createdAt, "DD.MM.YYYY HH:mm"),
     paymentExpireFormat: formatShopDateTime(order.paymentExpireAt, "DD.MM.YYYY HH:mm"),
@@ -58,8 +60,9 @@ const buildOrderView = (order: any, res: Response) => {
 
 // Trang đơn hàng: /order/:code?key=...
 export const detail = async (req: Request, res: Response) => {
-  // Link có mã bí mật: không gửi địa chỉ trang này cho trang web khác (header Referer)
-  res.set("Referrer-Policy", "no-referrer")
+  // Link có mã bí mật (?key=...): khi tải ảnh, link ngoài,... chỉ gửi tên miền (header Referer), không gửi đường dẫn có mã
+  // Không tắt hẳn Referer, vì server quản lý file chỉ trả ảnh khi Referer là tên miền của website
+  res.set("Referrer-Policy", "strict-origin")
 
   try {
     let order: any = await findCustomerOrder(req, res, req.query.key)
@@ -140,7 +143,7 @@ const findTestPaymentOrder = async (req: Request, res: Response, key: any) => {
 
 // Trang thanh toán giả: /order/:code/test-payment?key=...
 export const testPayment = async (req: Request, res: Response) => {
-  res.set("Referrer-Policy", "no-referrer")
+  res.set("Referrer-Policy", "strict-origin")
   const order: any = await findTestPaymentOrder(req, res, req.query.key)
   if(!order){
     errorController.notFound(req, res)
