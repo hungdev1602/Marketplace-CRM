@@ -4,6 +4,7 @@ import crypto from "crypto"
 import jwt from "jsonwebtoken"
 import { AccountClient } from "../../models/account-client.model"
 import { PasswordReset } from "../../models/password-reset.model"
+import { Order } from "../../models/order.model"
 import { clientLoginRememberDays, clientResetPasswordExpireMinutes, clientResetPasswordResendSeconds } from "../../config/variable.config"
 import { accountCookieName } from "../../middlewares/client/auth.middleware"
 import { mergeGuestCart } from "../../helpers/cart.helper"
@@ -45,7 +46,7 @@ const getSafeRedirect = (value: any, defaultUrl: string = "/"): string => {
 // Số Nga viết kiểu nào cũng đưa về +7..., để khách đăng nhập bằng cách viết nào cũng được:
 // "+7 (999) 123-45-67", "8 999 123-45-67", "79991234567", "9991234567" => "+79991234567"
 // Số nước khác phải có mã nước, ví dụ số Việt Nam: +84 912 345 678 => "+84912345678"
-const normalizePhone = (phone: string): string => {
+export const normalizePhone = (phone: string): string => {
   const digits = (phone || "").replace(/[^\d]/g, "")
   if(!digits) return ""
 
@@ -431,10 +432,11 @@ export const logoutPost = (req: Request, res: Response) => {
 }
 
 // Trang tài khoản: /account (phải đăng nhập)
-export const profile = (req: Request, res: Response) => {
+export const profile = async (req: Request, res: Response) => {
   res.render("client/pages/account-profile", {
     pageTitle: `${res.locals.t("myAccount")} — SFoodie`,
-    memberSince: formatShopDateTime(res.locals.clientAccount.createdAt, "DD.MM.YYYY")
+    memberSince: formatShopDateTime(res.locals.clientAccount.createdAt, "DD.MM.YYYY"),
+    orderCount: await Order.countDocuments({ userId: res.locals.clientAccount.id })
   })
 }
 

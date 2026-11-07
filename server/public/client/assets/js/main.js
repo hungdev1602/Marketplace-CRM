@@ -1468,3 +1468,595 @@ if(searchBox) {
   }
 }
 // Hết Tìm kiếm nâng cao
+
+// ===== Trang đặt hàng (/checkout: views/client/pages/checkout.pug) =====
+// 1. Khách chọn giao tận cửa / giao tới điểm nhận hàng, nhập địa chỉ, bấm "Рассчитать доставку"
+//    => server hỏi ApiShip giá của các hãng vận chuyển (POST /checkout/delivery), hiện danh sách để chọn
+// 2. Giao tới điểm nhận hàng: chọn hãng xong thì tải danh sách điểm nhận hàng của hãng (GET /checkout/points)
+// 3. Bấm "Перейти к оплате": gửi đơn hàng (POST /checkout), server trả về link trang thanh toán Т-Банк
+// Giá giao hàng không gửi từ trình duyệt lên: server lưu kết quả tính phí (quoteId), khách chỉ gửi số thứ tự hãng đã chọn
+const checkoutForm = document.querySelector("[checkout-form]")
+if(checkoutForm) {
+  let checkoutText = {}
+  try {
+    checkoutText = JSON.parse(document.querySelector("[checkout-text]").textContent)
+  } catch (error) {}
+
+  const goodsTotal = Number(checkoutForm.getAttribute("data-goods-total")) || 0
+  const courierFields = checkoutForm.querySelector("[checkout-courier-fields]")
+  const calcButton = checkoutForm.querySelector("[checkout-calc]")
+  const deliveryMessage = checkoutForm.querySelector("[checkout-delivery-message]")
+  const optionsBox = checkoutForm.querySelector("[checkout-options]")
+  const optionList = checkoutForm.querySelector("[checkout-option-list]")
+  const pointsBox = checkoutForm.querySelector("[checkout-points]")
+  const pointSearch = checkoutForm.querySelector("[checkout-point-search]")
+  const pointCount = checkoutForm.querySelector("[checkout-point-count]")
+  const pointList = checkoutForm.querySelector("[checkout-point-list]")
+  const quoteInput = checkoutForm.querySelector("[name='quoteId']")
+  const optionInput = checkoutForm.querySelector("[name='optionIndex']")
+  const pointInput = checkoutForm.querySelector("[name='pointId']")
+  const commentField = checkoutForm.querySelector(".sf-comment-field")
+  const deliveryCostElement = checkoutForm.querySelector("[checkout-delivery-cost]")
+  const totalElement = checkoutForm.querySelector("[checkout-total]")
+  const formMessage = checkoutForm.querySelector("[form-message]")
+  const submitButton = checkoutForm.querySelector("[type='submit']")
+  const addressNames = ["city", "region", "postIndex", "street", "house"]
+  const deliveryFieldNames = ["quoteId", "optionIndex", "pointId"]
+
+  let currentOptions = []
+  let points = []
+  let pointsRequestId = 0
+  let calcRequestId = 0
+
+  const formatPriceText = (value) => {
+    return new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(value) + " ₽"
+  }
+
+  const getDeliveryType = () => {
+    const checked = checkoutForm.querySelector("[checkout-type]:checked")
+    return checked ? checked.value : "point"
+  }
+
+  const setMessage = (element, text, type = "error") => {
+    if(!element) return
+    element.textContent = text || ""
+    element.className = `sf-form-message is-${type}`
+    element.hidden = !text
+  }
+
+  // Phí giao hàng, tổng tiền ở khung bên phải: cost = null là chưa chọn hãng
+  const setDeliverySummary = (cost) => {
+    const span = document.createElement("span")
+    if(cost === null) {
+      span.className = "sf-muted"
+      span.textContent = checkoutText.choose || ""
+    }
+    else if(cost === 0) {
+      span.className = "sf-free"
+      span.textContent = checkoutText.free || "0 ₽"
+    }
+    else {
+      span.textContent = formatPriceText(cost)
+    }
+    deliveryCostElement.replaceChildren(span)
+    totalElement.textContent = formatPriceText(Math.round((goodsTotal + (cost || 0)) * 100) / 100)
+  }
+
+  // Bỏ kết quả tính phí cũ (đổi cách giao hàng, đổi địa chỉ)
+  const resetDelivery = (message = "") => {
+    calcRequestId++
+    pointsRequestId++
+    currentOptions = []
+    points = []
+    quoteInput.value = ""
+    optionInput.value = ""
+    pointInput.value = ""
+    optionList.replaceChildren()
+    pointList.replaceChildren()
+    clearPointMarkers()
+    optionsBox.hidden = true
+    pointsBox.hidden = true
+    setDeliverySummary(null)
+    setMessage(deliveryMessage, message, "warning")
+  }
+
+  // Giao tận cửa mới cần mã bưu chính, đường, số nhà, ghi chú cho người giao hàng
+  const updateTypeFields = () => {
+    const isCourier = getDeliveryType() === "courier"
+    courierFields.hidden = !isCourier
+    if(commentField) commentField.hidden = !isCourier
+  }
+
+  const markInvalid = (name) => {
+    const input = checkoutForm.querySelector(`[name="${name}"]`)
+    if(!input) return
+
+    if(deliveryFieldNames.includes(name)) {
+      // Chưa chọn hãng / điểm nhận hàng: cuộn tới phần giao hàng
+      const target = name === "pointId" && !pointsBox.hidden ? pointsBox : calcButton
+      target.scrollIntoView({ behavior: "smooth", block: "center" })
+      return
+    }
+
+    input.setAttribute("aria-invalid", "true")
+    input.focus()
+  }
+
+  // --- Tính phí giao hàng ---
+  const calculateDelivery = async () => {
+    const requestId = ++calcRequestId
+    checkoutForm.querySelectorAll("[aria-invalid]").forEach(input => input.removeAttribute("aria-invalid"))
+    setMessage(deliveryMessage, checkoutText.loading, "info")
+    optionsBox.hidden = true
+    pointsBox.hidden = true
+    calcButton.disabled = true
+
+    const data = { deliveryType: getDeliveryType() }
+    addressNames.forEach((name) => {
+      data[name] = checkoutForm.elements[name] ? checkoutForm.elements[name].value : ""
+    })
+
+    const result = await sendJson("/checkout/delivery", "POST", data)
+    if(requestId !== calcRequestId) return
+    calcButton.disabled = false
+
+    if(result.code !== "success") {
+      resetDelivery()
+      setMessage(deliveryMessage, result.message, "error")
+      if(result.field) markInvalid(result.field)
+      if(result.reload) setTimeout(() => location.reload(), 2000)
+      return
+    }
+
+    setMessage(deliveryMessage, "")
+    quoteInput.value = result.quoteId
+    currentOptions = result.options || []
+    renderOptions()
+
+    // Chọn sẵn hãng rẻ nhất (khách đổi được)
+    if(currentOptions.length > 0) {
+      const firstInput = optionList.querySelector("input")
+      firstInput.checked = true
+      selectOption(currentOptions[0].index)
+    }
+  }
+
+  const renderOptions = () => {
+    optionList.replaceChildren()
+    currentOptions.forEach((option) => {
+      const label = document.createElement("label")
+      label.className = "sf-option"
+
+      const input = document.createElement("input")
+      input.type = "radio"
+      input.name = "deliveryOption"
+      input.value = option.index
+
+      const box = document.createElement("span")
+      box.className = "sf-option-box"
+
+      const main = document.createElement("span")
+      main.className = "sf-option-main"
+      const provider = document.createElement("b")
+      provider.textContent = option.providerName
+      const tariff = document.createElement("small")
+      tariff.textContent = option.tariffName
+      main.append(provider, tariff)
+
+      const side = document.createElement("span")
+      side.className = "sf-option-side"
+      const cost = document.createElement("b")
+      cost.textContent = option.costFormat
+      if(option.cost === 0) cost.className = "sf-free"
+      side.append(cost)
+      if(option.daysText) {
+        const days = document.createElement("small")
+        days.textContent = option.daysText
+        side.append(days)
+      }
+
+      box.append(main, side)
+      label.append(input, box)
+      optionList.append(label)
+    })
+    optionsBox.hidden = currentOptions.length === 0
+  }
+
+  const selectOption = (index) => {
+    const option = currentOptions.find(item => item.index === Number(index))
+    if(!option) return
+
+    optionInput.value = option.index
+    pointInput.value = ""
+    setDeliverySummary(option.cost)
+    setMessage(formMessage, "")
+
+    if(getDeliveryType() === "point") {
+      loadPoints(option.index)
+    }
+    else {
+      pointsBox.hidden = true
+    }
+  }
+
+  // --- Điểm nhận hàng: danh sách + bản đồ ---
+  const loadPoints = async (index) => {
+    const requestId = ++pointsRequestId
+    points = []
+    pointsBox.hidden = false
+    pointList.replaceChildren()
+    pointSearch.value = ""
+    pointCount.textContent = checkoutText.loading || ""
+    clearPointMarkers()
+
+    let result
+    try {
+      const response = await fetch(`/checkout/points?quoteId=${encodeURIComponent(quoteInput.value)}&option=${index}`, {
+        headers: { "Accept": "application/json" }
+      })
+      result = await response.json()
+    } catch (error) {
+      result = { code: "error", message: errorText }
+    }
+    if(requestId !== pointsRequestId) return
+
+    if(result.code !== "success") {
+      pointCount.textContent = result.message
+      return
+    }
+
+    points = result.points || []
+    renderPoints({ fitMap: true })
+  }
+
+  const hasCoords = (point) => typeof point.lat === "number" && typeof point.lng === "number"
+
+  // Khoảng cách gần đúng (km) từ vị trí của khách tới 1 điểm, để xếp điểm gần trước
+  const distanceTo = (point) => {
+    if(!userLatLng || !hasCoords(point)) return Infinity
+    const toRad = Math.PI / 180
+    const x = (point.lng - userLatLng[1]) * toRad * Math.cos((point.lat + userLatLng[0]) / 2 * toRad)
+    const y = (point.lat - userLatLng[0]) * toRad
+    return Math.sqrt(x * x + y * y) * 6371
+  }
+
+  // Điểm đang hiện: lọc theo từ khoá tìm kiếm, khách đã bấm "Рядом со мной" thì xếp điểm gần trước
+  const getVisiblePoints = () => {
+    const keyword = pointSearch.value.trim().toLowerCase()
+    const list = keyword
+      ? points.filter(point => `${point.address} ${point.name} ${point.code}`.toLowerCase().includes(keyword))
+      : [...points]
+    if(userLatLng) list.sort((a, b) => distanceTo(a) - distanceTo(b))
+    return list
+  }
+
+  // - fitMap: phóng bản đồ vừa các điểm đang hiện (lần đầu tải điểm, khi gõ tìm kiếm)
+  const renderPoints = (options = {}) => {
+    const list = getVisiblePoints()
+    renderPointList(list)
+    renderPointMap(list, options.fitMap)
+  }
+
+  // Danh sách: hiện tối đa 100 điểm (thành phố lớn có hàng trăm điểm), khách gõ địa chỉ để tìm hoặc chọn trên bản đồ
+  // - selectedFirst: đưa điểm đang chọn lên đầu danh sách (khách vừa chọn trên bản đồ)
+  const renderPointList = (list, selectedFirst = false) => {
+    pointList.replaceChildren()
+    if(list.length === 0) {
+      pointCount.textContent = checkoutText.noPoints || ""
+      return
+    }
+
+    pointCount.textContent = `${checkoutText.pointCount || ""} ${list.length}` + (list.length > 100 ? `. ${checkoutText.pointMore || ""}` : "")
+
+    if(selectedFirst && pointInput.value) {
+      const selected = list.find(point => `${point.id}` === pointInput.value)
+      if(selected) list = [selected, ...list.filter(point => point !== selected)]
+    }
+
+    list.slice(0, 100).forEach((point) => {
+      const item = document.createElement("li")
+      const label = document.createElement("label")
+      label.className = "sf-point"
+
+      const input = document.createElement("input")
+      input.type = "radio"
+      input.name = "deliveryPoint"
+      input.value = point.id
+      input.checked = pointInput.value === `${point.id}`
+
+      const box = document.createElement("span")
+      box.className = "sf-point-box"
+      const address = document.createElement("b")
+      address.textContent = point.address
+      box.append(address)
+      if(point.name && point.name !== point.address) {
+        const name = document.createElement("small")
+        name.textContent = point.name
+        box.append(name)
+      }
+      if(point.timetable) {
+        const timetable = document.createElement("small")
+        timetable.className = "sf-point-time"
+        timetable.textContent = point.timetable
+        box.append(timetable)
+      }
+      const distance = distanceTo(point)
+      if(Number.isFinite(distance)) {
+        const distanceText = document.createElement("small")
+        distanceText.className = "sf-point-distance"
+        distanceText.textContent = distance < 1 ? `${Math.round(distance * 1000)} м` : `${distance.toFixed(1).replace(".", ",")} км`
+        box.append(distanceText)
+      }
+
+      label.append(input, box)
+      item.append(label)
+      pointList.append(item)
+    })
+  }
+
+  // Khách chọn 1 điểm (source: "list" - bấm trong danh sách, "map" - bấm trên bản đồ)
+  const selectPoint = (id, source) => {
+    const previousMarker = markerById[pointInput.value]
+    if(previousMarker) previousMarker.setStyle(markerStyle(false))
+
+    pointInput.value = `${id}`
+    setMessage(formMessage, "")
+
+    const marker = markerById[pointInput.value]
+    if(marker) {
+      marker.setStyle(markerStyle(true))
+      marker.bringToFront()
+      if(source === "list" && pointMap) {
+        pointMap.setView(marker.getLatLng(), Math.max(pointMap.getZoom(), 15))
+      }
+      marker.openPopup()
+    }
+
+    // Chọn trên bản đồ: đưa điểm lên đầu danh sách và tick chọn
+    if(source === "map") {
+      renderPointList(getVisiblePoints(), true)
+      pointList.scrollTop = 0
+    }
+  }
+
+  // --- Bản đồ điểm nhận hàng (thư viện Leaflet, bản đồ OpenStreetMap) ---
+  // Thư viện bản đồ chỉ tải khi cần (lần đầu có điểm nhận hàng có toạ độ), trang đặt hàng mở nhanh hơn
+  // ApiShip không có toạ độ của điểm nào thì ẩn bản đồ, khách chọn trong danh sách
+  const mapBox = checkoutForm.querySelector("[checkout-point-map]")
+  const mapCanvas = checkoutForm.querySelector("[checkout-point-map-canvas]")
+  const locateButton = checkoutForm.querySelector("[checkout-map-locate]")
+  const mapTiles = checkoutForm.getAttribute("data-map-tiles")
+  const mapAttribution = checkoutForm.getAttribute("data-map-attribution") || ""
+  let leafletPromise = null
+  let pointMap = null
+  let markerLayer = null
+  let userMarker = null
+  let userLatLng = null
+  let markerById = {}
+  let mapRequestId = 0
+
+  const loadLeaflet = () => {
+    if(window.L) return Promise.resolve(window.L)
+    if(!leafletPromise) {
+      leafletPromise = new Promise((resolve, reject) => {
+        const css = document.createElement("link")
+        css.rel = "stylesheet"
+        css.href = "/client/assets/libs/leaflet/leaflet.css"
+        document.head.append(css)
+
+        const script = document.createElement("script")
+        script.src = "/client/assets/libs/leaflet/leaflet.js"
+        script.onload = () => resolve(window.L)
+        script.onerror = () => {
+          leafletPromise = null
+          reject(new Error("Leaflet"))
+        }
+        document.head.append(script)
+      })
+    }
+    return leafletPromise
+  }
+
+  // Điểm trên bản đồ: chấm xanh (màu logo), điểm đang chọn to hơn, màu vàng
+  const markerStyle = (isSelected) => isSelected
+    ? { radius: 11, color: "#111417", weight: 3, fillColor: "#FFC53D", fillOpacity: 1 }
+    : { radius: 7, color: "#111417", weight: 2, fillColor: "#02CAE5", fillOpacity: 1 }
+
+  const buildPopup = (point) => {
+    const box = document.createElement("div")
+    box.className = "sf-map-popup"
+    const address = document.createElement("b")
+    address.textContent = point.address
+    box.append(address)
+    if(point.name && point.name !== point.address) {
+      const name = document.createElement("small")
+      name.textContent = point.name
+      box.append(name)
+    }
+    if(point.timetable) {
+      const timetable = document.createElement("small")
+      timetable.textContent = point.timetable
+      box.append(timetable)
+    }
+    const selected = document.createElement("span")
+    selected.className = "sf-map-popup-selected"
+    selected.textContent = `✓ ${checkoutText.selected || ""}`
+    box.append(selected)
+    return box
+  }
+
+  const clearPointMarkers = () => {
+    mapRequestId++
+    if(markerLayer) markerLayer.clearLayers()
+    markerById = {}
+  }
+
+  const renderPointMap = async (list, fit) => {
+    const requestId = ++mapRequestId
+
+    if(!mapTiles || !points.some(hasCoords)) {
+      mapBox.hidden = true
+      return
+    }
+
+    let L
+    try {
+      L = await loadLeaflet()
+    } catch (error) {
+      mapBox.hidden = true
+      return
+    }
+    if(requestId !== mapRequestId) return
+
+    // Hiện khung bản đồ trước khi tạo bản đồ (Leaflet cần biết kích thước khung)
+    mapBox.hidden = false
+    const located = list.filter(hasCoords)
+
+    if(!pointMap) {
+      pointMap = L.map(mapCanvas, {
+        preferCanvas: true, // vẽ hàng trăm điểm nhanh hơn
+        scrollWheelZoom: false
+      })
+      // Dòng ghi nguồn bản đồ: chỉ chữ "Leaflet" (bỏ biểu tượng cờ mặc định của thư viện)
+      pointMap.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>')
+      L.tileLayer(mapTiles, { maxZoom: 19, attribution: mapAttribution }).addTo(pointMap)
+      markerLayer = L.layerGroup().addTo(pointMap)
+
+      // Lăn chuột chỉ phóng to / thu nhỏ bản đồ sau khi khách bấm vào bản đồ (không cản trở cuộn trang)
+      pointMap.on("click focus", () => pointMap.scrollWheelZoom.enable())
+      pointMap.on("blur mouseout", () => pointMap.scrollWheelZoom.disable())
+
+      const allLocated = points.filter(hasCoords)
+      pointMap.fitBounds(L.latLngBounds(allLocated.map(point => [point.lat, point.lng])), { padding: [24, 24], maxZoom: 15 })
+    }
+    pointMap.invalidateSize()
+
+    markerLayer.clearLayers()
+    markerById = {}
+    located.forEach((point) => {
+      const marker = L.circleMarker([point.lat, point.lng], markerStyle(pointInput.value === `${point.id}`))
+      marker.bindPopup(() => buildPopup(point), { closeButton: false })
+      marker.on("click", () => selectPoint(point.id, "map"))
+      markerLayer.addLayer(marker)
+      markerById[point.id] = marker
+    })
+
+    const selectedMarker = markerById[pointInput.value]
+    if(selectedMarker) selectedMarker.bringToFront()
+
+    if(fit && located.length > 0) {
+      pointMap.fitBounds(L.latLngBounds(located.map(point => [point.lat, point.lng])), { padding: [24, 24], maxZoom: 15 })
+    }
+  }
+
+  // Nút "Рядом со мной": lấy vị trí của khách (trình duyệt hỏi khách cho phép), xếp điểm gần trước
+  locateButton.addEventListener("click", () => {
+    if(!navigator.geolocation || !pointMap || !window.L) {
+      setMessage(deliveryMessage, checkoutText.noLocation, "warning")
+      return
+    }
+
+    locateButton.disabled = true
+    navigator.geolocation.getCurrentPosition((position) => {
+      locateButton.disabled = false
+      setMessage(deliveryMessage, "")
+      userLatLng = [position.coords.latitude, position.coords.longitude]
+
+      if(userMarker) {
+        userMarker.setLatLng(userLatLng)
+      }
+      else {
+        userMarker = window.L.circleMarker(userLatLng, { radius: 8, color: "#FFFFFF", weight: 3, fillColor: "#2F80ED", fillOpacity: 1, interactive: false }).addTo(pointMap)
+      }
+      pointMap.setView(userLatLng, 14)
+      renderPointList(getVisiblePoints())
+      pointList.scrollTop = 0
+    }, () => {
+      locateButton.disabled = false
+      setMessage(deliveryMessage, checkoutText.noLocation, "warning")
+    }, { timeout: 10000, maximumAge: 10 * 60 * 1000 })
+  })
+
+  // --- Sự kiện ---
+  checkoutForm.addEventListener("change", (event) => {
+    const target = event.target
+
+    if(target.matches("[checkout-type]")) {
+      updateTypeFields()
+      resetDelivery()
+      if(checkoutForm.elements.city.value.trim().length >= 2) calculateDelivery()
+      return
+    }
+
+    if(target.name === "deliveryOption") {
+      selectOption(target.value)
+      return
+    }
+
+    if(target.name === "deliveryPoint") {
+      selectPoint(target.value, "list")
+    }
+  })
+
+  checkoutForm.addEventListener("input", (event) => {
+    const target = event.target
+    target.removeAttribute("aria-invalid")
+
+    // Đổi địa chỉ sau khi đã tính phí: phải tính lại (phí phụ thuộc địa chỉ)
+    if(addressNames.includes(target.name) && quoteInput.value) {
+      resetDelivery(checkoutText.calcAgain)
+    }
+
+    // Gõ tìm điểm nhận hàng: lọc danh sách và điểm trên bản đồ, phóng bản đồ vừa các điểm tìm được
+    if(target === pointSearch) {
+      renderPoints({ fitMap: true })
+    }
+  })
+
+  // Enter trong ô địa chỉ: tính phí giao hàng (không gửi đơn hàng)
+  checkoutForm.addEventListener("keydown", (event) => {
+    if(event.key !== "Enter") return
+    if(addressNames.includes(event.target.name)) {
+      event.preventDefault()
+      calculateDelivery()
+    }
+    else if(event.target === pointSearch) {
+      event.preventDefault()
+    }
+  })
+
+  calcButton.addEventListener("click", calculateDelivery)
+
+  // --- Đặt hàng ---
+  checkoutForm.addEventListener("submit", async (event) => {
+    event.preventDefault()
+    checkoutForm.querySelectorAll("[aria-invalid]").forEach(input => input.removeAttribute("aria-invalid"))
+    setMessage(formMessage, "")
+
+    const data = Object.fromEntries(new FormData(checkoutForm))
+    delete data.deliveryOption
+    delete data.deliveryPoint
+
+    submitButton.disabled = true
+    const result = await sendJson(checkoutForm.getAttribute("action"), "POST", data)
+
+    if(result.code === "success" && result.redirect) {
+      // Giữ nút bị khoá trong lúc chuyển sang trang thanh toán để khách không bấm 2 lần
+      location.href = result.redirect
+      return
+    }
+
+    submitButton.disabled = false
+    setMessage(formMessage, result.message, "error")
+    if(result.field) markInvalid(result.field)
+    if(result.recalc) resetDelivery(result.message)
+    if(result.reload) setTimeout(() => location.reload(), 2500)
+  })
+
+  updateTypeFields()
+  // Đã có địa chỉ (khách đặt hàng lần trước): tính phí luôn
+  if(!calcButton.disabled && checkoutForm.elements.city.value.trim().length >= 2) {
+    calculateDelivery()
+  }
+}
+// Hết Trang đặt hàng

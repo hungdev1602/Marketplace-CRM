@@ -79,6 +79,12 @@ mixin accountLink()
           )
           i.fas.fa-user-circle
           span #{t("myAccount")}
+        a(
+          href="/account/orders"
+          class="sf-account-dropdown-item"
+          )
+          i.fas.fa-receipt
+          span #{t("myOrders")}
         //- Đăng xuất phải gửi bằng form POST (không dùng link), để trang web khác không đăng xuất được khách
         form(
           action="/account/logout"

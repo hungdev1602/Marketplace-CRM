@@ -4,6 +4,7 @@ import { pathAdmin } from "../../config/variable.config"
 import { articleRoute } from "./article.route"
 import { productRoute } from "./product.route"
 import { couponRoute } from "./coupon.route"
+import { orderRoute } from "./order.route"
 import { helperRoute } from "./helper.route"
 import { fileManagerRoute } from "./file-manager.route"
 import { roleRoute } from "./role.route"
@@ -26,6 +27,8 @@ export const adminRoute = (app: Express) => {
   app.use(`/${path}/product`, productRoute)
 
   app.use(`/${path}/coupon`, couponRoute)
+
+  app.use(`/${path}/order`, orderRoute)
 
   app.use(`/${path}/article`, articleRoute)
 

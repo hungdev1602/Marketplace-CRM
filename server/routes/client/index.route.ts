@@ -7,6 +7,9 @@ import { cartRoute } from "./cart.route"
 import { wishlistRoute } from "./wishlist.route"
 import { accountRoute } from "./account.route"
 import { searchRoute } from "./search.route"
+import { checkoutRoute } from "./checkout.route"
+import { orderRoute } from "./order.route"
+import { paymentRoute } from "./payment.route"
 import * as languageMiddleware from "../../middlewares/client/language.middleware"
 import * as layoutMiddleware from "../../middlewares/client/layout.middleware"
 import * as authMiddleware from "../../middlewares/client/auth.middleware"
@@ -14,6 +17,9 @@ import * as errorController from "../../controller/client/error.controller"
 
 // Lưu ý: gọi clientRoute sau adminRoute (index.ts), vì cuối cùng có trang 404 bắt tất cả đường dẫn còn lại
 export const clientRoute = (app: Express) => {
+  // Т-Банк báo kết quả thanh toán (webhook): không cần ngôn ngữ, tài khoản, dữ liệu chung bên dưới
+  app.use("/payment", paymentRoute)
+
   // Đổi ngôn ngữ (chỉ lưu cookie rồi chuyển trang, không cần dữ liệu bên dưới)
   app.use("/language", languageRoute)
 
@@ -38,6 +44,11 @@ export const clientRoute = (app: Express) => {
   app.use("/cart", cartRoute)
 
   app.use("/wishlist", wishlistRoute)
+
+  // Đặt hàng, thanh toán, trang đơn hàng của khách
+  app.use("/checkout", checkoutRoute)
+
+  app.use("/order", orderRoute)
 
   // Tài khoản khách: đăng nhập, đăng ký, thông tin tài khoản
   app.use("/account", accountRoute)

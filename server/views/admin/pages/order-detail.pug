@@ -1,0 +1,359 @@
+extends ../layouts/default.pug
+
+//- Chi tiết đơn hàng (controller/admin/order.controller.ts)
+//- Nút thao tác [order-action]: main.js gửi lên data-api (JSON), xong thì tải lại trang
+block main
+  - const delivery = order.delivery
+  - const shipment = order.shipment || {}
+  - const payment = order.payment || {}
+  - const canEdit = permissions.includes("order-edit")
+  - const canCancel = permissions.includes("order-cancel")
+
+  .row.mb-3.align-items-center
+    .col
+      a.text-muted(href=`/${pathAdmin}/order/list`)
+        i.fa-solid.fa-arrow-left.me-1
+        | Danh sách đơn hàng
+      h4.mt-2.mb-0
+        span.font-monospace #{order.code}
+        span(class=`badge ${order.statusInfo.color} ms-2 align-middle`) #{order.statusInfo.name}
+        span(class=`badge ${order.paymentStatusInfo.color} ms-1 align-middle`) #{order.paymentStatusInfo.name}
+      div.text-muted.small.mt-1 Đặt lúc #{order.createdAtFormat} (giờ Moscow)
+    .col-auto
+      a.btn.btn-outline-secondary.me-1(
+        href=customerOrderUrl
+        target="_blank"
+        rel="noopener"
+        title="Trang đơn hàng khách đang xem"
+        )
+        i.fa-solid.fa-up-right-from-square.me-1
+        | Trang của khách
+      button.btn.btn-outline-primary(
+        type="button"
+        order-action
+        data-api=`/${pathAdmin}/order/refresh/${order.id}`
+        data-method="PATCH"
+        )
+        i.fa-solid.fa-rotate.me-1
+        | Cập nhật trạng thái
+
+  .row
+    .col-lg-8
+      //- Giao hàng, vận đơn ApiShip
+      .card
+        .card-header
+          h4.card-title.mb-0
+            i.fa-solid.fa-truck.me-2
+            | Giao hàng (ApiShip)
+        .card-body
+          if !apishipConfigured
+            .alert.alert-warning Chưa điền APISHIP_LOGIN, APISHIP_PASSWORD trong file .env — chưa tạo được vận đơn.
+          else if apishipTest
+            .alert.alert-info.py-2
+              i.fa-solid.fa-flask.me-1
+              | Đang dùng máy chủ thử nghiệm của ApiShip (APISHIP_TEST=true): vận đơn chỉ để thử, hãng vận chuyển không tới lấy hàng.
+
+          .row.g-3
+            .col-md-6
+              div.text-muted.small Cách giao
+              div.fw-medium #{order.deliveryTypeInfo ? order.deliveryTypeInfo.name : delivery.type}
+            .col-md-6
+              div.text-muted.small Hãng vận chuyển / tariff
+              div.fw-medium #{order.providerNameText}
+                span.text-muted  · #{delivery.tariffName} (id #{delivery.tariffId})
+            if delivery.type == "point" && delivery.point
+              .col-md-6
+                div.text-muted.small Điểm nhận hàng
+                div.fw-medium #{delivery.point.address}
+                div.small.text-muted
+                  | #{delivery.point.name}
+                  if delivery.point.code
+                    |  · mã điểm #{delivery.point.code}
+                  |  · id ApiShip #{delivery.point.id}
+                if delivery.point.timetable
+                  div.small.text-muted #{delivery.point.timetable}
+            else
+              .col-md-6
+                div.text-muted.small Địa chỉ giao hàng
+                div.fw-medium #{delivery.address}
+            .col-md-6
+              div.text-muted.small Kiện hàng (tính phí)
+              div.fw-medium
+                if delivery.parcel
+                  | #{delivery.parcel.weight} g · #{delivery.parcel.length}×#{delivery.parcel.width}×#{delivery.parcel.height} cm
+            .col-md-6
+              div.text-muted.small Phí giao hàng
+              div.fw-medium
+                | Khách trả #{order.deliveryCost > 0 ? `${order.deliveryCost.toLocaleString("ru-RU")} ₽` : "0 ₽ (miễn phí)"}
+                span.text-muted  · ApiShip tính #{(order.deliveryCostOriginal || 0).toLocaleString("ru-RU")} ₽
+            if delivery.daysMax
+              .col-md-6
+                div.text-muted.small Thời gian giao dự kiến
+                div.fw-medium #{delivery.daysMin || delivery.daysMax}–#{delivery.daysMax} ngày
+            if delivery.comment
+              .col-12
+                div.text-muted.small Ghi chú của khách cho người giao hàng
+                div.fw-medium #{delivery.comment}
+
+          hr
+
+          //- Vận đơn
+          if shipment.orderId
+            .row.g-3
+              .col-md-6
+                div.text-muted.small Vận đơn ApiShip
+                div.fw-bold.font-monospace ##{shipment.orderId}
+                div.small.text-muted Ngày gửi hàng: #{shipment.pickupDate}
+              .col-md-6
+                div.text-muted.small Mã vận đơn của hãng (khách tra cứu)
+                if shipment.providerNumber
+                  div.fw-bold.font-monospace.fs-5 #{shipment.providerNumber}
+                  if shipment.trackingUrl
+                    a.small(href=shipment.trackingUrl target="_blank" rel="noopener") Tra cứu trên trang hãng vận chuyển
+                else
+                  div.text-muted Chưa có (hãng vận chuyển đang xử lý, bấm "Cập nhật trạng thái" sau vài phút)
+              .col-12
+                div.text-muted.small Trạng thái giao hàng
+                div.fw-medium
+                  | #{shipment.statusName || "Đang chờ ApiShip cập nhật"}
+                  if shipment.statusKey
+                    span.text-muted.small  (#{shipment.statusKey})
+                if shipment.statusDescription
+                  div.small.text-muted #{shipment.statusDescription}
+                if shipmentStatusFormat
+                  div.small.text-muted Cập nhật lúc #{shipmentStatusFormat}
+            if canEdit
+              .mt-3.d-flex.flex-wrap.gap-2
+                button.btn.btn-primary(
+                  type="button"
+                  order-action
+                  data-api=`/${pathAdmin}/order/waybill/${order.id}`
+                  data-method="POST"
+                  data-open-url
+                  )
+                  i.fa-solid.fa-print.me-1
+                  | In phiếu gửi hàng
+                if order.status == "shipping"
+                  button.btn.btn-outline-danger(
+                    type="button"
+                    order-action
+                    data-api=`/${pathAdmin}/order/cancel-shipment/${order.id}`
+                    data-method="PATCH"
+                    data-confirm="Huỷ vận đơn này? Chỉ huỷ được khi hãng vận chuyển chưa nhận hàng. Đơn hàng sẽ trở lại trạng thái chờ gửi hàng."
+                    )
+                    i.fa-solid.fa-ban.me-1
+                    | Huỷ vận đơn
+          else
+            if shipment.error
+              .alert.alert-danger
+                b Tạo vận đơn bị lỗi:
+                |  #{shipment.error}
+            if canCreateShipment
+              if senderMissing
+                .alert.alert-warning.py-2
+                  i.fa-solid.fa-triangle-exclamation.me-1
+                  | Chưa điền đủ địa chỉ kho / người liên hệ (apishipSender trong config/variable.config.ts). Hãng vận chuyển cần thông tin này để lấy hàng.
+              if canEdit && apishipConfigured
+                p.mb-2 Khách đã thanh toán. Đóng hàng xong thì chọn ngày giao hàng cho hãng vận chuyển và bấm tạo vận đơn.
+                .row.g-2.align-items-end
+                  .col-sm-6.col-md-4
+                    label.form-label(for="pickupDate") Ngày giao cho hãng vận chuyển
+                    input.form-control(
+                      id="pickupDate"
+                      type="date"
+                      value=defaultPickupDate
+                      order-pickup-date
+                      )
+                  .col-auto
+                    button.btn.btn-success(
+                      type="button"
+                      order-action
+                      data-api=`/${pathAdmin}/order/shipment/${order.id}`
+                      data-method="POST"
+                      data-pickup-date
+                      data-confirm="Tạo vận đơn ApiShip cho đơn hàng này?"
+                      )
+                      i.fa-solid.fa-truck-fast.me-1
+                      | Tạo vận đơn ApiShip
+            else if order.status == "pending"
+              p.text-muted.mb-0
+                i.fa-solid.fa-lock.me-1
+                | Khách chưa thanh toán — chưa tạo được vận đơn (khách phải trả tiền trước mới gửi hàng).
+            else if order.status == "cancelled"
+              p.text-muted.mb-0 Đơn hàng đã huỷ.
+            else
+              p.text-muted.mb-0 Không có vận đơn.
+
+      //- Sản phẩm
+      .card
+        .card-header
+          h4.card-title.mb-0
+            i.fa-solid.fa-basket-shopping.me-2
+            | Sản phẩm (#{order.totalQuantity})
+        .table-responsive
+          table.table.mb-0.align-middle
+            thead.table-light
+              tr
+                th Sản phẩm
+                th.text-end Đơn giá
+                th.text-center Số lượng
+                th.text-end Thành tiền
+            tbody
+              each item in order.items
+                tr
+                  td
+                    .d-flex.align-items-center.gap-2
+                      if item.image
+                        img(
+                          src=`${domainFileManager}${item.image}`
+                          alt=""
+                          style="width: 44px; height: 44px; object-fit: contain; border-radius: 6px;"
+                          )
+                      div
+                        div.fw-medium #{item.name}
+                        if item.nameRu
+                          div.small.text-muted #{item.nameRu}
+                        div.small.text-muted
+                          if item.sku
+                            | SKU: #{item.sku}
+                          if item.storageType == "chilled"
+                            span.badge.bg-info.ms-1 Bảo quản mát
+                          else if item.storageType == "frozen"
+                            span.badge.bg-primary.ms-1 Đông lạnh
+                  td.text-end.text-nowrap
+                    | #{item.price.toLocaleString("ru-RU")} ₽
+                    if item.priceOld
+                      div.small.text-muted.text-decoration-line-through #{item.priceOld.toLocaleString("ru-RU")} ₽
+                  td.text-center #{item.quantity} #{item.unitName}
+                  td.text-end.text-nowrap.fw-bold #{item.lineTotal.toLocaleString("ru-RU")} ₽
+            tfoot
+              tr
+                td.text-end(colspan=3) Tiền hàng
+                td.text-end.text-nowrap #{order.subtotal.toLocaleString("ru-RU")} ₽
+              if order.couponDiscount > 0
+                tr
+                  td.text-end(colspan=3) Mã giảm giá #{order.couponCode}
+                  td.text-end.text-nowrap.text-danger −#{order.couponDiscount.toLocaleString("ru-RU")} ₽
+              else if order.couponCode
+                tr
+                  td.text-end(colspan=3) Mã giảm giá #{order.couponCode}
+                  td.text-end.text-nowrap Miễn phí giao hàng
+              tr
+                td.text-end(colspan=3) Phí giao hàng
+                td.text-end.text-nowrap #{order.deliveryCost.toLocaleString("ru-RU")} ₽
+              tr
+                td.text-end.fw-bold(colspan=3) Khách trả
+                td.text-end.text-nowrap.fw-bold.fs-5 #{order.totalFormat}
+
+      //- Lịch sử
+      .card
+        .card-header
+          h4.card-title.mb-0
+            i.fa-solid.fa-clock-rotate-left.me-2
+            | Lịch sử đơn hàng
+        .card-body
+          ul.list-unstyled.mb-0
+            each history in [...order.statusHistory].reverse()
+              li.mb-3
+                div
+                  span.fw-medium #{history.atFormat}
+                  span.badge.bg-light.text-dark.ms-2 #{history.statusName}
+                div #{history.note}
+                div.small.text-muted #{history.by}
+
+    .col-lg-4
+      //- Khách hàng
+      .card
+        .card-header
+          h4.card-title.mb-0
+            i.fa-solid.fa-user.me-2
+            | Người nhận
+        .card-body
+          div.fw-bold #{order.customer.fullName}
+          div
+            a(href=`tel:${order.customer.phone}`) #{order.customer.phone}
+          div
+            a(href=`mailto:${order.customer.email}`) #{order.customer.email}
+          div.small.text-muted.mt-2
+            if order.userId
+              | Khách có tài khoản
+            else
+              | Khách chưa đăng nhập khi đặt hàng
+
+      //- Thanh toán
+      .card
+        .card-header
+          h4.card-title.mb-0
+            i.fa-solid.fa-credit-card.me-2
+            | Thanh toán
+        .card-body
+          div.mb-1
+            span(class=`badge ${order.paymentStatusInfo.color}`) #{order.paymentStatusInfo.name}
+          div.small
+            | Cổng thanh toán:
+            b  #{payment.provider == "test" ? "Thanh toán giả (thử trên máy)" : "Т-Банк Интернет-эквайринг"}
+          if payment.paymentId
+            div.small.text-muted.text-break Mã giao dịch: #{payment.paymentId}
+          if payment.method
+            div.small Cách thanh toán: #{payment.method}
+          if paidAtFormat
+            div.small Thanh toán lúc: #{paidAtFormat}
+          if order.status == "pending"
+            div.small.text-muted Hạn thanh toán: #{paymentExpireFormat} (quá hạn đơn tự huỷ, trả hàng vào kho)
+          if payment.cancelReason
+            div.small.text-muted Lý do chưa thanh toán được: #{payment.cancelReason}
+          if refundedAtFormat
+            div.small Hoàn tiền lúc: #{refundedAtFormat}
+            if payment.refundId
+              div.small.text-muted.text-break Mã hoàn tiền: #{payment.refundId}
+
+      //- Thao tác
+      if (canEdit || canCancel) && ["pending", "paid", "shipping"].includes(order.status)
+        .card
+          .card-header
+            h4.card-title.mb-0
+              i.fa-solid.fa-gear.me-2
+              | Thao tác
+          .card-body.d-grid.gap-2
+            if canEdit && ["paid", "shipping"].includes(order.status)
+              button.btn.btn-outline-success(
+                type="button"
+                order-action
+                data-api=`/${pathAdmin}/order/delivered/${order.id}`
+                data-method="PATCH"
+                data-confirm="Đánh dấu đơn hàng đã giao cho khách?"
+                )
+                i.fa-solid.fa-check.me-1
+                | Đánh dấu đã giao hàng
+            if canCancel && ["pending", "paid"].includes(order.status)
+              button.btn.btn-outline-danger(
+                type="button"
+                order-action
+                data-api=`/${pathAdmin}/order/cancel/${order.id}`
+                data-method="PATCH"
+                data-reason
+                data-confirm=(order.status == "paid" ? `Huỷ đơn và hoàn ${order.totalFormat} cho khách qua Т-Банк? Sản phẩm được trả lại kho.` : "Huỷ đơn hàng chưa thanh toán? Sản phẩm được trả lại kho.")
+                )
+                i.fa-solid.fa-xmark.me-1
+                | #{order.status == "paid" ? "Huỷ đơn và hoàn tiền" : "Huỷ đơn"}
+
+      //- Ghi chú nội bộ
+      .card
+        .card-header
+          h4.card-title.mb-0
+            i.fa-solid.fa-note-sticky.me-2
+            | Ghi chú nội bộ
+        .card-body
+          form(
+            order-note-form
+            data-api=`/${pathAdmin}/order/note/${order.id}`
+            )
+            textarea.form-control.mb-2(
+              name="adminNote"
+              rows="4"
+              maxlength="2000"
+              placeholder="Chỉ nhân viên thấy, khách không thấy"
+              disabled=!canEdit
+              ) #{order.adminNote || ""}
+            if canEdit
+              button.btn.btn-primary.btn-sm(type="submit") Lưu ghi chú

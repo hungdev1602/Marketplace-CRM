@@ -66,6 +66,14 @@
                 // end nav
               // end sidebarProduct
           // end nav-item
+          if permissions.includes("order-list")
+            li.nav-item
+              a.nav-link(
+                href=`/${pathAdmin}/order/list`
+                )
+                i.iconoir-cart.menu-icon
+                span Đơn hàng
+          // end nav-item
           if ["coupon-create", "coupon-list"].some(item => permissions.includes(item))
             li.nav-item
               a.nav-link(

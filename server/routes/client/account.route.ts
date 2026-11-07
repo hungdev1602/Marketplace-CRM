@@ -2,6 +2,7 @@ import { Router } from "express"
 import * as controller from "../../controller/client/account.controller"
 import * as accountValidate from "../../validates/client/account.validate"
 import * as authMiddleware from "../../middlewares/client/auth.middleware"
+import * as orderController from "../../controller/client/order.controller"
 
 const router = Router()
 
@@ -27,6 +28,9 @@ router.post("/logout", controller.logoutPost)
 
 // Trang tài khoản: phải đăng nhập
 router.get("/", authMiddleware.requireLogin, controller.profile)
+
+// Đơn hàng của tài khoản
+router.get("/orders", authMiddleware.requireLogin, orderController.accountOrders)
 
 router.patch("/profile", authMiddleware.requireLogin, accountValidate.profilePatch, controller.profilePatch)
 

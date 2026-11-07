@@ -236,13 +236,19 @@ div(
               hidden
               )
 
-          //- Đặt hàng: trang thanh toán làm ở bước sau, tạm thời nút bị khoá
-          button(
-            type="button"
-            class="sf-btn sf-btn-primary sf-checkout-btn"
-            disabled
-            ) #{t("checkout")}
-          p(class="sf-checkout-note") #{t("checkoutSoon")}
+          //- Đặt hàng: sang trang /checkout (nhập địa chỉ, chọn cách giao hàng, thanh toán online)
+          if view.itemList.length > 0
+            a(
+              href="/checkout"
+              class="sf-btn sf-btn-primary sf-checkout-btn"
+              ) #{t("checkout")}
+            p(class="sf-checkout-note") #{t("checkoutPrepayShort")}
+          else
+            button(
+              type="button"
+              class="sf-btn sf-btn-primary sf-checkout-btn"
+              disabled
+              ) #{t("checkout")}
 
           if view.hasColdItems
             p(class="sf-cold-note")

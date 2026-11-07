@@ -1,0 +1,310 @@
+extends ../layouts/default.pug
+include ../mixins/page-banner.pug
+include ../mixins/form-field.pug
+
+//- Trang đặt hàng: /checkout (controller/client/checkout.controller.ts)
+//- main.js: tính phí giao hàng (POST /checkout/delivery), chọn điểm nhận hàng (GET /checkout/points), đặt hàng (POST /checkout)
+block main
+  - const view = cartView
+  - const coupon = view.coupon
+  - const couponOk = coupon && !coupon.errorKey
+  - const checkoutText = { free: t("free"), days: t("deliveryDays"), loading: t("loading"), noPoints: t("pointNotFound"), pointCount: t("pointCount"), selected: t("selected"), choose: t("deliveryNotChosen"), calcAgain: t("deliveryAddressChanged"), pointMore: t("pointMore"), noLocation: t("mapNoLocation") }
+
+  +pageBanner(t("checkoutTitle"), [{ name: t("cart"), url: "/cart" }, { name: t("checkoutTitle") }])
+
+  section(class="sf-shop sf-checkout-page")
+    .container
+      if !canOrder
+        div(class="sf-guest-note sf-checkout-alert" role="alert")
+          i.fas.fa-exclamation-circle
+          div
+            p
+              b #{t("checkoutUnavailable")}
+      else if belowMinOrder
+        div(class="sf-guest-note sf-checkout-alert" role="alert")
+          i.fas.fa-exclamation-circle
+          div
+            p
+              b #{t("minOrderText")} #{formatPrice(minOrderValue)}.
+              |  #{t("couponAddMore")} #{formatPrice(minOrderValue - view.total)}
+            div(class="sf-guest-note-buttons")
+              a(
+                href="/cart"
+                class="sf-btn sf-btn-dark sf-btn-sm"
+                ) #{t("backToCart")}
+
+      form(
+        action="/checkout"
+        class="sf-checkout-form"
+        checkout-form
+        novalidate
+        data-goods-total=view.total
+        data-map-tiles=mapTileUrl
+        data-map-attribution=mapAttribution
+        )
+        .row.g-4
+          .col-lg-8
+            //- 1. Người nhận
+            div(class="sf-account-box sf-checkout-box")
+              h2
+                span(class="sf-step-num") 1
+                | #{t("checkoutContact")}
+              if !clientAccount
+                p(class="sf-checkout-login")
+                  | #{t("checkoutLoginHint")}
+                  |
+                  a(href="/account/login?next=%2Fcheckout") #{t("loginAction")}
+              .row.g-3
+                .col-md-6
+                  +formField("fullName", t("recipientName"), "text", { value: prefill.fullName, autocomplete: "name", maxlength: 100, hint: t("recipientNameHint") })
+                .col-md-6
+                  +formField("phone", t("phone"), "tel", { value: prefill.phone, autocomplete: "tel", inputmode: "tel", maxlength: 20, hint: t("phoneDeliveryHint") })
+                .col-12
+                  +formField("email", t("email"), "email", { value: prefill.email, autocomplete: "email", inputmode: "email", maxlength: 100, hint: t("checkoutEmailHint") })
+
+            //- 2. Giao hàng
+            div(class="sf-account-box sf-checkout-box")
+              h2
+                span(class="sf-step-num") 2
+                | #{t("delivery")}
+              div(
+                class="sf-delivery-types"
+                role="radiogroup"
+                aria-label=t("deliveryMethod")
+                )
+                each type in deliveryTypeList
+                  label(class="sf-choice")
+                    input(
+                      type="radio"
+                      name="deliveryType"
+                      value=type.id
+                      checked=prefill.deliveryType == type.id
+                      checkout-type
+                      )
+                    span(class="sf-choice-box")
+                      i(class=type.id == "point" ? "fas fa-store" : "fas fa-truck")
+                      span
+                        b #{tName(type)}
+                        small #{t(type.id == "point" ? "deliveryPointHint" : "deliveryCourierHint")}
+
+              .row.g-3
+                .col-md-7
+                  +formField("city", t("city"), "text", { value: prefill.city, autocomplete: "address-level2", maxlength: 100, hint: t("cityHint") })
+                .col-md-5
+                  +formField("region", t("region"), "text", { value: prefill.region, autocomplete: "address-level1", maxlength: 100, optional: true })
+              div(
+                class="sf-courier-fields"
+                checkout-courier-fields
+                hidden=prefill.deliveryType != "courier"
+                )
+                .row.g-3
+                  .col-md-4
+                    +formField("postIndex", t("postIndex"), "text", { value: prefill.postIndex, autocomplete: "postal-code", inputmode: "numeric", maxlength: 6 })
+                  .col-md-8
+                    +formField("street", t("street"), "text", { value: prefill.street, autocomplete: "address-line1", maxlength: 150 })
+                  .col-6.col-md-4
+                    +formField("house", t("house"), "text", { value: prefill.house, maxlength: 30 })
+                  .col-6.col-md-4
+                    +formField("apartment", t("apartment"), "text", { value: prefill.apartment, autocomplete: "address-line2", maxlength: 30, optional: true })
+
+              button(
+                type="button"
+                class="sf-btn sf-btn-dark sf-delivery-calc"
+                checkout-calc
+                disabled=!canOrder
+                )
+                i.fas.fa-calculator
+                span #{t("deliveryCalc")}
+              p(
+                class="sf-form-message"
+                checkout-delivery-message
+                role="alert"
+                hidden
+                )
+
+              //- Danh sách hãng vận chuyển / tariff (main.js điền sau khi tính phí)
+              div(
+                class="sf-delivery-options"
+                checkout-options
+                hidden
+                )
+                h3 #{t("deliveryChooseTitle")}
+                div(
+                  class="sf-option-list"
+                  checkout-option-list
+                  role="radiogroup"
+                  aria-label=t("deliveryChooseTitle")
+                  )
+
+              //- Điểm nhận hàng (giao tới điểm nhận hàng): bản đồ + danh sách, chọn ở đâu cũng được
+              //- main.js tải thư viện bản đồ Leaflet khi cần (lần đầu hiện danh sách điểm có toạ độ)
+              div(
+                class="sf-delivery-points"
+                checkout-points
+                hidden
+                )
+                h3 #{t("pointChooseTitle")}
+                p(class="sf-point-hint") #{t("pointMapHint")}
+                div(class="sf-points-layout")
+                  div(
+                    class="sf-point-map"
+                    checkout-point-map
+                    hidden
+                    )
+                    div(
+                      class="sf-point-map-canvas"
+                      checkout-point-map-canvas
+                      role="application"
+                      aria-label=t("pointMap")
+                      )
+                    button(
+                      type="button"
+                      class="sf-map-locate"
+                      checkout-map-locate
+                      title=t("mapNearMe")
+                      )
+                      i.fas.fa-location-arrow
+                      span #{t("mapNearMe")}
+                  div(class="sf-point-side")
+                    div(class="sf-point-search")
+                      i.fas.fa-search
+                      input(
+                        type="search"
+                        checkout-point-search
+                        placeholder=t("pointSearch")
+                        aria-label=t("pointSearch")
+                        autocomplete="off"
+                        )
+                    p(
+                      class="sf-point-count"
+                      checkout-point-count
+                      )
+                    ul(
+                      class="sf-point-list"
+                      checkout-point-list
+                      role="radiogroup"
+                      aria-label=t("pointChooseTitle")
+                      )
+
+              input(type="hidden" name="quoteId")
+              input(type="hidden" name="optionIndex")
+              input(type="hidden" name="pointId")
+
+              div(class="sf-field sf-comment-field")
+                label(for="field-comment")
+                  | #{t("deliveryComment")}
+                  span(class="sf-field-optional") #{t("optional")}
+                textarea(
+                  id="field-comment"
+                  name="comment"
+                  rows="2"
+                  maxlength="500"
+                  placeholder=t("deliveryCommentPlaceholder")
+                  )
+
+              if view.hasColdItems
+                p(class="sf-cold-note")
+                  i.fas.fa-snowflake
+                  | #{t("coldChainNote")}
+
+            //- 3. Thanh toán
+            div(class="sf-account-box sf-checkout-box")
+              h2
+                span(class="sf-step-num") 3
+                | #{t("paymentTitle")}
+              div(class="sf-pay-method")
+                i.far.fa-credit-card
+                div
+                  b #{t("paymentOnline")}
+                  p #{t("paymentOnlineText")}
+              p(class="sf-pay-note")
+                i.fas.fa-info-circle
+                | #{t("paymentPrepayNote")} #{tCount(paymentTimeoutMinutes, "minuteCount")}.
+              if paymentProvider == "test"
+                p(class="sf-test-note")
+                  i.fas.fa-flask
+                  | #{t("paymentTestModeNote")}
+
+          //- Tổng tiền
+          .col-lg-4
+            aside(class="sf-cart-summary sf-checkout-summary")
+              h2 #{t("orderSummary")}
+              ul(class="sf-checkout-items")
+                each item in view.itemList
+                  li
+                    span(class="sf-checkout-item-img")
+                      img(
+                        src=mediaUrl(item.product.cardImage)
+                        alt=""
+                        loading="lazy"
+                        )
+                      span(class="sf-checkout-item-qty") #{item.quantity}
+                    span(class="sf-checkout-item-name") #{tName(item.product)}
+                    b #{formatPrice(item.lineTotal)}
+              if view.unavailableList.length > 0
+                p(class="sf-checkout-unavailable")
+                  i.fas.fa-exclamation-circle
+                  | #{t("checkoutUnavailableItems")}
+              dl(class="sf-summary-list")
+                div
+                  dt #{t("itemsTotal")} (#{formatNumber(view.totalQuantity)})
+                  dd #{formatPrice(view.oldSubtotal)}
+                if view.productDiscount > 0
+                  div(class="is-discount")
+                    dt #{t("productDiscount")}
+                    dd −#{formatPrice(view.productDiscount)}
+                if couponOk && view.couponDiscount > 0
+                  div(class="is-discount")
+                    dt #{t("coupon")} #{coupon.code}
+                    dd −#{formatPrice(view.couponDiscount)}
+                div
+                  dt #{t("delivery")}
+                  dd(checkout-delivery-cost)
+                    if freeDelivery
+                      span(class="sf-free") #{t("free")}
+                    else
+                      span(class="sf-muted") #{t("deliveryNotChosen")}
+              div(class="sf-summary-total")
+                span #{t("total")}
+                b(checkout-total) #{formatPrice(view.total)}
+
+              if coupon && !couponOk
+                p(class="sf-checkout-coupon-warning")
+                  i.fas.fa-ticket-alt
+                  | #{t("couponNotApplied")} (#{coupon.code})
+              if freeDelivery
+                p(class="sf-checkout-free")
+                  i.fas.fa-gift
+                  | #{t("freeDeliveryApplied")}
+              else if freeDeliveryFrom > 0
+                p(class="sf-checkout-free is-muted")
+                  i.fas.fa-gift
+                  | #{t("freeDeliveryFrom")} #{formatPrice(freeDeliveryFrom)}
+
+              div(class="form-check sf-check sf-checkout-agree")
+                input.form-check-input(
+                  type="checkbox"
+                  id="field-agree"
+                  name="agree"
+                  )
+                label.form-check-label(for="field-agree") #{t("checkoutAgree")}
+              +formMessage()
+              button(
+                type="submit"
+                class="sf-btn sf-btn-primary sf-checkout-btn"
+                disabled=!canOrder || belowMinOrder
+                )
+                i.fas.fa-lock
+                span #{t("goToPayment")}
+              p(class="sf-checkout-note") #{t("checkoutPayNote")}
+              a(
+                href="/cart"
+                class="sf-continue"
+                )
+                i.fas.fa-arrow-left
+                | #{t("backToCart")}
+
+      script(
+        type="application/json"
+        checkout-text
+        ) !{JSON.stringify(checkoutText).replace(/</g, "\\u003c")}
