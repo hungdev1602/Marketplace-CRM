@@ -5606,6 +5606,17 @@ a.sf-sd-note b {
     font-family: var(--sf-font-body);
 }
 
+/* Giao diện mẫu (style.css) ép mọi ảnh rộng / cao 100%: trả lại kích thước ô bản đồ (256px),
+   nếu không các ô bản đồ bị co về 0px, bản đồ chỉ còn nền xám */
+.sf-point-map .leaflet-container img.leaflet-tile {
+    width: 256px !important;
+    height: 256px !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: fill !important;
+    transition: none !important;
+}
+
 /* Giao diện tối: đảo màu nền bản đồ cho tối theo (điểm, khung thông tin giữ nguyên màu) */
 :root[data-theme="dark"] .sf-point-map .leaflet-tile-pane {
     filter: invert(1) hue-rotate(180deg) brightness(.9) contrast(.9);
@@ -5683,29 +5694,33 @@ a.sf-sd-note b {
 }
 
 @media (min-width: 1200px) {
+    /* Hàng cao cố định 440px: bản đồ và cột danh sách giãn vừa hàng, danh sách dài thì cuộn bên trong
+       (không để danh sách hàng trăm điểm kéo dài cả hàng, đè lên phần bên dưới) */
     .sf-points-layout {
         grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-        height: 440px;
+        grid-template-rows: 440px;
     }
 
     .sf-point-map {
         order: 2;
-        height: 100%;
+        height: auto;
+        min-height: 0;
     }
 
     .sf-point-side {
-        height: 100%;
+        min-height: 0;
     }
 
     .sf-point-side .sf-point-list {
-        flex: 1;
+        flex: 1 1 0;
+        min-height: 0;
         max-height: none;
     }
 
     /* Không có bản đồ: danh sách chiếm cả hàng */
     .sf-points-layout:has(.sf-point-map[hidden]) {
         grid-template-columns: minmax(0, 1fr);
-        height: auto;
+        grid-template-rows: auto;
     }
 
     .sf-points-layout:has(.sf-point-map[hidden]) .sf-point-list {
