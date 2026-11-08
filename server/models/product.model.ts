@@ -88,6 +88,20 @@ const productSchema = new mongoose.Schema(
       default: 0
     },
 
+    // Đánh giá của khách (tự tính lại khi đánh giá được đăng / ẩn / xoá: helpers/review.helper.ts, không sửa tay)
+    rating: {
+      type: Number,
+      default: 0
+    }, // điểm trung bình 1-5, làm tròn 1 chữ số thập phân (0 là chưa có đánh giá)
+    ratingCount: {
+      type: Number,
+      default: 0
+    }, // số lượt chấm sao đã đăng (kể cả chỉ chấm sao, không viết gì)
+    reviewCount: {
+      type: Number,
+      default: 0
+    }, // số đánh giá đã đăng có chữ / ảnh
+
     search: String,
     deleted: {
       type: Boolean,

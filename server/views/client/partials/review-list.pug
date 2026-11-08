@@ -1,0 +1,23 @@
+include ../mixins/review-item.pug
+
+//- Danh sách đánh giá của sản phẩm
+//- - Lần đầu: include trong pages/product-detail.pug
+//- - Lọc, sắp xếp, "Показать ещё": GET /review/product/:id trả về file này, main.js chèn vào trang
+//- Dữ liệu: reviewViewList, reviewResult ({ total, page, hasMore }), reviewFilter
+each view in reviewViewList
+  +reviewItem(view)
+
+if reviewResult.page == 1 && reviewResult.total == 0
+  p(class="sf-review-empty-filter") #{t("reviewFilterEmpty")}
+
+if reviewResult.hasMore
+  div(
+    class="sf-review-more"
+    review-more
+    )
+    button(
+      type="button"
+      class="sf-btn sf-btn-outline"
+      data-page=reviewResult.page + 1
+      review-more-button
+      ) #{t("reviewShowMore")}

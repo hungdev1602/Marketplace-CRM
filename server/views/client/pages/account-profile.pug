@@ -40,6 +40,13 @@ block main
                   span #{t("myOrders")}
                   if orderCount > 0
                     b #{orderCount}
+              li
+                a(href="/account/reviews")
+                  i.far.fa-star
+                  span #{t("myReviews")}
+                  //- Số sản phẩm đã nhận chưa đánh giá
+                  if reviewWaitingCount > 0
+                    b(title=t("reviewWaitingTitle")) #{reviewWaitingCount}
             form(
               action="/account/logout"
               method="POST"

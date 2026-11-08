@@ -50,6 +50,21 @@ export const isValidOrderAccessKey = (key: any): key is string => {
   return typeof key === "string" && /^[a-f0-9]{32}$/.test(key)
 }
 
+// Tìm đơn hàng khách được xem: đúng mã bí mật trong link (?key=...), hoặc đơn của tài khoản đang đăng nhập
+// Dùng ở trang đơn hàng và trang viết đánh giá sản phẩm
+export const findCustomerOrder = async (code: any, key: any, account: any) => {
+  const orderCode = `${code || ""}`
+  if(!/^SF-\d{6}-\d{4}$/.test(orderCode)) return null
+
+  const order: any = await Order.findOne({ code: orderCode })
+  if(!order) return null
+
+  const isOwner = account && order.userId && order.userId === account.id
+  const hasKey = isValidOrderAccessKey(key) && key === order.accessKey
+
+  return isOwner || hasKey ? order : null
+}
+
 // Link xem đơn hàng của khách (gửi trong email, Т-Банк chuyển khách về link này sau khi thanh toán)
 export const getOrderUrl = (order: any, absolute: boolean = false): string => {
   return `${absolute ? getSiteUrl() : ""}/order/${order.code}?key=${order.accessKey}`

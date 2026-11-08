@@ -20,7 +20,8 @@ export const clientProductSortList = [
   { id: "newest", key: "sortNewest", sort: { createdAt: "desc" } },
   { id: "price-asc", key: "sortPriceAsc", sort: { price: "asc" } },
   { id: "price-desc", key: "sortPriceDesc", sort: { price: "desc" } },
-  { id: "best-seller", key: "sortBestSeller", sort: { sold: "desc" } }
+  { id: "best-seller", key: "sortBestSeller", sort: { sold: "desc" } },
+  { id: "rating", key: "sortRating", sort: { rating: "desc", ratingCount: "desc" } }
 ]
 
 // Kiểu sắp xếp ở trang kết quả tìm kiếm: mặc định là phù hợp nhất với từ khoá (sort: null,

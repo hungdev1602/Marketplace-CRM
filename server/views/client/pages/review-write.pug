@@ -1,0 +1,220 @@
+extends ../layouts/default.pug
+include ../mixins/page-banner.pug
+include ../mixins/form-field.pug
+
+//- Trang viết / sửa đánh giá: /review/write/:mã đơn/:id sản phẩm?key=... (controller/client/review.controller.ts)
+//- main.js ([review-form]): chọn sao, thu nhỏ ảnh trước khi gửi, gửi form bằng fetch (multipart/form-data)
+block main
+  - const isEdit = !!review
+  - const title = t(isEdit ? "reviewEditTitle" : "reviewWriteTitle")
+  - const ratingHintList = [1, 2, 3, 4, 5].map(star => t(`ratingHint${star}`))
+  - const photoList = isEdit ? (review.photos || []) : []
+
+  +pageBanner(title, [{ name: `${t("orderTitle")} ${order.code}`, url: orderUrl }, { name: title }])
+
+  section(class="sf-shop sf-review-page")
+    .container
+      div(class="sf-review-layout")
+        //- Sản phẩm đang đánh giá
+        div(class="sf-account-box sf-review-product")
+          span(class="sf-order-item-img")
+            img(
+              src=mediaUrl(productImage)
+              alt=""
+              )
+          div
+            if product && product.status == "active"
+              a(href=`/product/${product.slug}`) #{productName}
+            else
+              b #{productName}
+            small #{t("orderTitle")} #{order.code} · #{orderDateText}
+
+        if blockedKey
+          div(class="sf-account-box")
+            p(class="sf-order-message is-warning")
+              i.fas.fa-exclamation-circle
+              | #{t(blockedKey)}
+            a(
+              href=backUrl
+              class="sf-btn sf-btn-dark"
+              )
+              i.fas.fa-arrow-left
+              | #{t("back")}
+        else
+          form(
+            action=formAction
+            class="sf-account-box sf-review-form"
+            review-form
+            novalidate
+            data-max-photos=limits.maxPhotos
+            data-max-side=limits.photoMaxSide
+            data-max-size=limits.photoMaxSize
+            data-too-many-text=t("reviewPhotoTooMany").replace("{count}", limits.maxPhotos)
+            data-too-large-text=t("reviewPhotoTooLarge").replace("{size}", limits.photoMaxSize)
+            data-invalid-text=t("reviewPhotoInvalid")
+            data-rating-text=t("reviewRatingRequired")
+            data-remove-text=t("reviewRemovePhoto")
+            )
+            input(
+              type="hidden"
+              name="key"
+              value=accessKey
+              )
+
+            //- Sửa đánh giá: trạng thái duyệt, lý do bị từ chối
+            if isEdit
+              div(class="sf-review-status is-" + review.status)
+                span #{t("reviewStatusLabel")}:
+                b #{statusName}
+                if review.status == "rejected"
+                  p
+                    | #{t("reviewRejectedText")}
+                    if review.rejectReason
+                      | : #{review.rejectReason}
+                    | . #{t("reviewRejectedHint")}
+
+            //- Chọn số sao (ô chọn tròn ẩn đi, bấm vào ngôi sao)
+            //- Xếp ngược 5 => 1 và hiện từ phải sang trái (CSS row-reverse) để rê chuột tô được các sao bên trái
+            fieldset(class="sf-field sf-rating-field")
+              legend #{t("reviewRateLabel")}
+              div(class="sf-rating-input-row")
+                div(class="sf-star-input")
+                  each star in [5, 4, 3, 2, 1]
+                    input(
+                      type="radio"
+                      id=`rating-${star}`
+                      name="rating"
+                      value=star
+                      checked=rating == star
+                      )
+                    label(
+                      for=`rating-${star}`
+                      title=ratingHintList[star - 1]
+                      )
+                      i.fas.fa-star
+                      span(class="visually-hidden") #{star} — #{ratingHintList[star - 1]}
+                span(
+                  class="sf-rating-hint"
+                  rating-hint
+                  data-hints=JSON.stringify(ratingHintList)
+                  ) #{rating ? ratingHintList[rating - 1] : ""}
+
+            each field in [{ name: "pros", rows: 3 }, { name: "cons", rows: 3 }, { name: "comment", rows: 5 }]
+              - const fieldTitle = t(field.name == "pros" ? "reviewPros" : (field.name == "cons" ? "reviewCons" : "reviewComment"))
+              - const placeholder = t(field.name == "pros" ? "reviewProsPlaceholder" : (field.name == "cons" ? "reviewConsPlaceholder" : "reviewCommentPlaceholder"))
+              - const value = isEdit ? (review[field.name] || "") : ""
+              div(class="sf-field")
+                label(for=`field-${field.name}`)
+                  | #{fieldTitle}
+                  span(class="sf-field-optional") #{t("optional")}
+                textarea(
+                  id=`field-${field.name}`
+                  name=field.name
+                  rows=field.rows
+                  maxlength=limits.text[field.name]
+                  placeholder=placeholder
+                  text-counter
+                  ) #{value}
+                span(
+                  class="sf-text-counter"
+                  text-counter-output
+                  ) #{value.length} / #{limits.text[field.name]}
+
+            //- Ảnh: ảnh cũ (khi sửa) + ảnh mới khách chọn (main.js thu nhỏ rồi hiện xem trước)
+            div(class="sf-field")
+              span(class="sf-field-title") #{t("reviewPhotos")}
+                span(class="sf-field-optional") #{t("optional")}
+              ul(
+                class="sf-review-upload"
+                photo-list
+                )
+                each photo in photoList
+                  li(
+                    class="sf-review-upload-item"
+                    data-keep=photo
+                    )
+                    img(
+                      src=mediaUrl(photo)
+                      alt=""
+                      )
+                    button(
+                      type="button"
+                      class="sf-review-upload-remove"
+                      photo-remove
+                      aria-label=t("reviewRemovePhoto")
+                      title=t("reviewRemovePhoto")
+                      )
+                      i.fas.fa-times
+                li(
+                  class="sf-review-upload-add"
+                  photo-add
+                  hidden=photoList.length >= limits.maxPhotos
+                  )
+                  label
+                    input(
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      photo-input
+                      )
+                    i.fas.fa-camera
+                    span #{t("reviewAddPhoto")}
+              p(class="sf-field-hint") #{t("reviewPhotosHint").replace("{count}", limits.maxPhotos)}
+              p(
+                class="sf-field-hint"
+                photo-processing
+                hidden
+                )
+                i.fas.fa-spinner.fa-spin
+                |  #{t("reviewPhotoProcessing")}
+
+            //- Ẩn tên
+            div(class="form-check sf-check")
+              input.form-check-input(
+                type="checkbox"
+                id="field-anonymous"
+                name="anonymous"
+                value="1"
+                checked=isEdit && review.anonymous
+                review-anonymous
+                )
+              label.form-check-label(for="field-anonymous") #{t("reviewAnonymousLabel")}
+            p(class="sf-review-author-preview")
+              | #{t("reviewAuthorPreview")}
+              b(
+                review-author
+                data-name=authorName
+                data-anonymous-name=t("reviewAnonymous")
+                ) #{isEdit && review.anonymous ? t("reviewAnonymous") : authorName}
+
+            div(class="sf-review-notes")
+              if moderation
+                p
+                  i.fas.fa-shield-alt
+                  | #{t("reviewModerationNote")}
+              p
+                i.fas.fa-info-circle
+                | #{t("reviewRulesNote")}
+              if isEdit && editUntilText
+                p
+                  i.far.fa-clock
+                  | #{t("reviewEditUntil")} #{editUntilText}
+
+            +formMessage()
+
+            div(class="sf-review-actions")
+              button(
+                type="submit"
+                class="sf-btn sf-btn-primary"
+                )
+                i.fas.fa-paper-plane
+                | #{t(isEdit ? "reviewSave" : "reviewSubmit")}
+              if isEdit
+                button(
+                  type="button"
+                  class="sf-btn sf-btn-outline sf-review-delete"
+                  review-delete=`${formAction}/delete`
+                  data-confirm=t("reviewDeleteConfirm")
+                  )
+                  i.far.fa-trash-alt
+                  | #{t("reviewDelete")}

@@ -1,0 +1,125 @@
+extends ../layouts/default.pug
+include ../mixins/page-banner.pug
+include ../mixins/rating-stars.pug
+
+//- Trang "Мои отзывы": /account/reviews (controller/client/review.controller.ts: accountReviews)
+//- - Ждут оценки: sản phẩm đã nhận chưa được đánh giá (bấm ngôi sao để viết đánh giá)
+//- - Мои отзывы: đánh giá đã viết, trạng thái duyệt, câu trả lời của cửa hàng
+block main
+  +pageBanner(t("myReviews"), [{ name: t("myAccount"), url: "/account" }, { name: t("myReviews") }])
+
+  section(class="sf-shop sf-account-page")
+    .container
+      div(class="sf-account-reviews")
+        div(class="sf-account-box")
+          h2
+            | #{t("reviewWaitingTitle")}
+            if waitingViewList.length > 0
+              span(class="sf-order-count") #{tCount(waitingViewList.length, "productCount")}
+          if waitingViewList.length == 0
+            p(class="sf-muted") #{t("reviewWaitingEmpty")}
+          else
+            ul(class="sf-review-waiting")
+              each waiting in waitingViewList
+                li
+                  a(
+                    href=`/product/${waiting.product.slug}`
+                    class="sf-order-item-img"
+                    )
+                    img(
+                      src=mediaUrl(waiting.product.cardImage || waiting.item.image)
+                      alt=""
+                      loading="lazy"
+                      )
+                  div(class="sf-review-waiting-info")
+                    a(href=`/product/${waiting.product.slug}`) #{tName(waiting.product)}
+                    small #{t("orderTitle")} #{waiting.order.code}
+                    +starLinks(waiting.starUrls)
+                  a(
+                    href=waiting.writeUrl
+                    class="sf-btn sf-btn-dark sf-btn-sm"
+                    ) #{t("reviewRateAction")}
+
+        div(class="sf-account-box")
+          h2
+            | #{t("myReviews")}
+            if myReviewViewList.length > 0
+              span(class="sf-order-count") #{myReviewViewList.length}
+          if myReviewViewList.length == 0
+            p(class="sf-muted") #{t("reviewMineEmpty")}
+          else
+            ul(class="sf-my-reviews")
+              each view in myReviewViewList
+                - const review = view.review
+                li(class="sf-my-review")
+                  div(class="sf-my-review-head")
+                    if view.product
+                      a(
+                        href=`/product/${view.product.slug}`
+                        class="sf-order-item-img"
+                        )
+                        img(
+                          src=mediaUrl(view.product.cardImage)
+                          alt=""
+                          loading="lazy"
+                          )
+                    div(class="sf-my-review-title")
+                      if view.product
+                        a(href=`/product/${view.product.slug}#reviews`) #{tName(view.product)}
+                      else
+                        b #{t("reviewProductDeleted")}
+                      span
+                        +ratingStars(review.rating, "sm")
+                        small #{view.dateText}
+                    span(class="sf-review-badge is-" + review.status) #{view.statusName}
+
+                  if review.status == "rejected"
+                    p(class="sf-order-message is-warning")
+                      i.fas.fa-exclamation-circle
+                      span
+                        | #{t("reviewRejectedText")}
+                        if review.rejectReason
+                          | : #{review.rejectReason}
+                        | . #{t("reviewRejectedHint")}
+
+                  if review.pros
+                    div(class="sf-review-block")
+                      h4 #{t("reviewPros")}
+                      p #{review.pros}
+                  if review.cons
+                    div(class="sf-review-block")
+                      h4 #{t("reviewCons")}
+                      p #{review.cons}
+                  if review.comment
+                    div(class="sf-review-block")
+                      h4 #{t("reviewComment")}
+                      p #{review.comment}
+                  if review.photos && review.photos.length > 0
+                    ul(class="sf-review-photos")
+                      each photo in review.photos
+                        li
+                          span
+                            img(
+                              src=mediaUrl(photo)
+                              alt=""
+                              loading="lazy"
+                              )
+
+                  if review.reply && review.reply.text
+                    div(class="sf-review-reply")
+                      div(class="sf-review-reply-head")
+                        b
+                          i.fas.fa-store
+                          | #{t("reviewShopReply")}
+                        if view.replyDateText
+                          span #{view.replyDateText}
+                      p #{review.reply.text}
+
+                  if view.canEdit
+                    div(class="sf-my-review-actions")
+                      a(
+                        href=view.editUrl
+                        class="sf-btn sf-btn-outline sf-btn-sm"
+                        )
+                        i.fas.fa-pen
+                        | #{t("reviewEditAction")}

@@ -10,6 +10,7 @@ import { searchRoute } from "./search.route"
 import { checkoutRoute } from "./checkout.route"
 import { orderRoute } from "./order.route"
 import { paymentRoute } from "./payment.route"
+import { reviewRoute } from "./review.route"
 import * as languageMiddleware from "../../middlewares/client/language.middleware"
 import * as layoutMiddleware from "../../middlewares/client/layout.middleware"
 import * as authMiddleware from "../../middlewares/client/auth.middleware"
@@ -49,6 +50,9 @@ export const clientRoute = (app: Express) => {
   app.use("/checkout", checkoutRoute)
 
   app.use("/order", orderRoute)
+
+  // Đánh giá sản phẩm (khách đã nhận hàng)
+  app.use("/review", reviewRoute)
 
   // Tài khoản khách: đăng nhập, đăng ký, thông tin tài khoản
   app.use("/account", accountRoute)

@@ -1,0 +1,83 @@
+//- Email nhắc khách đánh giá sản phẩm sau khi nhận hàng (helpers/review.helper.ts: sendReviewRequests)
+//- Mỗi sản phẩm có 5 ngôi sao: bấm sao nào thì mở trang viết đánh giá chọn sẵn số sao đó
+//- Email không dùng được file CSS: viết style ngay trong thẻ, bố cục bằng bảng (table)
+doctype html
+html(lang=lang)
+  head
+    meta(charset="UTF-8")
+    meta(
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+      )
+    title #{subject}
+  body(style="margin:0;padding:0;background:#F1F7F8;font-family:Arial,Helvetica,sans-serif;color:#111417;")
+    table(
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      style="background:#F1F7F8;"
+      )
+      tr
+        td(align="center" style="padding:32px 16px;")
+          table(
+            role="presentation"
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            style="max-width:560px;background:#FFFFFF;border:2px solid #111417;border-radius:20px;"
+            )
+            tr
+              td(style="padding:24px 32px 0;font-size:24px;font-weight:bold;letter-spacing:1px;")
+                span(style="color:#111417;") S
+                span(style="color:#007A8C;") FOODIE
+            tr
+              td(style="padding:20px 32px 0;font-size:16px;line-height:1.6;")
+                p(style="margin:0 0 12px;font-size:18px;font-weight:bold;") #{t("hello")}, #{order.customer.fullName}!
+                p(style="margin:0 0 16px;") #{t("reviewEmailText")}
+                p(style="margin:0 0 8px;font-size:14px;color:#5D6B70;") #{t("orderTitle")} #{order.code}
+            tr
+              td(style="padding:0 32px;")
+                table(
+                  role="presentation"
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  border="0"
+                  style="border-top:1px solid #E1EBED;"
+                  )
+                  each item in itemList
+                    //- Không chèn ảnh sản phẩm: server Quản lý file chỉ trả ảnh khi mở từ website (hộp thư sẽ hiện ô ảnh lỗi)
+                    tr
+                      td(style="padding:14px 0;border-bottom:1px solid #E1EBED;vertical-align:top;")
+                        a(
+                          href=item.url
+                          target="_blank"
+                          style="display:block;margin-bottom:6px;font-size:15px;font-weight:bold;line-height:1.4;color:#111417;text-decoration:none;"
+                          ) #{item.name}
+                        each starUrl, index in item.starUrls
+                          a(
+                            href=starUrl
+                            target="_blank"
+                            title=t(`ratingHint${index + 1}`)
+                            style="display:inline-block;padding:0 2px;font-size:28px;line-height:1;color:#FFC53D;text-decoration:none;"
+                            ) ★
+            tr
+              td(align="center" style="padding:24px 32px 0;")
+                a(
+                  href=itemList[0].url
+                  target="_blank"
+                  style="display:inline-block;padding:14px 28px;border:2px solid #111417;border-radius:999px;background:#02CAE5;color:#111417;font-size:16px;font-weight:bold;text-decoration:none;"
+                  ) #{t("reviewWriteButton")}
+            tr
+              td(align="center" style="padding:12px 32px 0;font-size:14px;")
+                a(
+                  href=orderUrl
+                  target="_blank"
+                  style="color:#007A8C;"
+                  ) #{t("orderEmailButton")}
+            tr
+              td(style="padding:24px 32px;font-size:13px;color:#93A7AC;")
+                | © SFoodie

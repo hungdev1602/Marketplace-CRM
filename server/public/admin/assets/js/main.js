@@ -2331,7 +2331,8 @@ if(listDashboardChart.length > 0) {
 // Trang chi tiết đơn hàng (views/admin/pages/order-detail.pug)
 // Nút [order-action]: gửi data-api (JSON), xong thì tải lại trang và hiện thông báo
 // - data-confirm: hỏi lại trước khi làm
-// - data-reason: hỏi thêm lý do (huỷ đơn)
+// - data-reason: hỏi thêm lý do (huỷ đơn, từ chối đánh giá), data-reason-placeholder: chữ gợi ý trong ô lý do
+// Dùng cả ở trang Đánh giá sản phẩm (views/admin/pages/review-list.pug)
 // - data-pickup-date: gửi kèm ngày giao hàng cho hãng vận chuyển (ô [order-pickup-date])
 // - data-open-url: server trả về { url } thì mở link trong tab mới (phiếu gửi hàng)
 const listOrderAction = document.querySelectorAll("[order-action]")
@@ -2348,7 +2349,7 @@ listOrderAction.forEach(button => {
     }
 
     if(button.hasAttribute("data-reason") && typeof Swal === "undefined") {
-      const reason = prompt(`${confirmText}\n\nLý do huỷ (không bắt buộc):`, "")
+      const reason = prompt(`${confirmText}\n\n${button.getAttribute("data-reason-placeholder") || "Lý do huỷ (không bắt buộc)"}:`, "")
       if(reason === null) return
       body.reason = reason
     }
@@ -2359,7 +2360,7 @@ listOrderAction.forEach(button => {
       const result = await Swal.fire({
         title: confirmText,
         input: "text",
-        inputPlaceholder: "Lý do huỷ (không bắt buộc), ví dụ: hết hàng, khách yêu cầu huỷ",
+        inputPlaceholder: button.getAttribute("data-reason-placeholder") || "Lý do huỷ (không bắt buộc), ví dụ: hết hàng, khách yêu cầu huỷ",
         showCancelButton: true,
         confirmButtonText: "Đồng ý",
         cancelButtonText: "Không"
@@ -2441,3 +2442,32 @@ if(orderNoteForm) {
   })
 }
 // End Trang chi tiết đơn hàng
+
+// Trang Đánh giá sản phẩm: form trả lời khách (views/admin/pages/review-list.pug)
+// Để trống rồi bấm Lưu là xoá câu trả lời
+document.querySelectorAll("[review-reply-form]").forEach(form => {
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault()
+    const submitButton = form.querySelector("[type='submit']")
+    submitButton.disabled = true
+
+    try {
+      const response = await fetch(form.getAttribute("data-api"), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reply: form.reply.value })
+      })
+      const data = await response.json()
+      if(data.code === "success") {
+        drawNotify("success", data.message)
+        return
+      }
+      notyf.error(data.message)
+    } catch (error) {
+      notyf.error("Có lỗi xảy ra, vui lòng thử lại!")
+    }
+
+    submitButton.disabled = false
+  })
+})
+// End Trang Đánh giá sản phẩm

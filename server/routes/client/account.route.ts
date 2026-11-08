@@ -3,6 +3,7 @@ import * as controller from "../../controller/client/account.controller"
 import * as accountValidate from "../../validates/client/account.validate"
 import * as authMiddleware from "../../middlewares/client/auth.middleware"
 import * as orderController from "../../controller/client/order.controller"
+import * as reviewController from "../../controller/client/review.controller"
 
 const router = Router()
 
@@ -31,6 +32,9 @@ router.get("/", authMiddleware.requireLogin, controller.profile)
 
 // Đơn hàng của tài khoản
 router.get("/orders", authMiddleware.requireLogin, orderController.accountOrders)
+
+// Đánh giá của tài khoản: sản phẩm chờ đánh giá, đánh giá đã viết
+router.get("/reviews", authMiddleware.requireLogin, reviewController.accountReviews)
 
 router.patch("/profile", authMiddleware.requireLogin, accountValidate.profilePatch, controller.profilePatch)
 

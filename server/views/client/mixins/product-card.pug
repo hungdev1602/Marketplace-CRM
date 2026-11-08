@@ -40,6 +40,16 @@ mixin productCard(product)
         href=productUrl
         class="sf-product-title"
         ) #{productName}
+      //- Số sao (giống Wildberries: ★ 4,8 · 12 оценок)
+      if product.ratingCount > 0
+        a(
+          href=`${productUrl}#reviews`
+          class="sf-card-rating"
+          aria-label=`${t("reviewStarsLabel")} ${formatNumber(product.rating)} ${t("ratingOutOf")}, ${tCount(product.ratingCount, "ratingCount")}`
+          )
+          i.fas.fa-star
+          b #{formatNumber(product.rating)}
+          span · #{tCount(product.ratingCount, "ratingCount")}
       - const metaList = []
       - if (product.netWeight) metaList.push(`${formatNumber(product.netWeight)} ${tOption(productOptions.netWeightUnitList, product.netWeightUnit)}`)
       - if (product.origin && product.origin != "other") metaList.push(tOption(productOptions.originList, product.origin))

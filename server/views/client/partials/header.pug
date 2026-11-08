@@ -85,6 +85,12 @@ mixin accountLink()
           )
           i.fas.fa-receipt
           span #{t("myOrders")}
+        a(
+          href="/account/reviews"
+          class="sf-account-dropdown-item"
+          )
+          i.far.fa-star
+          span #{t("myReviews")}
         //- Đăng xuất phải gửi bằng form POST (không dùng link), để trang web khác không đăng xuất được khách
         form(
           action="/account/logout"

@@ -54,8 +54,9 @@ const checkIpHost = (hostname: string) => {
   }
 }
 
-// Nhận dạng ảnh theo nội dung file (không tin header Content-Type của web khác)
-const detectImageType = (buffer: Buffer) => {
+// Nhận dạng ảnh theo nội dung file (không tin header Content-Type của web khác / đuôi file khách gửi lên)
+// Dùng cả khi kiểm tra ảnh đánh giá của khách (helpers/review.helper.ts)
+export const detectImageType = (buffer: Buffer) => {
   if(buffer.length < 12){
     return undefined
   }
