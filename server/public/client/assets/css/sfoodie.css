@@ -6596,14 +6596,38 @@ a.sf-sd-note b {
     color: var(--sf-muted) !important;
 }
 
-/* Tổng quan (cột trái) */
+/* Tổng quan + ảnh của khách (trên cùng phần đánh giá)
+   - Có ảnh của khách: 2 cột (tổng quan | ảnh)
+   - Không có ảnh: khung tổng quan nằm ngang (điểm | thanh số sao | nút viết đánh giá) */
+.sf-review-overview {
+    display: grid;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.sf-review-overview.has-photos {
+    grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
+    align-items: start;
+}
+
 .sf-review-summary {
-    position: sticky;
-    top: 90px;
     padding: 24px;
     border: 2px solid var(--sf-line);
     border-radius: 22px;
     background: var(--sf-surface);
+}
+
+.sf-review-overview:not(.has-photos) .sf-review-summary {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 300px);
+    align-items: center;
+    gap: 24px 40px;
+}
+
+.sf-review-overview:not(.has-photos) .sf-review-score,
+.sf-review-overview:not(.has-photos) .sf-review-bars,
+.sf-review-overview:not(.has-photos) .sf-review-none {
+    margin-bottom: 0;
 }
 
 .sf-review-score {
@@ -6773,9 +6797,14 @@ a.sf-sd-note b {
 }
 
 .sf-review-gallery ul {
-    overflow-x: auto;
-    padding-bottom: 6px;
-    scrollbar-width: thin;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+}
+
+.sf-review-gallery li button {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
 }
 
 .sf-review-photos {
@@ -6876,19 +6905,320 @@ a.sf-sd-note b {
     cursor: pointer;
 }
 
-/* Danh sách */
-.sf-review-list {
+/* Slider ngang các thẻ đánh giá (vuốt trên điện thoại, mũi tên trên máy tính) */
+.sf-review-slider {
+    position: relative;
+}
+
+.sf-review-track {
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+    padding: 4px 2px 14px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
     transition: opacity .2s ease;
 }
 
-.sf-review-list.is-loading {
+.sf-review-track::-webkit-scrollbar {
+    display: none;
+}
+
+.sf-review-track:focus-visible {
+    outline: 3px solid var(--sf-cyan-soft);
+    outline-offset: 2px;
+    border-radius: 20px;
+}
+
+.sf-review-track.is-loading {
     opacity: .5;
     pointer-events: none;
 }
 
-.sf-review {
-    padding: 22px 0;
-    border-bottom: 1px solid var(--sf-line);
+/* 1 thẻ: máy tính rộng 4 thẻ / màn hình, nhỏ hơn 3 - 2 thẻ, điện thoại 1 thẻ và lộ 1 phần thẻ sau */
+.sf-review-card {
+    display: flex;
+    flex: 0 0 calc((100% - 48px) / 4);
+    flex-direction: column;
+    min-width: 0;
+    padding: 18px;
+    border: 2px solid var(--sf-line);
+    border-radius: 20px;
+    background: var(--sf-surface);
+    scroll-snap-align: start;
+}
+
+.sf-review-card .sf-review-head {
+    align-items: flex-start;
+}
+
+.sf-review-card .sf-review-head .sf-stars {
+    margin-top: 4px;
+}
+
+.sf-review-card .sf-review-avatar {
+    width: 38px;
+    height: 38px;
+    font-size: 15px !important;
+}
+
+.sf-review-card-text {
+    display: grid;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.sf-review-card-text p {
+    font-size: 14.5px !important;
+    line-height: 1.55 !important;
+    color: var(--sf-text) !important;
+    overflow-wrap: anywhere;
+}
+
+.sf-review-card-text b {
+    font-weight: 900;
+    color: var(--sf-ink);
+}
+
+.sf-review-card .sf-review-photos button {
+    width: 58px;
+    height: 58px;
+    border-radius: 12px;
+}
+
+/* "+2": số ảnh còn lại trên ảnh cuối của thẻ */
+.sf-review-photos button {
+    position: relative;
+}
+
+.sf-review-photo-more {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgb(17 20 23 / 55%);
+    color: #fff !important;
+    font-size: 16px !important;
+    font-weight: 900 !important;
+}
+
+.sf-review-card-reply {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-left: 3px solid var(--sf-cyan);
+    border-radius: 0 12px 12px 0;
+    background: var(--sf-bg-tint);
+}
+
+.sf-review-card-reply b {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 900;
+    color: var(--sf-ink);
+}
+
+.sf-review-card-reply b i {
+    color: var(--sf-cyan-dark);
+}
+
+.sf-review-card-reply p {
+    margin-top: 2px !important;
+    font-size: 13.5px !important;
+    line-height: 1.5 !important;
+    color: var(--sf-text) !important;
+    overflow-wrap: anywhere;
+}
+
+/* "Читать полностью" */
+.sf-review-read-more {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 0;
+    background: none;
+    color: var(--sf-cyan-dark);
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.sf-review-read-more i {
+    font-size: 11px;
+}
+
+.sf-review-read-more:hover {
+    text-decoration: underline;
+}
+
+/* Nút "Отзыв полезен?" luôn nằm cuối thẻ (các thẻ cao bằng nhau) */
+.sf-review-card .sf-review-foot {
+    margin-top: auto;
+    padding-top: 14px;
+}
+
+.sf-review-card .sf-review-foot > span {
+    width: 100%;
+    margin-right: 0;
+}
+
+/* Ô cuối slider: đang tải thêm thì hiện vòng xoay */
+.sf-review-more {
+    display: flex;
+    flex: 0 0 200px;
+    align-items: center;
+    justify-content: center;
+    scroll-snap-align: start;
+}
+
+.sf-review-more .fa-spinner {
+    display: none;
+}
+
+.sf-review-more.is-loading .fa-spinner {
+    display: inline-block;
+}
+
+.sf-review-more.is-loading .sf-btn {
+    pointer-events: none;
+    opacity: .7;
+}
+
+.sf-review-track .sf-review-empty-filter {
+    flex: 0 0 100%;
+}
+
+/* Mũi tên ‹ › (ẩn khi đã ở đầu / cuối) */
+.sf-slider-arrow {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border: 2px solid var(--sf-outline);
+    border-radius: 50%;
+    background: var(--sf-surface);
+    color: var(--sf-ink);
+    box-shadow: var(--sf-menu-shadow);
+    transform: translateY(-50%);
+    cursor: pointer;
+    transition: opacity .2s ease, background-color .15s ease;
+}
+
+.sf-slider-arrow:hover {
+    background: var(--sf-cyan);
+    color: var(--sf-black);
+}
+
+.sf-slider-arrow:disabled {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sf-slider-arrow.is-prev {
+    left: -14px;
+}
+
+.sf-slider-arrow.is-next {
+    right: -14px;
+}
+
+/* Cửa sổ "Читать полностью" */
+.sf-review-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    background: rgb(5 9 11 / 60%);
+}
+
+.sf-review-modal[hidden] {
+    display: none;
+}
+
+.sf-review-modal-box {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    max-height: 100%;
+    padding: 28px 24px 24px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 2px solid var(--sf-line);
+    border-radius: 22px;
+    background: var(--sf-surface);
+}
+
+.sf-review-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--sf-soft);
+    color: var(--sf-ink);
+    cursor: pointer;
+}
+
+.sf-review-modal-close:hover {
+    background: var(--sf-inverse-bg);
+    color: var(--sf-inverse-text);
+}
+
+.sf-review-modal-loading {
+    padding: 40px 0;
+    font-size: 26px;
+    color: var(--sf-cyan-dark);
+    text-align: center;
+}
+
+.sf-review-modal .sf-review-head {
+    padding-right: 44px;
+}
+
+body.sf-modal-open {
+    overflow: hidden;
+}
+
+/* Trang "Мои отзывы": đánh giá dài chỉ hiện vài dòng (mờ dần ở cuối) */
+.sf-clamp {
+    position: relative;
+    max-height: 9.5em;
+    overflow: hidden;
+}
+
+.sf-clamp:not(.is-expanded)::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 2.5em;
+    background: linear-gradient(to bottom, transparent, var(--sf-surface));
+}
+
+.sf-clamp.is-expanded {
+    max-height: none;
+}
+
+.sf-clamp-wrap .sf-review-read-more[hidden] {
+    display: none;
 }
 
 .sf-review-head {
@@ -7073,11 +7403,6 @@ a.sf-sd-note b {
     padding: 28px 0;
     font-size: 15px !important;
     color: var(--sf-muted) !important;
-}
-
-.sf-review-more {
-    padding-top: 22px;
-    text-align: center;
 }
 
 /* Xem ảnh lớn */
@@ -7742,9 +8067,28 @@ body.sf-lightbox-open {
     margin-top: 14px;
 }
 
+@media (max-width: 1199.98px) {
+    .sf-review-card {
+        flex-basis: calc((100% - 32px) / 3);
+    }
+}
+
 @media (max-width: 991.98px) {
-    .sf-review-summary {
-        position: static;
+    .sf-review-overview.has-photos,
+    .sf-review-overview:not(.has-photos) .sf-review-summary {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sf-review-card {
+        flex-basis: calc((100% - 16px) / 2);
+    }
+
+    .sf-slider-arrow.is-prev {
+        left: 4px;
+    }
+
+    .sf-slider-arrow.is-next {
+        right: 4px;
     }
 }
 
@@ -7761,9 +8105,20 @@ body.sf-lightbox-open {
         font-size: 40px;
     }
 
+    /* Xếp dọc, không tự xuống dòng (flex-wrap: wrap làm hàng nút lọc giãn rộng hơn màn hình) */
     .sf-review-toolbar {
         align-items: stretch;
         flex-direction: column;
+        flex-wrap: nowrap;
+    }
+
+    .sf-review-toolbar .sf-chip-list {
+        min-width: 0;
+    }
+
+    .sf-review-sort select {
+        min-width: 0;
+        max-width: 70%;
     }
 
     .sf-review-toolbar .sf-chip-list {
@@ -7781,9 +8136,34 @@ body.sf-lightbox-open {
         justify-content: space-between;
     }
 
-    .sf-review-gallery button {
-        width: 72px;
-        height: 72px;
+    .sf-review-gallery ul {
+        grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+        gap: 8px;
+    }
+
+    /* Điện thoại: 1 thẻ, lộ 1 phần thẻ sau để khách biết vuốt được, không có mũi tên */
+    .sf-review-card {
+        flex-basis: 86%;
+        padding: 16px;
+    }
+
+    .sf-review-track {
+        gap: 12px;
+    }
+
+    .sf-slider-arrow {
+        display: none;
+    }
+
+    .sf-review-modal {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .sf-review-modal-box {
+        max-height: 88vh;
+        padding: 24px 16px 20px;
+        border-radius: 22px 22px 0 0;
     }
 
     .sf-review-head .sf-stars {

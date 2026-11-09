@@ -82,18 +82,33 @@ block main
                           | : #{review.rejectReason}
                         | . #{t("reviewRejectedHint")}
 
-                  if review.pros
-                    div(class="sf-review-block")
-                      h4 #{t("reviewPros")}
-                      p #{review.pros}
-                  if review.cons
-                    div(class="sf-review-block")
-                      h4 #{t("reviewCons")}
-                      p #{review.cons}
-                  if review.comment
-                    div(class="sf-review-block")
-                      h4 #{t("reviewComment")}
-                      p #{review.comment}
+                  //- Đánh giá dài: chỉ hiện vài dòng, bấm "Читать полностью" để mở hết (main.js: [clamp-text])
+                  if review.pros || review.cons || review.comment
+                    div(class="sf-clamp-wrap")
+                      div(
+                        class="sf-clamp"
+                        clamp-text
+                        )
+                        if review.pros
+                          div(class="sf-review-block")
+                            h4 #{t("reviewPros")}
+                            p #{review.pros}
+                        if review.cons
+                          div(class="sf-review-block")
+                            h4 #{t("reviewCons")}
+                            p #{review.cons}
+                        if review.comment
+                          div(class="sf-review-block")
+                            h4 #{t("reviewComment")}
+                            p #{review.comment}
+                      button(
+                        type="button"
+                        class="sf-review-read-more"
+                        clamp-toggle
+                        hidden
+                        )
+                        | #{t("reviewReadMore")}
+                        i.fas.fa-chevron-down
                   if review.photos && review.photos.length > 0
                     ul(class="sf-review-photos")
                       each photo in review.photos

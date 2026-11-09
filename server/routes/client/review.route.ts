@@ -13,8 +13,11 @@ router.post("/write/:code/:productId", reviewValidate.uploadPhotos, reviewValida
 // Xoá đánh giá của mình
 router.post("/write/:code/:productId/delete", controller.deletePost)
 
-// Danh sách đánh giá của sản phẩm (HTML): lọc, sắp xếp, "Показать ещё"
+// Danh sách đánh giá của sản phẩm (HTML, thẻ trong slider): lọc, sắp xếp, tải thêm khi kéo tới cuối slider
 router.get("/product/:productId", controller.productReviews)
+
+// Toàn bộ 1 đánh giá (HTML): bấm "Читать полностью"
+router.get("/item/:id", controller.item)
 
 // "Полезный отзыв?" 👍 / 👎
 router.post("/:id/vote", controller.votePost)

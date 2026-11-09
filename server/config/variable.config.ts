@@ -776,8 +776,13 @@ export const reviewTextMaxLength = {
 // Khách được sửa / xoá đánh giá của mình trong bao nhiêu ngày kể từ lúc viết
 export const reviewEditDays: number = 30
 
-// Số đánh giá mỗi lần tải ở trang sản phẩm (bấm "Показать ещё" để tải thêm)
+// Số đánh giá mỗi lần tải ở trang sản phẩm (slider ngang: kéo / bấm mũi tên tới cuối thì tự tải thêm)
 export const reviewPerPage: number = 10
+
+// Thẻ đánh giá trong slider chỉ hiện đoạn đầu (số ký tự của ưu điểm + nhược điểm + nhận xét cộng lại),
+// đánh giá dài hơn có nút "Читать полностью": bấm mới tải toàn bộ nội dung (không tải hết ngay khi mở trang)
+export const reviewPreviewLength: number = 220
+export const reviewReplyPreviewLength: number = 100 // đoạn đầu câu trả lời của cửa hàng
 
 // Trạng thái đánh giá
 export const reviewStatusList = [

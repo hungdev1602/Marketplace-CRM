@@ -497,6 +497,7 @@ const vi: Record<keyof typeof ru, string> = {
   reviewSortRatingDesc: "Đánh giá cao trước",
   reviewSortRatingAsc: "Đánh giá thấp trước",
   reviewFilterEmpty: "Không có đánh giá phù hợp với bộ lọc",
+  reviewReadMore: "Đọc toàn bộ",
   reviewShowMore: "Xem thêm",
   reviewPros: "Ưu điểm",
   reviewCons: "Nhược điểm",

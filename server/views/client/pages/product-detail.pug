@@ -323,13 +323,16 @@ block main
                   +infoRow(t("barcode"), product.barcode)
                   +infoRow(t("marking"), product.markingRequired ? t("yes") : "")
 
-      //- Đánh giá của khách (giống Wildberries: tổng quan bên trái, ảnh của khách + danh sách bên phải)
-      //- Lọc, sắp xếp, "Показать ещё": main.js tải lại danh sách từ /review/product/:id
+      //- Đánh giá của khách (giống Wildberries): tổng quan + ảnh của khách ở trên, bộ lọc, các thẻ đánh giá trong slider ngang
+      //- main.js: lọc / sắp xếp tải lại slider từ /review/product/:id, kéo tới cuối slider tự tải thêm,
+      //- "Читать полностью" tải toàn bộ 1 đánh giá từ /review/item/:id
+      - const hasCustomerPhotos = reviewSummary.photoList.length > 0
       section(
         class="sf-reviews"
         id="reviews"
         review-section
         data-url=`/review/product/${product.id}`
+        data-item-url="/review/item/"
         data-login-text=t("loginAction")
         )
         div(class="sf-section-heading")
@@ -338,37 +341,38 @@ block main
               | #{t("reviewsTitle")}
               if product.reviewCount > 0
                 span(class="sf-reviews-count") #{formatNumber(product.reviewCount)}
-        .row.g-4
-          .col-lg-4
-            aside(class="sf-review-summary")
-              if reviewSummary.total > 0
-                div(class="sf-review-score")
-                  b #{formatNumber(product.rating)}
-                  div
-                    +ratingStars(product.rating, "lg")
-                    span #{tCount(reviewSummary.total, "ratingCount")}
-                //- Bấm 1 dòng để lọc đánh giá theo số sao đó
-                ul(class="sf-review-bars")
-                  each row in reviewSummary.distribution
-                    li
-                      button(
-                        type="button"
-                        review-filter-rating=row.star
-                        disabled=row.count == 0 || !(product.reviewCount > 0)
-                        aria-label=`${row.star} ${t("ratingOutOf")}: ${row.count}`
-                        )
-                        span(class="sf-review-bar-star")
-                          | #{row.star}
-                          i.fas.fa-star
-                        span(class="sf-review-bar")
-                          span(style=`width: ${row.percent}%`)
-                        span(class="sf-review-bar-count") #{formatNumber(row.count)}
-              else
-                div(class="sf-review-none")
-                  +ratingStars(0, "lg")
-                  b #{t("reviewsNone")}
-                  p #{t("reviewsNoneText")}
 
+        div(class="sf-review-overview" + (hasCustomerPhotos ? " has-photos" : ""))
+          aside(class="sf-review-summary")
+            if reviewSummary.total > 0
+              div(class="sf-review-score")
+                b #{formatNumber(product.rating)}
+                div
+                  +ratingStars(product.rating, "lg")
+                  span #{tCount(reviewSummary.total, "ratingCount")}
+              //- Bấm 1 dòng để lọc đánh giá theo số sao đó
+              ul(class="sf-review-bars")
+                each row in reviewSummary.distribution
+                  li
+                    button(
+                      type="button"
+                      review-filter-rating=row.star
+                      disabled=row.count == 0 || !(product.reviewCount > 0)
+                      aria-label=`${row.star} ${t("ratingOutOf")}: ${row.count}`
+                      )
+                      span(class="sf-review-bar-star")
+                        | #{row.star}
+                        i.fas.fa-star
+                      span(class="sf-review-bar")
+                        span(style=`width: ${row.percent}%`)
+                      span(class="sf-review-bar-count") #{formatNumber(row.count)}
+            else
+              div(class="sf-review-none")
+                +ratingStars(0, "lg")
+                b #{t("reviewsNone")}
+                p #{t("reviewsNoneText")}
+
+            div(class="sf-review-action")
               if reviewAction && reviewAction.type == "write"
                 a(
                   href=reviewAction.url
@@ -390,72 +394,113 @@ block main
                   i.fas.fa-info-circle
                   | #{t("reviewOnlyBuyers")}
 
-          .col-lg-8
-            //- Ảnh của khách
-            if reviewSummary.photoList.length > 0
-              div(class="sf-review-gallery")
-                h3 #{t("reviewCustomerPhotos")}
-                  span #{formatNumber(reviewSummary.photoReviewCount)}
-                ul
-                  each photo in reviewSummary.photoList
-                    li
-                      button(
-                        type="button"
-                        review-photo=mediaUrl(photo.path)
-                        data-gallery="customer-photos"
-                        aria-label=t("reviewPhoto")
-                        )
-                        img(
-                          src=mediaUrl(photo.path)
-                          alt=""
-                          loading="lazy"
-                          )
-
-            if product.reviewCount > 0
-              //- Bộ lọc, sắp xếp
-              div(class="sf-review-toolbar")
-                div(
-                  class="sf-chip-list"
-                  role="group"
-                  )
-                  button(
-                    type="button"
-                    class="sf-chip active"
-                    review-filter-rating=""
-                    aria-pressed="true"
-                    ) #{t("reviewFilterAll")}
-                  if reviewSummary.photoReviewCount > 0
+          //- Ảnh của khách (bấm để xem lớn, xem nối tiếp các ảnh)
+          if hasCustomerPhotos
+            div(class="sf-review-gallery")
+              h3 #{t("reviewCustomerPhotos")}
+                span #{formatNumber(reviewSummary.photoReviewCount)}
+              ul(data-gallery-list=JSON.stringify(reviewSummary.photoList.map(photo => mediaUrl(photo.path))))
+                each photo, index in reviewSummary.photoList
+                  li
                     button(
                       type="button"
-                      class="sf-chip"
-                      review-filter-photo
-                      aria-pressed="false"
+                      review-photo
+                      data-index=index
+                      aria-label=`${t("reviewPhoto")} ${index + 1}`
                       )
-                      i.fas.fa-camera
-                      | #{t("reviewFilterPhoto")}
-                  each star in [5, 4, 3, 2, 1]
-                    - const starRow = reviewSummary.distribution.find(row => row.star == star)
-                    if starRow && starRow.count > 0
-                      button(
-                        type="button"
-                        class="sf-chip"
-                        review-filter-rating=star
-                        aria-pressed="false"
+                      img(
+                        src=mediaUrl(photo.path)
+                        alt=""
+                        loading="lazy"
                         )
-                        | #{star}
-                        i.fas.fa-star
-                label(class="sf-review-sort")
-                  span #{t("reviewSortLabel")}
-                  select(review-sort)
-                    each item in reviewSortList
-                      option(value=item.id) #{t(item.key)}
 
-              div(
-                class="sf-review-list"
-                review-list
-                aria-live="polite"
-                )
-                include ../partials/review-list.pug
+        if product.reviewCount > 0
+          //- Bộ lọc, sắp xếp
+          div(class="sf-review-toolbar")
+            div(
+              class="sf-chip-list"
+              role="group"
+              )
+              button(
+                type="button"
+                class="sf-chip active"
+                review-filter-rating=""
+                aria-pressed="true"
+                ) #{t("reviewFilterAll")}
+              if reviewSummary.photoReviewCount > 0
+                button(
+                  type="button"
+                  class="sf-chip"
+                  review-filter-photo
+                  aria-pressed="false"
+                  )
+                  i.fas.fa-camera
+                  | #{t("reviewFilterPhoto")}
+              each star in [5, 4, 3, 2, 1]
+                - const starRow = reviewSummary.distribution.find(row => row.star == star)
+                if starRow && starRow.count > 0
+                  button(
+                    type="button"
+                    class="sf-chip"
+                    review-filter-rating=star
+                    aria-pressed="false"
+                    )
+                    | #{star}
+                    i.fas.fa-star
+            label(class="sf-review-sort")
+              span #{t("reviewSortLabel")}
+              select(review-sort)
+                each item in reviewSortList
+                  option(value=item.id) #{t(item.key)}
+
+          //- Slider ngang: vuốt trên điện thoại, mũi tên ‹ › trên máy tính
+          div(class="sf-review-slider")
+            button(
+              type="button"
+              class="sf-slider-arrow is-prev"
+              review-prev
+              aria-label=t("previous")
+              disabled
+              )
+              i.fas.fa-chevron-left
+            div(
+              class="sf-review-track"
+              review-list
+              tabindex="0"
+              role="region"
+              aria-label=t("reviewsTitle")
+              aria-live="polite"
+              )
+              include ../partials/review-list.pug
+            button(
+              type="button"
+              class="sf-slider-arrow is-next"
+              review-next
+              aria-label=t("next")
+              )
+              i.fas.fa-chevron-right
+
+        //- Cửa sổ đọc toàn bộ 1 đánh giá ("Читать полностью"), main.js tải nội dung khi bấm
+        div(
+          class="sf-review-modal"
+          review-modal
+          role="dialog"
+          aria-modal="true"
+          aria-label=t("reviewsTitle")
+          hidden
+          )
+          div(class="sf-review-modal-box")
+            button(
+              type="button"
+              class="sf-review-modal-close"
+              review-modal-close
+              aria-label=t("close")
+              )
+              i.fas.fa-times
+            div(
+              class="sf-review-modal-body"
+              review-modal-body
+              )
 
       //- Xem ảnh lớn (ảnh của khách trong đánh giá): main.js điền ảnh, bấm ‹ › để xem ảnh khác
       div(

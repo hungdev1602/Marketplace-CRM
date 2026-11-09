@@ -2320,15 +2320,21 @@ if(reviewForm) {
   }
 }
 
-// --- Trang sản phẩm: danh sách đánh giá ---
+// --- Trang sản phẩm: các thẻ đánh giá trong slider ngang ---
+// - Lọc theo số sao / có ảnh, sắp xếp: tải lại slider (trang 1)
+// - Kéo / bấm mũi tên tới cuối slider: tự tải thêm reviewPerPage đánh giá (ô [review-more] ở cuối slider)
+// - "Читать полностью": tải toàn bộ 1 đánh giá (/review/item/:id) và hiện trong cửa sổ [review-modal]
 const reviewSection = document.querySelector("[review-section]")
 if(reviewSection) {
-  const reviewList = reviewSection.querySelector("[review-list]")
+  const reviewTrack = reviewSection.querySelector("[review-list]")
   const reviewToolbar = reviewSection.querySelector(".sf-review-toolbar")
   const reviewSort = reviewSection.querySelector("[review-sort]")
+  const reviewPrev = reviewSection.querySelector("[review-prev]")
+  const reviewNext = reviewSection.querySelector("[review-next]")
   const reviewUrl = reviewSection.getAttribute("data-url")
   const reviewState = { rating: "", photo: false, sort: "" }
   let reviewRequestId = 0
+  let isLoadingMore = false
 
   const buildReviewUrl = (page) => {
     const params = new URLSearchParams()
@@ -2338,6 +2344,14 @@ if(reviewSection) {
     if(page > 1) params.set("page", page)
     const query = params.toString()
     return query ? `${reviewUrl}?${query}` : reviewUrl
+  }
+
+  // Mũi tên ‹ ›: khoá khi đã ở đầu / cuối slider
+  const updateReviewArrows = () => {
+    if(!reviewTrack || !reviewPrev || !reviewNext) return
+    const maxScroll = reviewTrack.scrollWidth - reviewTrack.clientWidth
+    reviewPrev.disabled = reviewTrack.scrollLeft <= 2
+    reviewNext.disabled = reviewTrack.scrollLeft >= maxScroll - 2
   }
 
   // Tô nút lọc đang chọn
@@ -2356,11 +2370,26 @@ if(reviewSection) {
     }
   }
 
-  // Tải danh sách: trang 1 thì thay toàn bộ, trang sau thì nối vào cuối ("Показать ещё")
+  // Ô [review-more] ở cuối slider hiện ra (khách kéo tới cuối) thì tự tải thêm
+  const moreObserver = "IntersectionObserver" in window && reviewTrack
+    ? new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if(entry.isIntersecting) loadMoreReviews()
+      })
+    }, { root: reviewTrack, rootMargin: "0px 240px 0px 0px" })
+    : null
+  const observeMoreBox = () => {
+    if(!moreObserver) return
+    moreObserver.disconnect()
+    const moreBox = reviewTrack.querySelector("[review-more]")
+    if(moreBox) moreObserver.observe(moreBox)
+  }
+
+  // Tải các thẻ đánh giá: trang 1 thì thay toàn bộ slider (về đầu slider), trang sau thì nối vào cuối
   const loadReviews = async (page = 1) => {
-    if(!reviewList) return
+    if(!reviewTrack) return
     const requestId = ++reviewRequestId
-    reviewList.classList.add("is-loading")
+    if(page === 1) reviewTrack.classList.add("is-loading")
 
     try {
       const response = await fetch(buildReviewUrl(page), { headers: { "Accept": "text/html" } })
@@ -2369,23 +2398,54 @@ if(reviewSection) {
       if(requestId !== reviewRequestId) return // khách đã đổi bộ lọc khác trong lúc chờ
 
       if(page === 1) {
-        reviewList.innerHTML = html
+        reviewTrack.innerHTML = html
+        reviewTrack.scrollLeft = 0
       }
       else {
-        const moreBox = reviewList.querySelector("[review-more]")
+        const moreBox = reviewTrack.querySelector("[review-more]")
         if(moreBox) moreBox.remove()
-        reviewList.insertAdjacentHTML("beforeend", html)
+        reviewTrack.insertAdjacentHTML("beforeend", html)
       }
     } catch (error) {
       showToast(errorText, "error")
+      const moreBox = reviewTrack.querySelector("[review-more]")
+      if(moreBox) moreBox.classList.remove("is-loading")
     }
 
-    if(requestId === reviewRequestId) reviewList.classList.remove("is-loading")
+    if(requestId === reviewRequestId) {
+      reviewTrack.classList.remove("is-loading")
+      observeMoreBox()
+      updateReviewArrows()
+    }
   }
+
+  const loadMoreReviews = async () => {
+    const moreBox = reviewTrack && reviewTrack.querySelector("[review-more]")
+    if(!moreBox || isLoadingMore) return
+    isLoadingMore = true
+    moreBox.classList.add("is-loading")
+    const moreButton = moreBox.querySelector("[review-more-button]")
+    await loadReviews(Number(moreButton.getAttribute("data-page")) || 2)
+    isLoadingMore = false
+  }
+
+  if(reviewTrack) {
+    observeMoreBox()
+    updateReviewArrows()
+    reviewTrack.addEventListener("scroll", updateReviewArrows, { passive: true })
+    window.addEventListener("resize", updateReviewArrows)
+  }
+
+  // Bấm mũi tên: cuộn gần 1 màn hình thẻ
+  const scrollReviews = (direction) => {
+    reviewTrack.scrollBy({ left: direction * reviewTrack.clientWidth * 0.9, behavior: "smooth" })
+  }
+  if(reviewPrev) reviewPrev.addEventListener("click", () => scrollReviews(-1))
+  if(reviewNext) reviewNext.addEventListener("click", () => scrollReviews(1))
 
   reviewSection.addEventListener("click", (event) => {
     const ratingButton = event.target.closest("[review-filter-rating]")
-    if(ratingButton && reviewList) {
+    if(ratingButton && reviewTrack) {
       const value = ratingButton.getAttribute("review-filter-rating")
       const isFromSummary = !ratingButton.closest(".sf-review-toolbar")
       if(value === "") {
@@ -2410,10 +2470,8 @@ if(reviewSection) {
       return
     }
 
-    const moreButton = event.target.closest("[review-more-button]")
-    if(moreButton) {
-      moreButton.disabled = true
-      loadReviews(Number(moreButton.getAttribute("data-page")) || 2)
+    if(event.target.closest("[review-more-button]")) {
+      loadMoreReviews()
     }
   })
 
@@ -2425,15 +2483,16 @@ if(reviewSection) {
   }
 
   // "Отзыв полезен?" 👍 / 👎: bấm lại nút đã bấm là bỏ lượt bấm. Chưa đăng nhập: thông báo kèm link "Войти"
+  // Cập nhật cả thẻ trong slider và cửa sổ "Читать полностью" (cùng 1 đánh giá)
   reviewSection.addEventListener("click", async (event) => {
     const voteButton = event.target.closest("[review-vote]")
     if(!voteButton) return
 
-    const foot = voteButton.closest(".sf-review-foot")
-    const voteButtons = foot.querySelectorAll("[review-vote]")
+    const reviewId = voteButton.getAttribute("review-vote")
+    const voteButtons = reviewSection.querySelectorAll(`[review-vote="${reviewId}"]`)
     voteButtons.forEach(button => button.disabled = true)
 
-    const result = await sendJson(`/review/${voteButton.getAttribute("review-vote")}/vote`, "POST", {
+    const result = await sendJson(`/review/${reviewId}/vote`, "POST", {
       value: Number(voteButton.getAttribute("data-value"))
     })
     voteButtons.forEach(button => button.disabled = false)
@@ -2454,10 +2513,61 @@ if(reviewSection) {
       button.querySelector("[review-vote-count]").textContent = count > 0 ? count : ""
     })
   })
+
+  // --- Cửa sổ "Читать полностью": chỉ tải toàn bộ đánh giá khi khách bấm ---
+  const reviewModal = reviewSection.querySelector("[review-modal]")
+  if(reviewModal) {
+    const modalBody = reviewModal.querySelector("[review-modal-body]")
+    const modalClose = reviewModal.querySelector("[review-modal-close]")
+    const itemUrl = reviewSection.getAttribute("data-item-url")
+    let modalLastFocus = null
+
+    const closeReviewModal = () => {
+      reviewModal.hidden = true
+      modalBody.innerHTML = ""
+      document.body.classList.remove("sf-modal-open")
+      if(modalLastFocus) modalLastFocus.focus()
+    }
+
+    reviewSection.addEventListener("click", async (event) => {
+      const readMoreButton = event.target.closest("[review-read-more]")
+      if(!readMoreButton) return
+
+      modalLastFocus = readMoreButton
+      modalBody.innerHTML = `<div class="sf-review-modal-loading"><i class="fas fa-spinner fa-spin"></i></div>`
+      reviewModal.hidden = false
+      document.body.classList.add("sf-modal-open")
+      modalClose.focus()
+
+      try {
+        const response = await fetch(`${itemUrl}${readMoreButton.getAttribute("review-read-more")}`, { headers: { "Accept": "text/html" } })
+        if(!response.ok) throw new Error(`${response.status}`)
+        const html = await response.text()
+        if(!reviewModal.hidden) modalBody.innerHTML = html
+      } catch (error) {
+        closeReviewModal()
+        showToast(errorText, "error")
+      }
+    })
+
+    modalClose.addEventListener("click", closeReviewModal)
+    // Bấm ra vùng tối xung quanh thì đóng
+    reviewModal.addEventListener("click", (event) => {
+      if(event.target === reviewModal) closeReviewModal()
+    })
+    document.addEventListener("keydown", (event) => {
+      if(event.key !== "Escape" || reviewModal.hidden) return
+      // Đang xem ảnh lớn (mở từ trong cửa sổ): phím Esc chỉ đóng ảnh
+      const lightbox = document.querySelector("[review-lightbox]")
+      if(lightbox && !lightbox.hidden) return
+      closeReviewModal()
+    })
+  }
 }
 
 // --- Xem ảnh lớn (ảnh của khách trong đánh giá) ---
-// Nút [review-photo]="link ảnh", các ảnh cùng data-gallery xem nối tiếp bằng ‹ ›, phím ← →, vuốt trên điện thoại
+// Nút [review-photo] (data-index) nằm trong danh sách có data-gallery-list = link tất cả ảnh của nhóm đó
+// (thẻ đánh giá chỉ hiện vài ảnh, ảnh còn lại chỉ tải khi xem), bấm ‹ ›, phím ← →, vuốt để xem ảnh khác
 const reviewLightbox = document.querySelector("[review-lightbox]")
 if(reviewLightbox) {
   const lightboxImage = reviewLightbox.querySelector("[lightbox-image]")
@@ -2483,11 +2593,14 @@ if(reviewLightbox) {
   }
 
   const openLightbox = (button) => {
-    const galleryName = button.getAttribute("data-gallery")
-    const buttonList = [...document.querySelectorAll("[review-photo]")]
-      .filter(item => item.getAttribute("data-gallery") === galleryName)
-    galleryList = buttonList.map(item => item.getAttribute("review-photo"))
-    galleryIndex = Math.max(0, buttonList.indexOf(button))
+    const group = button.closest("[data-gallery-list]")
+    try {
+      galleryList = JSON.parse(group.getAttribute("data-gallery-list")) || []
+    } catch (error) {
+      galleryList = []
+    }
+    if(galleryList.length === 0) return
+    galleryIndex = Math.min(galleryList.length - 1, Math.max(0, Number(button.getAttribute("data-index")) || 0))
     lastFocus = button
     reviewLightbox.hidden = false
     document.body.classList.add("sf-lightbox-open")
@@ -2531,4 +2644,21 @@ if(reviewLightbox) {
     if(Math.abs(distance) > 50) moveGallery(distance > 0 ? -1 : 1)
   })
 }
+
+// --- Trang "Мои отзывы": đánh giá dài chỉ hiện vài dòng, bấm "Читать полностью" để mở hết ---
+document.querySelectorAll("[clamp-text]").forEach((box) => {
+  const toggle = box.parentElement.querySelector("[clamp-toggle]")
+  if(!toggle) return
+  // Chỉ hiện nút khi chữ thật sự dài hơn khung
+  if(box.scrollHeight > box.clientHeight + 4) {
+    toggle.hidden = false
+  }
+  else {
+    box.classList.add("is-expanded")
+  }
+  toggle.addEventListener("click", () => {
+    box.classList.add("is-expanded")
+    toggle.hidden = true
+  })
+})
 // Hết Đánh giá sản phẩm

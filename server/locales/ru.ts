@@ -496,6 +496,7 @@ const ru = {
   reviewSortRatingDesc: "Сначала положительные",
   reviewSortRatingAsc: "Сначала отрицательные",
   reviewFilterEmpty: "Нет отзывов по выбранным фильтрам",
+  reviewReadMore: "Читать полностью",
   reviewShowMore: "Показать ещё",
   reviewPros: "Достоинства",
   reviewCons: "Недостатки",

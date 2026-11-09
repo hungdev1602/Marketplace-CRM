@@ -1,26 +1,130 @@
 include ./rating-stars.pug
 
-//- 1 đánh giá ở trang sản phẩm (dữ liệu từ buildReviewView: controller/client/review.controller.ts)
-//- Chữ của khách hiện bằng #{} (tự đổi ký tự HTML), xuống dòng giữ nguyên nhờ CSS white-space: pre-line
-mixin reviewItem(view)
+//- Đánh giá ở trang sản phẩm (dữ liệu từ buildReviewView: controller/client/review.controller.ts)
+//- Chữ của khách hiện bằng #{} (tự đổi ký tự HTML)
+//- - reviewCard: thẻ trong slider ngang, chỉ có đoạn đầu (view.preview), dài hơn thì có nút "Читать полностью"
+//- - reviewItem: toàn bộ đánh giá (cửa sổ "Читать полностью", GET /review/item/:id)
+
+//- Đầu đánh giá: chữ cái đầu, tên, ngày, số sao
+mixin reviewHead(view)
   - const review = view.review
+  div(class="sf-review-head")
+    span(
+      class="sf-review-avatar"
+      aria-hidden="true"
+      ) #{view.authorInitial}
+    div(class="sf-review-author")
+      b #{view.authorName}
+      span
+        | #{view.dateText}
+        if review.editedAt
+          |  · #{t("reviewEdited")}
+    +ratingStars(review.rating, "sm")
+
+//- Ảnh của đánh giá: bấm để xem lớn (main.js: [review-photo])
+//- Danh sách link tất cả ảnh để trong data-gallery-list: ảnh nào chưa hiện (thẻ chỉ hiện vài ảnh) chỉ tải khi khách bấm xem
+mixin reviewPhotos(review, limit)
   - const photoList = review.photos || []
+  - const shownList = limit ? photoList.slice(0, limit) : photoList
+  if photoList.length > 0
+    ul(
+      class="sf-review-photos"
+      data-gallery-list=JSON.stringify(photoList.map(photo => mediaUrl(photo)))
+      )
+      each photo, index in shownList
+        li
+          button(
+            type="button"
+            review-photo
+            data-index=index
+            aria-label=`${t("reviewPhoto")} ${index + 1}`
+            )
+            img(
+              src=mediaUrl(photo)
+              alt=""
+              loading="lazy"
+              )
+            //- Ảnh cuối của thẻ: số ảnh còn lại, ví dụ "+2"
+            if index == shownList.length - 1 && photoList.length > shownList.length
+              span(class="sf-review-photo-more") +#{photoList.length - shownList.length}
+
+//- "Отзыв полезен?" (main.js: [review-vote]). Đánh giá của chính khách thì hiện "Ваш отзыв"
+mixin reviewVotes(view)
+  - const review = view.review
+  div(class="sf-review-foot")
+    if view.isMine
+      span(class="sf-review-mine")
+        i.fas.fa-user-check
+        | #{t("reviewYours")}
+    else
+      span #{t("reviewHelpfulQuestion")}
+      button(
+        type="button"
+        class="sf-review-vote" + (view.myVote == 1 ? " is-active" : "")
+        review-vote=review.id
+        data-value="1"
+        aria-pressed=view.myVote == 1 ? "true" : "false"
+        )
+        i.far.fa-thumbs-up
+        span #{t("reviewHelpfulYes")}
+        b(review-vote-count) #{review.helpfulCount > 0 ? review.helpfulCount : ""}
+      button(
+        type="button"
+        class="sf-review-vote" + (view.myVote == -1 ? " is-active" : "")
+        review-vote=review.id
+        data-value="-1"
+        aria-pressed=view.myVote == -1 ? "true" : "false"
+        )
+        i.far.fa-thumbs-down
+        span #{t("reviewHelpfulNo")}
+        b(review-vote-count) #{review.unhelpfulCount > 0 ? review.unhelpfulCount : ""}
+
+//- Thẻ đánh giá trong slider (giống Wildberries): đoạn đầu nội dung, tối đa 4 ảnh, đoạn đầu câu trả lời của cửa hàng
+mixin reviewCard(view)
+  - const review = view.review
+  - const preview = view.preview
   article(
-    class="sf-review"
+    class="sf-review-card"
     id=`review-${review.id}`
     )
-    div(class="sf-review-head")
-      span(
-        class="sf-review-avatar"
-        aria-hidden="true"
-        ) #{view.authorInitial}
-      div(class="sf-review-author")
-        b #{view.authorName}
-        span
-          | #{view.dateText}
-          if review.editedAt
-            |  · #{t("reviewEdited")}
-      +ratingStars(review.rating, "sm")
+    +reviewHead(view)
+    p(class="sf-review-verified")
+      i.fas.fa-check-circle
+      | #{t("reviewVerifiedBuyer")}
+
+    if preview.partList.length > 0
+      div(class="sf-review-card-text")
+        each part in preview.partList
+          p
+            b #{t(part.key)}:
+            |  #{part.text}
+
+    +reviewPhotos(review, 4)
+
+    if preview.replyText
+      div(class="sf-review-card-reply")
+        b
+          i.fas.fa-store
+          | #{t("reviewShopReply")}
+        p #{preview.replyText}
+
+    //- Đánh giá dài: bấm mới tải toàn bộ (main.js: [review-read-more])
+    if preview.truncated
+      button(
+        type="button"
+        class="sf-review-read-more"
+        review-read-more=review.id
+        )
+        | #{t("reviewReadMore")}
+        i.fas.fa-chevron-right
+
+    +reviewVotes(view)
+
+//- Toàn bộ 1 đánh giá (cửa sổ "Читать полностью"), xuống dòng giữ nguyên nhờ CSS white-space: pre-line
+mixin reviewItem(view)
+  - const review = view.review
+  article(class="sf-review")
+    +reviewHead(view)
     p(class="sf-review-verified")
       i.fas.fa-check-circle
       | #{t("reviewVerifiedBuyer")}
@@ -38,22 +142,7 @@ mixin reviewItem(view)
         h4 #{t("reviewComment")}
         p #{review.comment}
 
-    //- Ảnh: bấm để xem lớn (main.js: [review-photo])
-    if photoList.length > 0
-      ul(class="sf-review-photos")
-        each photo, index in photoList
-          li
-            button(
-              type="button"
-              review-photo=mediaUrl(photo)
-              data-gallery=review.id
-              aria-label=`${t("reviewPhoto")} ${index + 1}`
-              )
-              img(
-                src=mediaUrl(photo)
-                alt=""
-                loading="lazy"
-                )
+    +reviewPhotos(review)
 
     //- Cửa hàng trả lời
     if review.reply && review.reply.text
@@ -66,31 +155,4 @@ mixin reviewItem(view)
             span #{view.replyDateText}
         p #{review.reply.text}
 
-    //- "Отзыв полезен?" (main.js: [review-vote])
-    div(class="sf-review-foot")
-      if view.isMine
-        span(class="sf-review-mine")
-          i.fas.fa-user-check
-          | #{t("reviewYours")}
-      else
-        span #{t("reviewHelpfulQuestion")}
-        button(
-          type="button"
-          class="sf-review-vote" + (view.myVote == 1 ? " is-active" : "")
-          review-vote=review.id
-          data-value="1"
-          aria-pressed=view.myVote == 1 ? "true" : "false"
-          )
-          i.far.fa-thumbs-up
-          span #{t("reviewHelpfulYes")}
-          b(review-vote-count) #{review.helpfulCount > 0 ? review.helpfulCount : ""}
-        button(
-          type="button"
-          class="sf-review-vote" + (view.myVote == -1 ? " is-active" : "")
-          review-vote=review.id
-          data-value="-1"
-          aria-pressed=view.myVote == -1 ? "true" : "false"
-          )
-          i.far.fa-thumbs-down
-          span #{t("reviewHelpfulNo")}
-          b(review-vote-count) #{review.unhelpfulCount > 0 ? review.unhelpfulCount : ""}
+    +reviewVotes(view)

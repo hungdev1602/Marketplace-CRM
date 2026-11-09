@@ -17,6 +17,7 @@ import { isValidProductId } from "../../helpers/client-token.helper"
 import { findCustomerOrder, getOrderUrl } from "../../helpers/order.helper"
 import {
   buildAuthorName,
+  buildReviewPreview,
   buildReviewSearch,
   canEditReview,
   cleanReviewText,
@@ -53,6 +54,7 @@ export const buildReviewView = (review: any, res: Response, voteMap: { [reviewId
   const authorName = review.anonymous || !review.authorName ? res.locals.t("reviewAnonymous") : review.authorName
   return {
     review: review,
+    preview: buildReviewPreview(review), // đoạn đầu hiện trên thẻ trong slider
     authorName: authorName,
     authorInitial: `${authorName}`.trim().charAt(0).toUpperCase() || "?",
     dateText: formatReviewDate(review.createdAt, res.locals.lang),
@@ -331,6 +333,29 @@ export const productReviews = async (req: Request, res: Response) => {
       reviewViewList: reviewResult.reviewList.map(review => buildReviewView(review, res, voteMap)),
       reviewResult: reviewResult,
       reviewFilter: filter
+    })
+  } catch (error) {
+    console.log(error)
+    res.status(500).send("")
+  }
+}
+
+// Toàn bộ 1 đánh giá đã đăng (HTML): bấm "Читать полностью" trên thẻ trong slider, main.js hiện trong cửa sổ
+// GET /review/item/:id
+export const item = async (req: Request, res: Response) => {
+  try {
+    const id = `${req.params.id || ""}`
+    const review: any = mongoose.isValidObjectId(id)
+      ? await Review.findOne({ _id: id, status: "published" })
+      : null
+    if(!review){
+      res.status(404).send("")
+      return
+    }
+
+    const voteMap = await getUserVoteMap([review.id], res.locals.clientAccount?.id)
+    res.render("client/partials/review-full", {
+      view: buildReviewView(review, res, voteMap)
     })
   } catch (error) {
     console.log(error)

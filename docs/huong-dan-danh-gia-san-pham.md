@@ -16,11 +16,15 @@ Không cần cài thêm thư viện mới. Repo **file-manager-microservice khô
   - Trang **«Мои отзывы»** (`/account/reviews`, có trong menu tài khoản): mục *Ждут оценки* (sản phẩm đã nhận chưa đánh giá) và *Мои отзывы* (trạng thái duyệt, lý do bị từ chối, câu trả lời của cửa hàng).
   - Trang sản phẩm: nút **«Написать отзыв»** nếu khách đã đăng nhập và đã nhận sản phẩm này.
   - **Email «Как вам покупка?»** gửi tự động 24 giờ sau khi đơn chuyển sang *Đã giao hàng*, có 5 ngôi sao bấm được cho từng sản phẩm.
-- Khách sửa / xoá đánh giá của mình trong **30 ngày**.
+- Khách sửa / xoá đánh giá của mình trong **30 ngày**. Ở trang «Мои отзывы», đánh giá dài chỉ hiện vài dòng, bấm «Читать полностью» để mở hết.
 - Trang sản phẩm có phần **«Отзывы»**:
   - Điểm trung bình lớn (ví dụ 4,6), số lượt đánh giá, thanh phân bố 5★…1★ (bấm vào để lọc).
   - **«Фото покупателей»**: ảnh của khách, bấm để xem lớn (vuốt / phím ← → để xem ảnh khác).
-  - Lọc: *Все*, *С фото*, theo số sao; sắp xếp: mới nhất, hữu ích nhất, điểm cao trước, điểm thấp trước; nút **«Показать ещё»**.
+  - Các đánh giá nằm trong **slider ngang** (giống Wildberries): máy tính hiện 4 thẻ / màn hình (màn nhỏ hơn 3 – 2 thẻ), có mũi tên ‹ ›; điện thoại vuốt ngang, mỗi lần 1 thẻ và lộ một phần thẻ sau.
+    Kéo tới cuối slider thì **tự tải thêm** 10 đánh giá (không tải hết một lần).
+  - **Bình luận dài không tải hết:** thẻ chỉ hiện khoảng 220 ký tự đầu (ưu điểm + nhược điểm + nhận xét cộng lại), tối đa 4 ảnh (ảnh còn lại hiện «+2»), đoạn đầu câu trả lời của cửa hàng.
+    Đánh giá dài hơn có nút **«Читать полностью»**: bấm mới tải toàn bộ nội dung và hiện trong cửa sổ (điện thoại: tấm trượt từ dưới lên).
+  - Lọc: *Все*, *С фото*, theo số sao; sắp xếp: mới nhất, hữu ích nhất, điểm cao trước, điểm thấp trước.
   - **«Отзыв полезен? Да / Нет»** (phải đăng nhập, không bấm cho đánh giá của chính mình).
   - **«Ответ магазина SFoodie»** hiện dưới đánh giá khi cửa hàng trả lời.
 - Thẻ sản phẩm (trang chủ, danh sách...) hiện **★ 4,6 · 37 оценок**; trang danh sách có thêm cách sắp xếp **«По рейтингу»**.
@@ -112,7 +116,9 @@ Tài khoản Super Admin dùng được ngay. Tài khoản admin khác cần đ�
 | `reviewImageFolder` | `"danh-gia"` | Thư mục lưu ảnh trên server Quản lý file |
 | `reviewTextMaxLength` | 1000 / 1000 / 2000 | Số ký tự tối đa: ưu điểm / nhược điểm / nhận xét |
 | `reviewEditDays` | `30` | Khách sửa / xoá đánh giá trong bao nhiêu ngày |
-| `reviewPerPage` | `10` | Số đánh giá mỗi lần tải ở trang sản phẩm |
+| `reviewPerPage` | `10` | Số đánh giá mỗi lần tải vào slider ở trang sản phẩm |
+| `reviewPreviewLength` | `220` | Số ký tự đầu hiện trên thẻ trong slider, dài hơn thì có nút «Читать полностью» |
+| `reviewReplyPreviewLength` | `100` | Số ký tự đầu câu trả lời của cửa hàng hiện trên thẻ |
 | `reviewRequestEmail` | `true` | Bật / tắt email nhắc đánh giá |
 | `reviewRequestDelayHours` | `24` | Gửi email nhắc sau khi giao hàng bao nhiêu giờ |
 | `reviewRequestMaxDays` | `14` | Chỉ nhắc các đơn giao trong bao nhiêu ngày gần đây |
@@ -121,7 +127,9 @@ Từ ngữ hiện cho khách (tiếng Nga / tiếng Việt) nằm trong `server/
 
 ## Lưu ý khi đưa lên server thật
 
-- Khi chạy bản mới lần đầu, các đơn **đã giao trong 14 ngày gần đây** (chưa từng nhận email nhắc) sẽ nhận email «Как вам покупка?». Không muốn vậy thì tạm đặt `reviewRequestEmail = false` lần chạy đầu.
+- Khi chạy bản mới lần đầu, các đơn **đã giao trong 14 ngày gần đây** (chưa từng nhận email nhắc) sẽ nhận email «Как вам покупка?». Không muốn vậy thì tạm tắt email nhắc lần chạy đầu:
+  mở `server/config/variable.config.ts`, kéo xuống cuối file (phần «Đánh giá sản phẩm»), tìm dòng
+  `export const reviewRequestEmail: boolean = true` và đổi `true` thành `false`, lưu file, khởi động lại server. Muốn bật lại thì đổi về `true`.
 - File `.env` của server Quản lý file trên server thật: `DOMAIN` phải có tên miền thật của website (ví dụ `DOMAIN=https://ten-mien-cua-ban.ru/`), nếu không ảnh đánh giá (và ảnh sản phẩm) không hiện.
 - Ảnh đánh giá cũng hiện trong trang **Quản lý file** của admin (thư mục `danh-gia`). Xoá đánh giá hoặc khách bỏ ảnh khi sửa thì file ảnh tự xoá theo.
 
@@ -132,5 +140,5 @@ Thử xong và thấy ổn thì tạo Pull Request từ `claude/blissful-tesla-j
 ## Các file chính
 
 - Server: `models/review.model.ts`, `models/review-vote.model.ts`, `helpers/review.helper.ts`, `controller/client/review.controller.ts`, `controller/admin/review.controller.ts`, `validates/client/review.validate.ts`, `routes/client/review.route.ts`, `routes/admin/review.route.ts`
-- Giao diện khách: `views/client/pages/review-write.pug`, `views/client/pages/account-reviews.pug`, `views/client/partials/review-list.pug`, `views/client/mixins/review-item.pug`, `views/client/mixins/rating-stars.pug`, `views/client/emails/review-request.pug`; JS / CSS ở cuối `public/client/assets/js/main.js` và `public/client/assets/css/sfoodie.css` (phần «ĐÁNH GIÁ SẢN PHẨM»)
+- Giao diện khách: `views/client/pages/review-write.pug`, `views/client/pages/account-reviews.pug`, `views/client/partials/review-list.pug` (thẻ trong slider), `views/client/partials/review-full.pug` (cửa sổ «Читать полностью»), `views/client/mixins/review-item.pug`, `views/client/mixins/rating-stars.pug`, `views/client/emails/review-request.pug`; JS / CSS ở cuối `public/client/assets/js/main.js` và `public/client/assets/css/sfoodie.css` (phần «ĐÁNH GIÁ SẢN PHẨM»)
 - Admin: `views/admin/pages/review-list.pug`

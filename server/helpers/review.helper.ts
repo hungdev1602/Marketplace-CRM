@@ -13,6 +13,8 @@ import {
   reviewEditDays,
   reviewImageFolder,
   reviewPerPage,
+  reviewPreviewLength,
+  reviewReplyPreviewLength,
   reviewRequestDelayHours,
   reviewRequestEmail,
   reviewRequestMaxDays
@@ -135,6 +137,56 @@ export const cleanReviewText = (value: any, maxLength: number): string => {
     .replace(/\n{3,}/g, "\n\n")
     .trim()
     .slice(0, maxLength)
+}
+
+// Cắt chữ còn tối đa maxLength ký tự, cắt ở chỗ khoảng trắng gần nhất (không cắt giữa từ), thêm "…"
+const cutText = (text: string, maxLength: number): string => {
+  if(text.length <= maxLength) return text
+  let cut = text.slice(0, maxLength)
+  const lastSpace = cut.lastIndexOf(" ")
+  if(lastSpace > maxLength - 25) cut = cut.slice(0, lastSpace)
+  return `${cut.replace(/[\s,.;:!?-]+$/, "")}…`
+}
+
+// Đoạn đầu của đánh giá hiện trên thẻ trong slider (trang sản phẩm)
+// - Gộp ưu điểm, nhược điểm, nhận xét theo thứ tự, tổng cộng tối đa reviewPreviewLength ký tự, xuống dòng đổi thành dấu cách
+// - truncated: đánh giá dài hơn => hiện nút "Читать полностью", bấm mới tải toàn bộ (GET /review/item/:id)
+// Chỉ gửi đoạn đầu cho trình duyệt: đánh giá rất dài không làm trang sản phẩm nặng
+export const buildReviewPreview = (review: any) => {
+  const fieldList = [
+    { key: "reviewPros", text: review.pros },
+    { key: "reviewCons", text: review.cons },
+    { key: "reviewComment", text: review.comment }
+  ]
+    .map(field => ({ key: field.key, text: `${field.text || ""}`.replace(/\s+/g, " ").trim() }))
+    .filter(field => field.text)
+
+  const partList: { key: string, text: string }[] = []
+  let budget = reviewPreviewLength
+  let truncated = false
+  for (const field of fieldList) {
+    // Còn ít chỗ quá thì không hiện thêm mục mới (tránh "Недостатки: Ма…")
+    if(budget < 40 && partList.length > 0){
+      truncated = true
+      break
+    }
+    if(field.text.length > budget){
+      partList.push({ key: field.key, text: cutText(field.text, budget) })
+      truncated = true
+      break
+    }
+    partList.push(field)
+    budget -= field.text.length
+  }
+
+  const replyText = `${review.reply?.text || ""}`.replace(/\s+/g, " ").trim()
+  const replyPreview = cutText(replyText, reviewReplyPreviewLength)
+
+  return {
+    partList: partList,
+    replyText: replyPreview,
+    truncated: truncated || replyPreview !== replyText
+  }
 }
 
 // Chuỗi tìm kiếm ở trang admin: chữ gốc (tiếng Nga) + chữ đã chuyển sang latin

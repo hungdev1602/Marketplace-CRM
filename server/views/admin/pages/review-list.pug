@@ -123,18 +123,21 @@ block main
                       div.text-warning.fs-5(title=`${review.rating} sao`) #{stars(review.rating)}
                       if !review.hasContent
                         div.small.text-muted Chỉ chấm sao, không viết gì
-                      if review.pros
-                        div.mt-1
-                          div.small.fw-bold Ưu điểm (Достоинства)
-                          div.text-break(style="white-space: pre-line;") #{review.pros}
-                      if review.cons
-                        div.mt-1
-                          div.small.fw-bold Nhược điểm (Недостатки)
-                          div.text-break(style="white-space: pre-line;") #{review.cons}
-                      if review.comment
-                        div.mt-1
-                          div.small.fw-bold Nhận xét (Комментарий)
-                          div.text-break(style="white-space: pre-line;") #{review.comment}
+                      //- Nội dung dài: cuộn trong khung (không làm dòng quá cao), vẫn đọc được hết để duyệt
+                      if review.pros || review.cons || review.comment
+                        div(style="max-height: 260px; overflow-y: auto;")
+                          if review.pros
+                            div.mt-1
+                              div.small.fw-bold Ưu điểm (Достоинства)
+                              div.text-break(style="white-space: pre-line;") #{review.pros}
+                          if review.cons
+                            div.mt-1
+                              div.small.fw-bold Nhược điểm (Недостатки)
+                              div.text-break(style="white-space: pre-line;") #{review.cons}
+                          if review.comment
+                            div.mt-1
+                              div.small.fw-bold Nhận xét (Комментарий)
+                              div.text-break(style="white-space: pre-line;") #{review.comment}
                       if review.photos && review.photos.length > 0
                         div.d-flex.flex-wrap.gap-2.mt-2
                           each photo in review.photos
