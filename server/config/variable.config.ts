@@ -190,6 +190,14 @@ export const permissionList = [
   {
     id: "file-manager",
     name: "Quản lý file"
+  },
+  {
+    id: "integration-view",
+    name: "Xem kết nối API bên thứ 3 (trạng thái, nhật ký gọi API)"
+  },
+  {
+    id: "integration-edit",
+    name: "Sửa kết nối API bên thứ 3 (khoá API, bật / tắt, chế độ thử / thật, kiểm tra kết nối)"
   }
 ]
 
@@ -245,6 +253,10 @@ export const activityLogModuleList = [
   {
     id: "file-manager",
     name: "Quản lý file"
+  },
+  {
+    id: "integration",
+    name: "Kết nối API bên thứ 3"
   }
 ]
 
@@ -360,6 +372,11 @@ export const activityLogActionList = [
     id: "reply",
     name: "Trả lời",
     color: "bg-info"
+  },
+  {
+    id: "test-connection",
+    name: "Kiểm tra kết nối",
+    color: "bg-secondary"
   }
 ]
 // ===== Sản phẩm (thực phẩm châu Á bán tại Nga) =====
@@ -600,7 +617,7 @@ export const clientSearchCacheSeconds: number = 60
 // ===== Đặt hàng, thanh toán, giao hàng (trang khách hàng: /checkout) =====
 // Quy trình: khách đặt hàng => thanh toán online trước (Т-Банк) => cửa hàng tạo vận đơn ApiShip => gửi hàng
 // Không nhận thanh toán khi nhận hàng (COD): chưa thanh toán thì không tạo được vận đơn
-// Tài khoản, mật khẩu của ApiShip, Т-Банк điền trong file .env (xem .env.example)
+// Tài khoản, mật khẩu của ApiShip, Т-Банк nhập ở trang admin "Kết nối API" (hoặc trong file .env, xem .env.example)
 
 // Giá trị đơn hàng tối thiểu (tiền hàng sau giảm giá, chưa gồm phí giao hàng), 0 là không yêu cầu
 export const checkoutMinOrderValue: number = 0
@@ -652,12 +669,35 @@ export const orderDeliveryTypeList = [
 ]
 
 // ===== ApiShip (kết nối các hãng vận chuyển: СДЭК, Boxberry, Почта России, 5Post, Яндекс Доставка,...) =====
-// Chỉ lấy giá của các hãng này (key của hãng trong ApiShip), để trống [] là lấy tất cả hãng đã kết nối trong tài khoản ApiShip
+// Từ phiên bản có trang admin "Kết nối API" (Admin => Kết nối API => ApiShip): các mục đánh dấu [admin] bên dưới
+// chỉ là GIÁ TRỊ MẶC ĐỊNH, dùng khi chưa nhập ở trang admin. Nhập ở trang admin thì giá trị ở trang admin được ưu tiên
+
+// Danh sách hãng vận chuyển (key của hãng trong ApiShip => tên hiển thị), dùng cho ô chọn hãng ở trang admin "Kết nối API"
+// và tên hãng hiển thị cho khách. Danh sách đầy đủ: https://docs.apiship.ru/docs/delivery-services/list-delivery-services/
+export const apishipProviderList = [
+  { id: "cdek", name: "СДЭК" },
+  { id: "yataxi", name: "Яндекс Доставка" },
+  { id: "rupost", name: "Почта России" },
+  { id: "boxberry", name: "Boxberry" },
+  { id: "x5", name: "5Post" },
+  { id: "dpd", name: "DPD" },
+  { id: "dalli", name: "Dalli Service" },
+  { id: "pickpoint", name: "PickPoint" },
+  { id: "pecom", name: "ПЭК" },
+  { id: "dellin", name: "Деловые Линии" },
+  { id: "magnit", name: "Магнит Пост" },
+  { id: "ozon", name: "Ozon Доставка" },
+  { id: "wb", name: "WB Track" },
+  { id: "lpost", name: "Л-Пост" },
+  { id: "dostavista", name: "Dostavista" }
+]
+
+// [admin] Chỉ lấy giá của các hãng này (key của hãng trong ApiShip), để trống [] là lấy tất cả hãng đã kết nối trong tài khoản ApiShip
 // - "cdek": СДЭК, "yataxi": Яндекс Доставка, "rupost": Почта России
 // - hãng khác, ví dụ: "boxberry": Boxberry, "x5": 5Post, "dpd": DPD (danh sách đầy đủ: https://docs.apiship.ru/docs/delivery-services/list-delivery-services/)
 export const apishipProviderKeys: string[] = ["cdek", "yataxi", "rupost"]
 
-// Giỏ hàng có hàng bảo quản mát / đông lạnh thì chỉ cho chọn các hãng này (ví dụ hãng có xe lạnh), để trống [] là không giới hạn
+// [admin] Giỏ hàng có hàng bảo quản mát / đông lạnh thì chỉ cho chọn các hãng này (ví dụ hãng có xe lạnh), để trống [] là không giới hạn
 export const apishipColdProviderKeys: string[] = []
 
 // Cách giao hàng cho hãng vận chuyển (pickupType trong API ApiShip)
@@ -669,7 +709,7 @@ export const apishipPickupType: number = 1
 // (id lấy trong tài khoản ApiShip hoặc API /lists/points)
 export const apishipPointInIds: { [providerKey: string]: number } = {}
 
-// Địa chỉ kho gửi hàng + người liên hệ (in trên vận đơn, hãng vận chuyển tới đây lấy hàng)
+// [admin] Địa chỉ kho gửi hàng + người liên hệ (in trên vận đơn, hãng vận chuyển tới đây lấy hàng)
 // Bắt buộc điền city (và nên điền đủ các ô) trước khi bán hàng thật
 export const apishipSender = {
   countryCode: "RU",
@@ -712,19 +752,21 @@ export const apishipAutoCreateShipment: boolean = false
 export const apishipStatusSyncMinutes: number = 30
 
 // ===== Т-Банк: Интернет-эквайринг (thanh toán online: thẻ ngân hàng, СБП, T-Pay, SberPay, Mir Pay,...) =====
-// Mã terminal (TerminalKey) và mật khẩu terminal điền trong file .env (TBANK_TERMINAL_KEY, TBANK_PASSWORD)
+// Mã terminal (TerminalKey) và mật khẩu terminal nhập ở trang admin "Kết nối API" => Т-Банк
+// (hoặc trong file .env: TBANK_TERMINAL_KEY, TBANK_PASSWORD)
+// Các mục đánh dấu [admin] bên dưới chỉ là GIÁ TRỊ MẶC ĐỊNH, nhập ở trang admin thì giá trị ở trang admin được ưu tiên
 // Các cách thanh toán khách thấy trên trang thanh toán bật / tắt trong trang Т-Бизнес (Интернет-эквайринг => Магазины)
 
-// Gửi thông tin hoá đơn điện tử (чек 54-ФЗ) cùng với yêu cầu thanh toán
+// [admin] Gửi thông tin hoá đơn điện tử (чек 54-ФЗ) cùng với yêu cầu thanh toán
 // Chỉ bật khi cửa hàng đã kết nối máy tính tiền online (онлайн-касса) trong Интернет-эквайринг của Т-Банк,
 // nếu không Т-Банк sẽ báo lỗi và khách không thanh toán được
 export const tbankSendReceipt: boolean = false
 
-// Hệ thống thuế của ИП (in trên hoá đơn), hỏi kế toán:
+// [admin] Hệ thống thuế của ИП (in trên hoá đơn), hỏi kế toán:
 // "osn" - ОСН, "usn_income" - УСН доходы, "usn_income_outcome" - УСН доходы минус расходы, "patent" - патент
 export const tbankTaxation: string = "usn_income"
 
-// Phiên bản định dạng hoá đơn (ФФД) của máy tính tiền online: "1.2" hoặc "1.05" (xem trong cài đặt онлайн-касса)
+// [admin] Phiên bản định dạng hoá đơn (ФФД) của máy tính tiền online: "1.2" hoặc "1.05" (xem trong cài đặt онлайн-касса)
 export const tbankFfdVersion: string = "1.2"
 
 // Thuế VAT trên hoá đơn (Tax) theo thuế VAT của sản phẩm (productVatList)
@@ -798,3 +840,11 @@ export const reviewStatusList = [
 export const reviewRequestEmail: boolean = true
 export const reviewRequestDelayHours: number = 24
 export const reviewRequestMaxDays: number = 14
+
+// ===== Kết nối API bên thứ 3 (trang admin: Kết nối API) =====
+// Danh sách các API bên ngoài (Т-Банк, ApiShip, email SMTP) và các ô cấu hình nằm ở config/integration.config.ts
+// Khoá API, mật khẩu nhập ở trang admin được mã hoá (AES-256-GCM) trước khi lưu vào database,
+// khoá mã hoá là INTEGRATION_SECRET_KEY trong file .env (xem .env.example)
+
+// Số ngày lưu nhật ký gọi API (mỗi lần server gọi Т-Банк, ApiShip, gửi email), cũ hơn sẽ tự động bị xoá
+export const apiCallLogRetentionDays: number = 30

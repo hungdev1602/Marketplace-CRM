@@ -47,11 +47,15 @@ block main
             | Giao hàng (ApiShip)
         .card-body
           if !apishipConfigured
-            .alert.alert-warning Chưa điền APISHIP_LOGIN, APISHIP_PASSWORD trong file .env — chưa tạo được vận đơn.
+            .alert.alert-warning
+              | Chưa cấu hình ApiShip (hoặc kết nối ApiShip đang tắt) — chưa tạo được vận đơn.
+              if permissions.includes("integration-edit")
+                |  
+                a(href=`/${pathAdmin}/integration/edit/apiship`) Cấu hình ApiShip
           else if apishipTest
             .alert.alert-info.py-2
               i.fa-solid.fa-flask.me-1
-              | Đang dùng máy chủ thử nghiệm của ApiShip (APISHIP_TEST=true): vận đơn chỉ để thử, hãng vận chuyển không tới lấy hàng.
+              | Đang dùng máy chủ thử nghiệm của ApiShip (Kết nối API → ApiShip): vận đơn chỉ để thử, hãng vận chuyển không tới lấy hàng.
 
           .row.g-3
             .col-md-6
@@ -152,7 +156,10 @@ block main
               if senderMissing
                 .alert.alert-warning.py-2
                   i.fa-solid.fa-triangle-exclamation.me-1
-                  | Chưa điền đủ địa chỉ kho / người liên hệ (apishipSender trong config/variable.config.ts). Hãng vận chuyển cần thông tin này để lấy hàng.
+                  | Chưa điền đủ địa chỉ kho / người liên hệ (Kết nối API → ApiShip → Kho gửi hàng). Hãng vận chuyển cần thông tin này để lấy hàng.
+                  if permissions.includes("integration-edit")
+                    |  
+                    a(href=`/${pathAdmin}/integration/edit/apiship`) Điền ngay
               if canEdit && apishipConfigured
                 p.mb-2 Khách đã thanh toán. Đóng hàng xong thì chọn ngày giao hàng cho hãng vận chuyển và bấm tạo vận đơn.
                 .row.g-2.align-items-end

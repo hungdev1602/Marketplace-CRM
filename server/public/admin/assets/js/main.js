@@ -2471,3 +2471,225 @@ document.querySelectorAll("[review-reply-form]").forEach(form => {
   })
 })
 // End Trang Đánh giá sản phẩm
+
+// Kết nối API bên thứ 3 (views/admin/pages/integration-list.pug, integration-edit.pug)
+// Hiện kết quả "Kiểm tra kết nối": { ok, message, details: [dòng chi tiết] }
+const showIntegrationTestResult = async (data) => {
+  const detailsHtml = (data.details || []).length > 0
+    ? `<ul class="text-start small mb-0 ps-3">${data.details.map(line => `<li>${escapeHtml(line)}</li>`).join("")}</ul>`
+    : ""
+
+  if(typeof Swal === "undefined") {
+    alert(`${data.message}\n\n${(data.details || []).join("\n")}`)
+    return
+  }
+  await Swal.fire({
+    icon: data.ok ? "success" : "error",
+    title: escapeHtml(data.message),
+    html: detailsHtml,
+    width: 640,
+    confirmButtonText: "Đóng"
+  })
+}
+
+// Gọi API kiểm tra kết nối, trả về true nếu gọi được (kết quả đã hiện cho người dùng)
+const runIntegrationTest = async (api) => {
+  try {
+    const response = await fetch(api, { method: "POST" })
+    const data = await response.json()
+    if(data.code !== "success") {
+      notyf.error(data.message)
+      return false
+    }
+    await showIntegrationTestResult(data)
+    return true
+  } catch (error) {
+    notyf.error("Có lỗi xảy ra, vui lòng thử lại!")
+    return false
+  }
+}
+
+const integrationSpinnerHtml = `<span class="spinner-border spinner-border-sm me-1"></span> Đang kiểm tra...`
+
+// Nút "Kiểm tra kết nối" ở trang danh sách: xong thì tải lại trang để cập nhật kết quả
+document.querySelectorAll("[integration-test]").forEach(button => {
+  button.addEventListener("click", async () => {
+    const originalHtml = button.innerHTML
+    button.disabled = true
+    button.innerHTML = integrationSpinnerHtml
+
+    const done = await runIntegrationTest(button.getAttribute("data-api"))
+    if(done) {
+      location.reload()
+      return
+    }
+
+    button.disabled = false
+    button.innerHTML = originalHtml
+  })
+})
+
+// Công tắc bật / tắt kết nối ở trang danh sách
+document.querySelectorAll("[integration-toggle]").forEach(input => {
+  input.addEventListener("change", async () => {
+    const enabled = input.checked
+    const name = input.getAttribute("data-name")
+
+    if(!enabled && typeof Swal !== "undefined") {
+      const result = await Swal.fire({
+        title: `Tắt kết nối ${name}?`,
+        text: "Website sẽ coi như chưa kết nối dịch vụ này (ví dụ tắt Т-Банк / ApiShip thì khách không đặt hàng được).",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Tắt",
+        cancelButtonText: "Không"
+      })
+      if(!result.isConfirmed) {
+        input.checked = true
+        return
+      }
+    }
+
+    input.disabled = true
+    try {
+      const response = await fetch(input.getAttribute("data-api"), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: enabled })
+      })
+      const data = await response.json()
+      if(data.code === "success") {
+        drawNotify("success", data.message)
+        return
+      }
+      notyf.error(data.message)
+    } catch (error) {
+      notyf.error("Có lỗi xảy ra, vui lòng thử lại!")
+    }
+    input.checked = !enabled
+    input.disabled = false
+  })
+})
+
+// Nút copy (địa chỉ nhận thông báo Т-Банк)
+document.querySelectorAll("[integration-copy]").forEach(button => {
+  button.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(button.getAttribute("integration-copy"))
+      notyf.success("Đã copy!")
+    } catch (error) {
+      notyf.error("Không copy được, vui lòng chọn và copy bằng tay")
+    }
+  })
+})
+
+// Trang cấu hình 1 kết nối
+const integrationForm = document.querySelector("#integrationForm")
+if(integrationForm) {
+  // Ô có data-modes chỉ hiện ở các chế độ đó; nhóm ô không còn ô nào hiện thì ẩn cả nhóm
+  const updateIntegrationModeFields = () => {
+    const checkedMode = integrationForm.querySelector("input[name='mode']:checked")
+    const mode = checkedMode ? checkedMode.value : ""
+
+    integrationForm.querySelectorAll("[data-modes]").forEach(element => {
+      const modes = element.getAttribute("data-modes").split(",")
+      element.classList.toggle("d-none", !!mode && !modes.includes(mode))
+    })
+
+    integrationForm.querySelectorAll("[integration-group]").forEach(group => {
+      const fields = group.querySelectorAll(".row > [class*='col-']")
+      const hasVisible = [...fields].some(field => !field.classList.contains("d-none"))
+      group.classList.toggle("d-none", !hasVisible)
+    })
+  }
+  integrationForm.querySelectorAll("input[name='mode']").forEach(input => {
+    input.addEventListener("change", updateIntegrationModeFields)
+  })
+  updateIntegrationModeFields()
+
+  // Hiện / ẩn khoá đang gõ
+  integrationForm.querySelectorAll("[integration-toggle-secret]").forEach(button => {
+    button.addEventListener("click", () => {
+      const input = button.parentElement.querySelector("input")
+      const show = input.type === "password"
+      input.type = show ? "text" : "password"
+      button.innerHTML = show ? `<i class="fa-solid fa-eye-slash"></i>` : `<i class="fa-solid fa-eye"></i>`
+    })
+  })
+
+  // Gom dữ liệu form: { enabled, mode, values, secrets, clearSecrets }
+  const getIntegrationFormBody = () => {
+    const checkedMode = integrationForm.querySelector("input[name='mode']:checked")
+    const body = {
+      enabled: integrationForm.querySelector("#integrationEnabled").checked,
+      values: {},
+      secrets: {},
+      clearSecrets: []
+    }
+    if(checkedMode) body.mode = checkedMode.value
+
+    integrationForm.querySelectorAll("[data-field]").forEach(input => {
+      body.values[input.getAttribute("data-field")] = input.value.trim()
+    })
+
+    integrationForm.querySelectorAll("[data-field-list]").forEach(input => {
+      const key = input.getAttribute("data-field-list")
+      if(!body.values[key]) body.values[key] = []
+      if(input.checked) body.values[key].push(input.value)
+    })
+
+    // Ô bí mật: chỉ gửi ô có nhập (để trống là giữ nguyên)
+    integrationForm.querySelectorAll("[data-secret]").forEach(input => {
+      if(input.value.trim()) body.secrets[input.getAttribute("data-secret")] = input.value.trim()
+    })
+
+    integrationForm.querySelectorAll("[data-clear-secret]:checked").forEach(input => {
+      body.clearSecrets.push(input.getAttribute("data-clear-secret"))
+    })
+
+    return body
+  }
+
+  integrationForm.addEventListener("submit", async (event) => {
+    event.preventDefault()
+    const submitter = event.submitter
+    const thenTest = !!(submitter && submitter.hasAttribute("data-then-test"))
+    const buttons = integrationForm.querySelectorAll("button[type='submit']")
+    const originalHtml = submitter ? submitter.innerHTML : ""
+
+    buttons.forEach(button => button.disabled = true)
+    if(submitter) {
+      submitter.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Đang lưu...`
+    }
+
+    try {
+      const response = await fetch(integrationForm.getAttribute("data-api"), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(getIntegrationFormBody())
+      })
+      const data = await response.json()
+
+      if(data.code !== "success") {
+        notyf.error(data.message)
+      }
+      else if(!thenTest) {
+        drawNotify("success", data.message)
+        return
+      }
+      else {
+        notyf.success(data.message)
+        if(submitter) submitter.innerHTML = integrationSpinnerHtml
+        await runIntegrationTest(integrationForm.getAttribute("data-test-api"))
+        location.reload()
+        return
+      }
+    } catch (error) {
+      notyf.error("Có lỗi xảy ra, vui lòng thử lại!")
+    }
+
+    buttons.forEach(button => button.disabled = false)
+    if(submitter) submitter.innerHTML = originalHtml
+  })
+}
+// End Kết nối API bên thứ 3

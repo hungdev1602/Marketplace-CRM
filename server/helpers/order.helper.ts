@@ -24,7 +24,7 @@ import {
 } from "./apiship.helper"
 import { formatNumber, formatPrice } from "./format.helper"
 import { localizedName, translate } from "./language.helper"
-import { sendMail } from "./mail.helper"
+import { getOrderNotifyEmail, sendMail } from "./mail.helper"
 import { getSiteUrl } from "./site-url.helper"
 
 const pug = require("pug") // dùng require vì thư viện pug không có sẵn khai báo kiểu cho TypeScript
@@ -678,14 +678,14 @@ const renderEmail = (order: any, type: "paid" | "shipped"): { subject: string, h
   return { subject, html, text: lines.join("\n") }
 }
 
-// Khách đã thanh toán: email xác nhận cho khách + email báo đơn mới cho cửa hàng (ORDER_NOTIFY_EMAIL)
+// Khách đã thanh toán: email xác nhận cho khách + email báo đơn mới cho cửa hàng (Admin => Kết nối API => Email)
 export const sendOrderPaidEmails = async (order: any) => {
   if(order.customer?.email){
     const mail = renderEmail(order, "paid")
     await sendMail({ to: order.customer.email, ...mail })
   }
 
-  const notifyEmail = `${process.env.ORDER_NOTIFY_EMAIL || ""}`.trim()
+  const notifyEmail = getOrderNotifyEmail()
   if(notifyEmail){
     const deliveryText = order.delivery.type === "point"
       ? `Điểm nhận hàng: ${order.delivery.point?.address || ""}`

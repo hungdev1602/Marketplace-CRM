@@ -1,0 +1,235 @@
+extends ../layouts/default.pug
+
+//- Cấu hình 1 kết nối API bên thứ 3 (controller/admin/integration.controller.ts)
+//- Form #integrationForm: main.js gom các ô [data-field], [data-field-list], [data-secret], [data-clear-secret]
+//- rồi gửi JSON lên data-api. Ô có data-modes chỉ hiện ở các chế độ đó
+//- Ô bí mật (khoá API, mật khẩu) không bao giờ được điền sẵn: để trống là giữ nguyên giá trị đang lưu
+
+mixin source-badge(field)
+  if field.source == "admin"
+    span.badge.bg-success-subtle.text-success.ms-1 Đã lưu ở admin
+  else if field.source == "env"
+    span.badge.bg-info-subtle.text-info.ms-1(title="Chưa nhập ở trang admin, đang dùng giá trị trong file .env") Từ .env
+  else if field.source == "default"
+    span.badge.bg-secondary-subtle.text-secondary.ms-1(title="Giá trị mặc định trong config/variable.config.ts") Mặc định
+
+mixin integration-field(field)
+  - const inputId = `field-${field.key}`
+  - const modesAttr = field.modes && field.modes.length > 0 ? field.modes.join(",") : null
+  - const fallbackText = Array.isArray(field.fallbackValue) ? field.fallbackValue.join(", ") : `${field.fallbackValue === undefined || field.fallbackValue === null ? "" : field.fallbackValue}`
+  - const fallbackLabel = field.fallbackSource == "env" ? "Từ .env" : "Mặc định"
+  div(class=field.type == "checkbox-list" ? "col-12 mb-3" : "col-md-6 mb-3" data-modes=modesAttr)
+    if field.type == "checkbox-list"
+      label.form-label.d-block
+        | #{field.label}
+        +source-badge(field)
+      .integration-checkbox-grid
+        each option in field.options
+          .form-check
+            input.form-check-input(
+              type="checkbox"
+              id=`${inputId}-${option.id}`
+              value=option.id
+              data-field-list=field.key
+              checked=(field.value || []).includes(option.id)
+              )
+            label.form-check-label(for=`${inputId}-${option.id}`)
+              | #{option.name}
+              span.text-muted.small  (#{option.id})
+    else
+      label.form-label(for=inputId)
+        | #{field.label}
+        if field.required
+          span.text-danger  *
+        +source-badge(field)
+
+      if field.type == "secret"
+        - let secretPlaceholder = "Chưa có — nhập để lưu"
+        - if (field.source == "admin") secretPlaceholder = "•••••••• đã lưu — để trống nếu không đổi"
+        - else if (field.source == "env") secretPlaceholder = "•••••••• đang dùng từ .env — nhập để thay"
+        .input-group
+          input.form-control(
+            id=inputId
+            type="password"
+            data-secret=field.key
+            autocomplete="new-password"
+            spellcheck="false"
+            placeholder=secretPlaceholder
+            )
+          button.btn.btn-outline-secondary(type="button" integration-toggle-secret title="Hiện / ẩn")
+            i.fa-solid.fa-eye
+        if field.broken
+          div.small.text-danger.mt-1 Không giải mã được khoá đã lưu (INTEGRATION_SECRET_KEY / JWT_SECRET đã bị đổi) — vui lòng nhập lại.
+        if field.source == "admin"
+          .form-check.mt-1
+            input.form-check-input(type="checkbox" id=`${inputId}-clear` data-clear-secret=field.key)
+            label.form-check-label.small(for=`${inputId}-clear`) Xoá giá trị đã lưu ở admin (dùng lại file .env nếu có)
+
+      else if field.type == "select"
+        select.form-select(id=inputId data-field=field.key)
+          - const fallbackOption = (field.options || []).find(option => option.id == field.fallbackValue)
+          option(value="") — #{fallbackOption ? `${fallbackLabel}: ${fallbackOption.name}` : "Chưa chọn"} —
+          each option in field.options
+            option(value=option.id selected=(field.adminValue == option.id)) #{option.name}
+
+      else if field.type == "switch"
+        select.form-select(id=inputId data-field=field.key)
+          option(value="") — #{fallbackLabel}: #{field.fallbackValue === true ? "Bật" : "Tắt"} —
+          option(value="true" selected=(field.adminValue === true)) Bật
+          option(value="false" selected=(field.adminValue === false)) Tắt
+
+      else
+        //- Để trống ô thì dùng giá trị trong .env / mặc định (hiện ở chữ mờ trong ô)
+        - let placeholder = field.placeholder ? `Ví dụ: ${field.placeholder}` : ""
+        - if (fallbackText) placeholder = `${fallbackLabel}: ${fallbackText}`
+        input.form-control(
+          id=inputId
+          type=field.type == "number" ? "number" : field.type == "email" ? "email" : field.type == "url" ? "url" : "text"
+          data-field=field.key
+          value=(field.adminValue === undefined ? "" : field.adminValue)
+          placeholder=placeholder
+          autocomplete="off"
+          spellcheck="false"
+          )
+
+    if field.help
+      div.form-text!= field.help
+
+block main
+  - const definition = view.definition
+
+  .row.mb-3.align-items-center
+    .col
+      a.text-muted(href=`/${pathAdmin}/integration/list`)
+        i.fa-solid.fa-arrow-left.me-1
+        | Kết nối API
+      h4.mt-2.mb-0
+        i(class=`${definition.icon} me-2`)
+        | #{definition.name}
+        span(class=`badge ${view.status.color} ms-2 align-middle`) #{view.status.name}
+      div.text-muted.small.mt-1
+        | #{definition.description}
+        if view.updatedBy
+          br
+          | Sửa gần nhất: #{view.updatedBy} lúc #{view.updatedAtFormat}
+
+  if !canEncrypt
+    .alert.alert-danger
+      | Chưa có INTEGRATION_SECRET_KEY (hoặc JWT_SECRET) trong file .env nên không lưu được khoá API. Xem file .env.example.
+
+  .row
+    .col-lg-8
+      form#integrationForm(
+        data-api=`/${pathAdmin}/integration/edit/${definition.key}`
+        data-test-api=`/${pathAdmin}/integration/test/${definition.key}`
+        autocomplete="off"
+        )
+        //- Bật / tắt + chế độ
+        .card
+          .card-header
+            h4.card-title.mb-0 Trạng thái
+          .card-body
+            .form-check.form-switch.mb-3
+              input.form-check-input(type="checkbox" role="switch" id="integrationEnabled" name="enabled" checked=view.enabled)
+              label.form-check-label(for="integrationEnabled")
+                b Bật kết nối
+                span.text-muted.small.ms-1 (tắt thì website coi như chưa kết nối dịch vụ này)
+
+            if definition.modes.length > 0
+              label.form-label.d-block
+                | Chế độ
+                if view.modeSource == "env"
+                  span.badge.bg-info-subtle.text-info.ms-1 Đang theo .env
+              .row.g-2
+                each mode in definition.modes
+                  .col-md-6
+                    label.integration-mode.card.mb-0.h-100(for=`mode-${mode.id}`)
+                      .card-body.py-2
+                        .form-check
+                          input.form-check-input(type="radio" name="mode" id=`mode-${mode.id}` value=mode.id checked=(view.mode == mode.id))
+                          span.form-check-label.fw-semibold
+                            | #{mode.name}
+                            if mode.isTest
+                              span.badge.bg-info.ms-1 Thử
+                        div.small.text-muted.mt-1 #{mode.description}
+
+              if definition.key == "tbank" && siteUrlHttps
+                .alert.alert-danger.py-2.mt-3.mb-0(data-modes="fake")
+                  i.fa-solid.fa-triangle-exclamation.me-1
+                  | Website đang chạy trên tên miền thật (#{siteUrl}) — KHÔNG dùng thanh toán giả khi bán thật: khách bấm «Оплатить (тест)» là đơn được coi như đã thanh toán.
+
+        //- Các nhóm ô cấu hình
+        each group in groups
+          .card(integration-group)
+            .card-header
+              h4.card-title.mb-0 #{group.name}
+            .card-body
+              .row
+                each field in group.fields
+                  +integration-field(field)
+
+        .d-flex.gap-2.mb-4
+          button.btn.btn-primary(type="submit")
+            i.fa-solid.fa-floppy-disk.me-1
+            | Lưu
+          button.btn.btn-success(type="submit" data-then-test)
+            i.fa-solid.fa-plug-circle-check.me-1
+            | Lưu & kiểm tra kết nối
+          a.btn.btn-outline-secondary(href=`/${pathAdmin}/integration/list`) Quay lại
+
+    .col-lg-4
+      //- Kết quả kiểm tra gần nhất
+      .card
+        .card-header
+          h4.card-title.mb-0 Kiểm tra kết nối gần nhất
+        .card-body
+          if view.lastTest
+            div(class=view.lastTest.ok ? "text-success fw-medium" : "text-danger fw-medium")
+              i(class=view.lastTest.ok ? "fa-solid fa-circle-check me-1" : "fa-solid fa-circle-xmark me-1")
+              | #{view.lastTest.message}
+            if view.lastTest.details && view.lastTest.details.length > 0
+              ul.small.mt-2.mb-2.ps-3
+                each line in view.lastTest.details
+                  li #{line}
+            div.small.text-muted #{view.lastTestAtFormat} · #{view.lastTest.accountName}
+          else
+            p.text-muted.mb-0 Chưa kiểm tra. Bấm «Lưu & kiểm tra kết nối».
+
+      //- Địa chỉ nhận thông báo của Т-Банк
+      if definition.key == "tbank"
+        .card
+          .card-header
+            h4.card-title.mb-0 Địa chỉ nhận thông báo (webhook)
+          .card-body
+            p.small.text-muted.mb-2 Dán vào cài đặt terminal Т-Банк → Уведомления → по протоколу HTTP:
+            .input-group.input-group-sm
+              input.form-control.font-monospace(type="text" value=tbankNotificationUrl readonly)
+              button.btn.btn-outline-secondary(type="button" integration-copy=tbankNotificationUrl title="Copy")
+                i.fa-solid.fa-copy
+            if !siteUrlHttps
+              div.small.text-warning.mt-2
+                | SITE_URL trong .env chưa phải https: Т-Банк chỉ gửi thông báo tới tên miền thật có https.
+                |  Trên máy vẫn chạy được (server tự hỏi Т-Банк trạng thái thanh toán mỗi phút).
+
+      //- Hướng dẫn từng bước
+      .card
+        .card-header
+          h4.card-title.mb-0
+            i.fa-solid.fa-book-open.me-2
+            | Hướng dẫn
+        .card-body.integration-guide
+          each section in definition.guide
+            h6.fw-semibold.mt-2 #{section.title}
+            ol.small.ps-3
+              each step in section.steps
+                li.mb-1!= step
+          if definition.website || definition.docsUrl
+            div.small.mt-2
+              if definition.website
+                a.me-3(href=definition.website target="_blank" rel="noopener")
+                  i.fa-solid.fa-globe.me-1
+                  | Trang chủ
+              if definition.docsUrl
+                a(href=definition.docsUrl target="_blank" rel="noopener")
+                  i.fa-solid.fa-code.me-1
+                  | Tài liệu API

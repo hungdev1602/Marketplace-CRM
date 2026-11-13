@@ -184,6 +184,14 @@
                 i.iconoir-page-star.menu-icon
                 span Quản lý file
           // end nav-item
+          if ["integration-view", "integration-edit"].some(item => permissions.includes(item))
+            li.nav-item
+              a.nav-link(
+                href=`/${pathAdmin}/integration/list`
+                )
+                i.iconoir-data-transfer-both.menu-icon
+                span Kết nối API
+          // end nav-item
           //- Nhật ký hoạt động: chỉ Super Admin xem được
           if account.isSuperAdmin
             li.nav-item

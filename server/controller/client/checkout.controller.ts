@@ -4,8 +4,6 @@ import { Coupon } from "../../models/coupon.model"
 import { Order } from "../../models/order.model"
 import { DeliveryQuote } from "../../models/delivery-quote.model"
 import {
-  apishipColdProviderKeys,
-  apishipProviderKeys,
   checkoutDeliveryMarkup,
   checkoutFreeDeliveryFrom,
   checkoutMapAttribution,
@@ -20,6 +18,8 @@ import {
   buildParcel,
   calculateDelivery,
   getItemSize,
+  getApishipColdProviderKeys,
+  getApishipProviderKeys,
   getItemWeight,
   getPickupPoints,
   getProviderName,
@@ -83,8 +83,11 @@ const isFreeDelivery = (cartView: any): boolean => {
   return couponFreeShipping || reachThreshold
 }
 
-// Hãng vận chuyển được chọn (giỏ có hàng mát / đông lạnh thì chỉ hãng trong apishipColdProviderKeys)
+// Hãng vận chuyển được chọn ở trang admin (Kết nối API => ApiShip)
+// Giỏ có hàng mát / đông lạnh thì chỉ hãng nhận hàng mát / đông lạnh
 const getAllowedProviderKeys = (cartView: any): string[] => {
+  const apishipProviderKeys = getApishipProviderKeys()
+  const apishipColdProviderKeys = getApishipColdProviderKeys()
   if(cartView.hasColdItems && apishipColdProviderKeys.length > 0){
     return apishipProviderKeys.length > 0
       ? apishipColdProviderKeys.filter(key => apishipProviderKeys.includes(key))

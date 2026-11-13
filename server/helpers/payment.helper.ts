@@ -4,28 +4,34 @@ import moment from "moment"
 import {
   shopUtcOffset,
   tbankDeliveryTax,
-  tbankFfdVersion,
   tbankReceiptPaymentMethod,
-  tbankSendReceipt,
-  tbankTaxation,
   tbankTaxMap
 } from "../config/variable.config"
 import { getSiteUrl } from "./site-url.helper"
+import {
+  getIntegrationMode,
+  getIntegrationSetting,
+  getIntegrationString,
+  isIntegrationEnabled
+} from "./integration.helper"
+import { logApiCall } from "./api-call-log.helper"
 
 // ===== Thanh toán online =====
-// - Т-Банк Интернет-эквайринг: điền TBANK_TERMINAL_KEY, TBANK_PASSWORD trong file .env
-//   Tài liệu API: https://developer.tbank.ru/eacq/api
+// Cấu hình ở trang admin: Kết nối API => Т-Банк (hoặc file .env: TBANK_TERMINAL_KEY, TBANK_PASSWORD, PAYMENT_TEST_MODE)
+// - Chế độ "Т-Банк": Интернет-эквайринг, tài liệu API: https://developer.tbank.ru/eacq/api
 //   Khách được chuyển sang trang thanh toán của Т-Банк (thẻ ngân hàng, СБП, T-Pay, SberPay,... tuỳ cài đặt terminal)
-// - Thanh toán giả (PAYMENT_TEST_MODE=true): chỉ để thử trên máy khi chưa có terminal Т-Банк,
+// - Chế độ "Thanh toán giả": chỉ để thử khi chưa có terminal Т-Банк,
 //   mở trang có nút "Оплатить" / "Отменить" thay cho trang thanh toán thật
-// Lưu ý: đọc process.env trong hàm (không đọc lúc import file), vì file .env được nạp sau khi import (index.ts)
+// - Tắt kết nối Т-Банк ở trang admin: khách không đặt hàng được
+// Lưu ý: đọc cấu hình trong hàm (không đọc lúc import file), vì file .env được nạp sau khi import (index.ts)
 
 export type PaymentProvider = "tbank" | "test" | ""
 
-// Cách thanh toán đang dùng, "" là chưa cấu hình (khách không đặt hàng được)
+// Cách thanh toán đang dùng, "" là chưa cấu hình / đã tắt (khách không đặt hàng được)
 export const getPaymentProvider = (): PaymentProvider => {
-  if(process.env.TBANK_TERMINAL_KEY && process.env.TBANK_PASSWORD) return "tbank"
-  if(process.env.PAYMENT_TEST_MODE === "true") return "test"
+  if(!isIntegrationEnabled("tbank")) return ""
+  if(getIntegrationMode("tbank") === "fake") return "test"
+  if(getTerminalKey() && getPassword()) return "tbank"
   return ""
 }
 
@@ -44,11 +50,16 @@ export class PaymentError extends Error {}
 
 // ===== Gọi API Т-Банк =====
 const getApiUrl = (): string => {
-  return (process.env.TBANK_API_URL || "https://securepay.tinkoff.ru/v2").trim().replace(/\/+$/, "")
+  return (getIntegrationString("tbank", "apiUrl") || "https://securepay.tinkoff.ru/v2").replace(/\/+$/, "")
 }
 
-const getTerminalKey = (): string => `${process.env.TBANK_TERMINAL_KEY || ""}`.trim()
-const getPassword = (): string => `${process.env.TBANK_PASSWORD || ""}`.trim()
+const getTerminalKey = (): string => getIntegrationString("tbank", "terminalKey")
+const getPassword = (): string => getIntegrationString("tbank", "password")
+
+// Cài đặt hoá đơn điện tử (54-ФЗ): trang admin => mặc định trong config/variable.config.ts
+const getSendReceipt = (): boolean => getIntegrationSetting("tbank", "sendReceipt") === true
+const getTaxation = (): string => getIntegrationString("tbank", "taxation") || "usn_income"
+const getFfdVersion = (): string => getIntegrationString("tbank", "ffdVersion") || "1.2"
 
 // Chữ ký Token của Т-Банк (https://developer.tbank.ru/eacq/intro/developer/token):
 // lấy các trường ở cấp ngoài cùng (bỏ Token và các trường là object / mảng như Receipt, DATA),
@@ -76,29 +87,46 @@ export const verifyTbankNotification = (body: any): boolean => {
 }
 
 // Gửi 1 yêu cầu tới Т-Банк (tự thêm TerminalKey, Token), lỗi thì báo PaymentError có lời báo của Т-Банк
-const tbankRequest = async (method: string, params: { [key: string]: any }): Promise<any> => {
+// Mỗi lần gọi được ghi vào nhật ký gọi API (trang admin: Kết nối API => Nhật ký gọi API), không ghi dữ liệu gửi đi
+const tbankRequest = async (method: string, params: { [key: string]: any }, logAction: string = method): Promise<any> => {
   const body: any = { TerminalKey: getTerminalKey(), ...params }
   body.Token = buildTbankToken(body, getPassword())
 
+  const startAt = Date.now()
+  let statusCode = 0
   let data: any
   try {
     const response = await axios.post(`${getApiUrl()}/${method}`, body, {
       timeout: 30000,
       headers: { "Content-Type": "application/json" }
     })
+    statusCode = response.status
     data = response.data
   } catch (error) {
+    statusCode = (error as AxiosError<any>)?.response?.status || 0
     const responseData = (error as AxiosError<any>)?.response?.data
     data = responseData && typeof responseData === "object" ? responseData : null
     if(!data){
-      throw new PaymentError(`Т-Банк: không kết nối được (${(error as Error).message})`)
+      const message = `Т-Банк: không kết nối được (${(error as Error).message})`
+      logApiCall({ provider: "tbank", action: logAction, ok: false, statusCode, durationMs: Date.now() - startAt, message })
+      throw new PaymentError(message)
     }
   }
 
   if(!data || data.Success !== true || (data.ErrorCode && `${data.ErrorCode}` !== "0")){
-    const message = [data?.Message, data?.Details].filter(Boolean).join(". ") || "lỗi không xác định"
-    throw new PaymentError(`Т-Банк: ${message} (mã lỗi ${data?.ErrorCode ?? "?"})`)
+    const message = `Т-Банк: ${[data?.Message, data?.Details].filter(Boolean).join(". ") || "lỗi không xác định"} (mã lỗi ${data?.ErrorCode ?? "?"})`
+    logApiCall({ provider: "tbank", action: logAction, ok: false, statusCode, durationMs: Date.now() - startAt, message })
+    throw new PaymentError(message)
   }
+
+  logApiCall({
+    provider: "tbank",
+    action: logAction,
+    ok: true,
+    statusCode,
+    durationMs: Date.now() - startAt,
+    message: data.Status ? `Status ${data.Status}` : ""
+  })
   return data
 }
 
@@ -123,7 +151,7 @@ const formatTbankState = (status: string): PaymentInfo => {
   return { status: "pending", method: "", cancelReason: "", paidAt: null }
 }
 
-// ===== Hoá đơn điện tử (чек 54-ФЗ) gửi kèm thanh toán (tbankSendReceipt) =====
+// ===== Hoá đơn điện tử (чек 54-ФЗ) gửi kèm thanh toán (bật ở trang admin: Kết nối API => Т-Банк) =====
 // Tổng tiền các dòng trên hoá đơn phải đúng bằng số tiền thanh toán, nên tiền giảm của mã giảm giá
 // được chia vào từng sản phẩm theo tỉ lệ tiền hàng; dòng nào chia không chẵn kopeck thì tách làm 2 dòng
 // Mỗi dòng: Price (giá 1 sản phẩm, kopeck) × Quantity = Amount (kopeck)
@@ -131,7 +159,7 @@ export const buildReceipt = (order: any) => {
   const items: any[] = []
   const goodsTotal = toKopecks((order.subtotal || 0) - (order.couponDiscount || 0))
   const subtotal = toKopecks(order.subtotal || 0)
-  const isFfd12 = tbankFfdVersion === "1.2"
+  const isFfd12 = getFfdVersion() === "1.2"
   let restTotal = goodsTotal
 
   const addLine = (name: string, quantity: number, unitPrice: number, tax: string, paymentObject: string) => {
@@ -177,8 +205,8 @@ export const buildReceipt = (order: any) => {
   }
 
   const receipt: any = {
-    Taxation: tbankTaxation,
-    FfdVersion: tbankFfdVersion,
+    Taxation: getTaxation(),
+    FfdVersion: getFfdVersion(),
     Items: items
   }
   if(order.customer.email) receipt.Email = order.customer.email
@@ -204,7 +232,7 @@ export const createPayment = async (order: any): Promise<{ paymentId: string, co
   }
 
   if(provider !== "tbank"){
-    throw new PaymentError("Chưa cấu hình thanh toán online (TBANK_TERMINAL_KEY, TBANK_PASSWORD trong file .env)")
+    throw new PaymentError("Chưa cấu hình thanh toán online (Admin => Kết nối API => Т-Банк)")
   }
 
   const siteUrl = getSiteUrl()
@@ -231,7 +259,7 @@ export const createPayment = async (order: any): Promise<{ paymentId: string, co
   if(siteUrl.startsWith("https://")){
     params.NotificationURL = `${siteUrl}/payment/tbank`
   }
-  if(tbankSendReceipt){
+  if(getSendReceipt()){
     params.Receipt = buildReceipt(order)
   }
 
@@ -263,7 +291,7 @@ export const getPayment = async (order: any): Promise<PaymentInfo | null> => {
   if(!paymentId || order.payment?.provider !== "tbank") return null
 
   if(getPaymentProvider() !== "tbank"){
-    throw new PaymentError("Chưa cấu hình Т-Банк trong file .env")
+    throw new PaymentError("Chưa cấu hình Т-Банк (Admin => Kết nối API => Т-Банк)")
   }
 
   return await getTbankPaymentState(paymentId)
@@ -277,14 +305,14 @@ export const createRefund = async (order: any, reason: string): Promise<{ refund
   }
 
   if(order.payment?.provider !== "tbank" || getPaymentProvider() !== "tbank"){
-    throw new PaymentError("Chưa cấu hình Т-Банк trong file .env, không hoàn tiền tự động được")
+    throw new PaymentError("Chưa cấu hình Т-Банк (Admin => Kết nối API => Т-Банк), không hoàn tiền tự động được")
   }
 
   const params: any = {
     PaymentId: order.payment.paymentId,
     Amount: toKopecks(order.total)
   }
-  if(tbankSendReceipt){
+  if(getSendReceipt()){
     params.Receipt = buildReceipt(order)
   }
 
@@ -294,4 +322,81 @@ export const createRefund = async (order: any, reason: string): Promise<{ refund
     refundId: `${data.PaymentId || order.payment.paymentId}`,
     status: status === "REFUNDING" ? "pending" : "succeeded"
   }
+}
+
+// ===== Kiểm tra kết nối (nút "Kiểm tra kết nối" ở trang admin) =====
+// Т-Банк không có API riêng để kiểm tra khoá, nên tạo 1 thanh toán thử 1 ₽ (Init) rồi huỷ ngay (Cancel):
+// không ai bị trừ tiền, thanh toán thử hiện trong danh sách thao tác của Т-Бизнес ở trạng thái huỷ
+// Init thành công = Terminal key + mật khẩu đúng, terminal đang hoạt động
+export const testTbankConnection = async (): Promise<{ ok: boolean, message: string, details: string[] }> => {
+  const details: string[] = []
+  const provider = getPaymentProvider()
+
+  if(provider === "test"){
+    return {
+      ok: true,
+      message: "Đang dùng thanh toán giả: khách đặt hàng được, không cần kết nối Т-Банк",
+      details: ["Đăng ký Т-Банк xong thì chọn chế độ \"Т-Банк\" và nhập Terminal key + mật khẩu"]
+    }
+  }
+  if(!isIntegrationEnabled("tbank")){
+    return { ok: false, message: "Kết nối Т-Банк đang tắt", details: [] }
+  }
+  if(provider !== "tbank"){
+    return { ok: false, message: "Chưa nhập Terminal key và mật khẩu terminal", details: [] }
+  }
+
+  const terminalKey = getTerminalKey()
+  details.push(`Terminal: ${terminalKey}${terminalKey.toUpperCase().endsWith("DEMO") ? " (thử nghiệm DEMO, không mất tiền thật)" : " (terminal thật)"}`)
+  details.push(`Địa chỉ API: ${getApiUrl()}`)
+
+  const params: any = {
+    Amount: 100,
+    OrderId: `TEST-${Date.now()}`,
+    Description: "Проверка подключения (не оплачивать)",
+    PayType: "O",
+    Language: "ru"
+  }
+  if(getSendReceipt()){
+    params.Receipt = {
+      Taxation: getTaxation(),
+      FfdVersion: getFfdVersion(),
+      Email: "test@example.com",
+      Items: [{
+        Name: "Проверка подключения",
+        Price: 100,
+        Quantity: 1,
+        Amount: 100,
+        Tax: tbankTaxMap["none"] || "none",
+        PaymentMethod: tbankReceiptPaymentMethod,
+        PaymentObject: "service",
+        ...(getFfdVersion() === "1.2" ? { MeasurementUnit: "усл" } : {})
+      }]
+    }
+    details.push(`Gửi kèm hoá đơn điện tử: bật (${getTaxation()}, ФФД ${getFfdVersion()})`)
+  }
+
+  let paymentId = ""
+  try {
+    const data = await tbankRequest("Init", params, "Init (kiểm tra kết nối)")
+    paymentId = `${data.PaymentId || ""}`
+    details.push(`Tạo thanh toán thử 1 ₽: thành công (PaymentId ${paymentId})`)
+  } catch (error) {
+    return { ok: false, message: (error as Error).message, details }
+  }
+
+  try {
+    if(paymentId){
+      await tbankRequest("Cancel", { PaymentId: paymentId }, "Cancel (kiểm tra kết nối)")
+      details.push("Huỷ thanh toán thử: thành công")
+    }
+  } catch (error) {
+    details.push(`Huỷ thanh toán thử: ${(error as Error).message} (thanh toán thử tự hết hạn, không ai bị trừ tiền)`)
+  }
+
+  if(!getSiteUrl().startsWith("https://")){
+    details.push("SITE_URL chưa phải https: Т-Банк không gửi được thông báo về (trên máy vẫn chạy, server tự hỏi trạng thái mỗi phút)")
+  }
+
+  return { ok: true, message: "Kết nối Т-Банк thành công", details }
 }
