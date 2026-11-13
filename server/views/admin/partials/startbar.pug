@@ -74,6 +74,14 @@
                 i.iconoir-cart.menu-icon
                 span Đơn hàng
           // end nav-item
+          if permissions.includes("review-list")
+            li.nav-item
+              a.nav-link(
+                href=`/${pathAdmin}/review/list`
+                )
+                i.iconoir-chat-bubble-check.menu-icon
+                span Đánh giá sản phẩm
+          // end nav-item
           if ["coupon-create", "coupon-list"].some(item => permissions.includes(item))
             li.nav-item
               a.nav-link(

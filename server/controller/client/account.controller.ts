@@ -12,6 +12,7 @@ import { mergeGuestWishlist } from "../../helpers/wishlist.helper"
 import { formatShopDateTime } from "../../helpers/coupon.helper"
 import { sendMail } from "../../helpers/mail.helper"
 import { getSiteUrl } from "../../helpers/site-url.helper"
+import { getAccountWaitingReviews } from "../../helpers/review.helper"
 
 // Trả lỗi dạng JSON cho JS ở trang khách hàng (main.js hiện thông báo, tô đỏ ô bị lỗi)
 const sendError = (res: Response, key: string, field: string = "") => {
@@ -436,7 +437,8 @@ export const profile = async (req: Request, res: Response) => {
   res.render("client/pages/account-profile", {
     pageTitle: `${res.locals.t("myAccount")} — SFoodie`,
     memberSince: formatShopDateTime(res.locals.clientAccount.createdAt, "DD.MM.YYYY"),
-    orderCount: await Order.countDocuments({ userId: res.locals.clientAccount.id })
+    orderCount: await Order.countDocuments({ userId: res.locals.clientAccount.id }),
+    reviewWaitingCount: (await getAccountWaitingReviews(res.locals.clientAccount.id)).length
   })
 }
 

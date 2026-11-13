@@ -13,6 +13,7 @@ import { scheduleDeleteOldCarts } from './helpers/cart.helper';
 import { scheduleDeleteOldWishlists } from './helpers/wishlist.helper';
 import { scheduleDeleteOldSearchQueries } from './helpers/client-search.helper';
 import { scheduleOrderJobs } from './helpers/order.helper';
+import { scheduleReviewJobs } from './helpers/review.helper';
 
 // Load biến môi trường env
 dotenv.config()
@@ -34,6 +35,7 @@ connectDB().then(() => {
   scheduleDeleteOldWishlists()
   scheduleDeleteOldSearchQueries()
   scheduleOrderJobs()
+  scheduleReviewJobs() // email nhắc khách đánh giá sản phẩm sau khi nhận hàng
 })
 
 // Cho phép gửi data lên dạng json

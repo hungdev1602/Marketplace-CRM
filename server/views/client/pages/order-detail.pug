@@ -1,5 +1,6 @@
 extends ../layouts/default.pug
 include ../mixins/page-banner.pug
+include ../mixins/rating-stars.pug
 
 //- Trang đơn hàng của khách: /order/:code?key=... (controller/client/order.controller.ts)
 //- Т-Банк chuyển khách về trang này sau khi thanh toán
@@ -10,6 +11,8 @@ block main
   - const shipment = order.shipment || {}
   - const steps = [{ id: "pending", text: t("stepCreated"), icon: "fas fa-receipt" }, { id: "paid", text: t("stepPaid"), icon: "fas fa-credit-card" }, { id: "shipping", text: t("stepShipping"), icon: "fas fa-truck" }, { id: "delivered", text: t("stepDelivered"), icon: "fas fa-box-open" }]
   - const breadcrumb = clientAccount && order.userId == clientAccount.id ? [{ name: t("myOrders"), url: "/account/orders" }, { name: order.code }] : [{ name: order.code }]
+  //- Đơn đã giao: số sản phẩm chưa được đánh giá (hiện lời mời "Оцените товары")
+  - const unreviewedCount = order.items.filter(item => reviewMap[item.productId] && reviewMap[item.productId].canReview && !reviewMap[item.productId].review).length
 
   +pageBanner(`${t("orderTitle")} ${order.code}`, breadcrumb)
     p(class="sf-page-banner-sub") #{t("orderFrom")} #{view.createdAtFormat}
@@ -83,6 +86,16 @@ block main
               p(class="sf-order-message is-success")
                 i.fas.fa-check-circle
                 | #{t("orderDeliveredText")}
+              if unreviewedCount > 0
+                a(
+                  href="#order-items"
+                  class="sf-order-review-cta"
+                  )
+                  i.fas.fa-star
+                  span
+                    b #{t("reviewRateProducts")}
+                    | #{t("reviewRateProductsText")}
+                  i.fas.fa-chevron-down
             else if order.status == "returned"
               p(class="sf-order-message is-warning")
                 i.fas.fa-undo
@@ -104,8 +117,11 @@ block main
                       i(class=step.icon)
                     span #{step.text}
 
-          //- Sản phẩm
-          div(class="sf-account-box")
+          //- Sản phẩm (đơn đã giao: chấm sao / sửa đánh giá cho từng sản phẩm)
+          div(
+            class="sf-account-box"
+            id="order-items"
+            )
             h2 #{t("orderItems")}
               span(class="sf-order-count") #{tCount(order.totalQuantity, "productCount")}
             ul(class="sf-order-items")
@@ -123,6 +139,17 @@ block main
                     else
                       span #{tName(item)}
                     small #{formatPrice(item.price)} × #{item.quantity}
+                    - const reviewInfo = reviewMap[item.productId]
+                    if reviewInfo && reviewInfo.canReview
+                      div(class="sf-order-item-review")
+                        if reviewInfo.review
+                          +ratingStars(reviewInfo.review.rating, "sm")
+                          a(href=reviewWriteUrl(item.productId))
+                            i.fas.fa-pen
+                            | #{t("reviewEditAction")}
+                        else
+                          +starLinks([1, 2, 3, 4, 5].map(star => reviewWriteUrl(item.productId, star)))
+                          a(href=reviewWriteUrl(item.productId)) #{t("reviewRateAction")}
                   b #{formatPrice(item.lineTotal)}
 
         .col-lg-4

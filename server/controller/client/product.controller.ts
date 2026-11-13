@@ -27,6 +27,18 @@ import {
   resolveSearchKeyword
 } from "../../helpers/client-search.helper"
 import { notFound } from "./error.controller"
+import { buildReviewView } from "./review.controller"
+import { Review } from "../../models/review.model"
+import { Order } from "../../models/order.model"
+import {
+  findProductReviews,
+  getProductReviewSummary,
+  getReviewListFilter,
+  getUserVoteMap,
+  reviewSortList
+} from "../../helpers/review.helper"
+import { domainFileManager, reviewStatusList } from "../../config/variable.config"
+import { getSiteUrl } from "../../helpers/site-url.helper"
 
 // Từ ngữ hạn sử dụng theo đơn vị (locales), ví dụ: 6 + month => "6 месяцев" / "6 tháng"
 const shelfLifeKeyList: { [unit: string]: string } = {
@@ -317,6 +329,68 @@ export const detail = async (req: Request, res: Response) => {
 
   const productName = res.locals.tName(product)
 
+  // Đánh giá: tổng quan (số lượt theo từng mức sao, ảnh của khách) + trang đầu danh sách đánh giá
+  const reviewFilter = getReviewListFilter({})
+  const [reviewSummary, reviewResult] = await Promise.all([
+    getProductReviewSummary(product.id),
+    findProductReviews(product.id, reviewFilter)
+  ])
+  const account = res.locals.clientAccount
+  const voteMap = await getUserVoteMap(reviewResult.reviewList.map(review => review.id), account?.id)
+
+  // Nút "Написать отзыв": khách đã đăng nhập, đã nhận đơn có sản phẩm này
+  // - Đã đánh giá: nút "Ваш отзыв" mở trang sửa đánh giá
+  let reviewAction: { type: string, url: string, statusName?: string } | null = null
+  if(account){
+    const myReview: any = await Review.findOne({ customerKey: `user:${account.id}`, productId: product.id })
+    if(myReview){
+      const statusInfo = reviewStatusList.find(item => item.id === myReview.status)
+      reviewAction = {
+        type: "edit",
+        url: `/review/write/${myReview.orderCode}/${product.id}`,
+        statusName: statusInfo ? res.locals.tName(statusInfo) : ""
+      }
+    }
+    else {
+      const deliveredOrder: any = await Order
+        .findOne({ userId: account.id, status: "delivered", "items.productId": product.id })
+        .sort({ createdAt: -1 })
+        .select("code")
+      if(deliveredOrder){
+        reviewAction = { type: "write", url: `/review/write/${deliveredOrder.code}/${product.id}` }
+      }
+    }
+  }
+
+  // Dữ liệu có cấu trúc (schema.org) cho Google / Yandex: hiện giá, còn hàng, số sao ngay trên trang kết quả tìm kiếm
+  const structuredData: any = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: productName,
+    sku: product.sku || undefined,
+    gtin13: /^\d{13}$/.test(product.barcode || "") ? product.barcode : undefined,
+    brand: product.brand ? { "@type": "Brand", name: product.brand } : undefined,
+    image: product.cardImage ? [`${domainFileManager}${product.cardImage}`] : undefined,
+    description: htmlToText(product.description, 300) || undefined,
+    offers: {
+      "@type": "Offer",
+      url: `${getSiteUrl()}/product/${product.slug}`,
+      priceCurrency: "RUB",
+      price: product.price,
+      availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+    }
+  }
+  if(product.ratingCount > 0){
+    structuredData.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: product.rating,
+      ratingCount: product.ratingCount,
+      reviewCount: product.reviewCount || undefined,
+      bestRating: 5,
+      worstRating: 1
+    }
+  }
+
   res.render("client/pages/product-detail", {
     pageTitle: `${product.metaTitle || productName} — SFoodie`,
     metaDescription: product.metaDescription || htmlToText(product.description),
@@ -328,6 +402,14 @@ export const detail = async (req: Request, res: Response) => {
     shelfLifeKey: shelfLifeKeyList[product.shelfLifeUnit],
     hasNutrition: [product.calories, product.protein, product.fat, product.carbohydrate]
       .some(value => value !== null && value !== undefined),
-    relatedList: relatedList
+    relatedList: relatedList,
+    reviewSummary: reviewSummary,
+    reviewResult: reviewResult,
+    reviewFilter: reviewFilter,
+    reviewSortList: reviewSortList,
+    reviewViewList: reviewResult.reviewList.map(review => buildReviewView(review, res, voteMap)),
+    reviewAction: reviewAction,
+    // Chuỗi JSON đặt trong thẻ <script>: đổi "<" để nội dung không đóng được thẻ script
+    structuredDataJson: JSON.stringify(structuredData).replace(/</g, "\\u003c")
   })
 }

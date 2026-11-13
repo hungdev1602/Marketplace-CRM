@@ -6,12 +6,13 @@ import { buildClientPagination } from "../../helpers/pagination.helper"
 import { createPayment, getPaymentProvider, PaymentError } from "../../helpers/payment.helper"
 import { getOrderProviderName } from "../../helpers/apiship.helper"
 import {
+  findCustomerOrder as findCustomerOrderByCode,
   getOrderUrl,
-  isValidOrderAccessKey,
   markOrderPaid,
   markPaymentCanceled,
   syncOrderPayment
 } from "../../helpers/order.helper"
+import { getOrderReviewMap, getReviewWriteUrl } from "../../helpers/review.helper"
 import * as errorController from "./error.controller"
 
 // ===== Đơn hàng của khách =====
@@ -21,17 +22,7 @@ import * as errorController from "./error.controller"
 
 // Tìm đơn hàng khách được xem: đúng mã bí mật trong link, hoặc đơn của tài khoản đang đăng nhập
 const findCustomerOrder = async (req: Request, res: Response, key: any) => {
-  const code = `${req.params.code || ""}`
-  if(!/^SF-\d{6}-\d{4}$/.test(code)) return null
-
-  const order: any = await Order.findOne({ code: code })
-  if(!order) return null
-
-  const account = res.locals.clientAccount
-  const isOwner = account && order.userId && order.userId === account.id
-  const hasKey = isValidOrderAccessKey(key) && key === order.accessKey
-
-  return isOwner || hasKey ? order : null
+  return await findCustomerOrderByCode(req.params.code, key, res.locals.clientAccount)
 }
 
 // Bước của đơn hàng (thanh tiến trình ở trang đơn hàng)
@@ -80,7 +71,10 @@ export const detail = async (req: Request, res: Response) => {
     res.render("client/pages/order-detail", {
       pageTitle: `${res.locals.t("orderTitle")} ${order.code} — SFoodie`,
       orderView: buildOrderView(order, res),
-      accessKey: order.accessKey
+      accessKey: order.accessKey,
+      // Đơn đã giao: đánh giá của từng sản phẩm (nút chấm sao / "Ваш отзыв")
+      reviewMap: await getOrderReviewMap(order),
+      reviewWriteUrl: (productId: string, rating?: number) => getReviewWriteUrl(order, productId, { rating: rating })
     })
   } catch (error) {
     console.log(error)

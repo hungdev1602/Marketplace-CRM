@@ -92,6 +92,18 @@ export const permissionList = [
     name: "Huỷ đơn hàng, hoàn tiền cho khách"
   },
   {
+    id: "review-list",
+    name: "Danh sách đánh giá sản phẩm của khách"
+  },
+  {
+    id: "review-moderate",
+    name: "Duyệt / từ chối / xoá đánh giá sản phẩm"
+  },
+  {
+    id: "review-reply",
+    name: "Trả lời đánh giá sản phẩm (thay mặt cửa hàng)"
+  },
+  {
     id: "article-list",
     name: "Danh sách bài viết"
   },
@@ -209,6 +221,10 @@ export const activityLogModuleList = [
   {
     id: "order",
     name: "Đơn hàng"
+  },
+  {
+    id: "review",
+    name: "Đánh giá sản phẩm"
   },
   {
     id: "article",
@@ -329,6 +345,21 @@ export const activityLogActionList = [
     id: "cancel",
     name: "Huỷ đơn / hoàn tiền",
     color: "bg-danger"
+  },
+  {
+    id: "approve",
+    name: "Duyệt",
+    color: "bg-success"
+  },
+  {
+    id: "reject",
+    name: "Từ chối",
+    color: "bg-warning"
+  },
+  {
+    id: "reply",
+    name: "Trả lời",
+    color: "bg-info"
   }
 ]
 // ===== Sản phẩm (thực phẩm châu Á bán tại Nga) =====
@@ -713,3 +744,57 @@ export const tbankDeliveryTax: string = "none"
 // Hình thức thanh toán trên hoá đơn (PaymentMethod): "full_prepayment" - trả trước 100% (giao hàng sau),
 // "full_payment" - thanh toán đủ. Hỏi kế toán nên dùng loại nào
 export const tbankReceiptPaymentMethod: string = "full_prepayment"
+
+// ===== Đánh giá sản phẩm (trang khách hàng) =====
+// Giống Wildberries / Ozon: chỉ khách đã NHẬN HÀNG (đơn ở trạng thái "Đã giao hàng") mới đánh giá được sản phẩm trong đơn đó
+// Mỗi khách (tài khoản, hoặc email nếu đặt hàng không đăng nhập) đánh giá mỗi sản phẩm 1 lần, sửa lại được trong reviewEditDays ngày
+
+// Duyệt đánh giá trước khi hiện trên trang sản phẩm
+// - true: đánh giá có chữ / ảnh phải được nhân viên duyệt ở trang admin (Đánh giá) mới hiện (giống Wildberries)
+// - false: hiện ngay, nhân viên vẫn ẩn (từ chối) được sau đó
+// Chỉ chấm sao, không viết gì: luôn được tính ngay vào điểm trung bình (không có nội dung cần duyệt)
+export const reviewModeration: boolean = true
+
+// Số ảnh tối đa trong 1 đánh giá
+export const reviewMaxPhotos: number = 5
+
+// Dung lượng tối đa mỗi ảnh (MB). Trình duyệt tự thu nhỏ ảnh (cạnh dài nhất reviewPhotoMaxSide px) trước khi gửi,
+// nên ảnh chụp điện thoại 10MB thường chỉ còn khoảng 300-600KB
+export const reviewPhotoMaxSize: number = 10
+export const reviewPhotoMaxSide: number = 1600
+
+// Thư mục lưu ảnh đánh giá trên server Quản lý file (/media/danh-gia), tự tạo nếu chưa có
+export const reviewImageFolder: string = "danh-gia"
+
+// Số ký tự tối đa của từng ô
+export const reviewTextMaxLength = {
+  pros: 1000, // Достоинства (ưu điểm)
+  cons: 1000, // Недостатки (nhược điểm)
+  comment: 2000 // Комментарий (nhận xét)
+}
+
+// Khách được sửa / xoá đánh giá của mình trong bao nhiêu ngày kể từ lúc viết
+export const reviewEditDays: number = 30
+
+// Số đánh giá mỗi lần tải ở trang sản phẩm (slider ngang: kéo / bấm mũi tên tới cuối thì tự tải thêm)
+export const reviewPerPage: number = 10
+
+// Thẻ đánh giá trong slider chỉ hiện đoạn đầu (số ký tự của ưu điểm + nhược điểm + nhận xét cộng lại),
+// đánh giá dài hơn có nút "Читать полностью": bấm mới tải toàn bộ nội dung (không tải hết ngay khi mở trang)
+export const reviewPreviewLength: number = 220
+export const reviewReplyPreviewLength: number = 100 // đoạn đầu câu trả lời của cửa hàng
+
+// Trạng thái đánh giá
+export const reviewStatusList = [
+  { id: "pending", name: "Chờ duyệt", nameRu: "На проверке", color: "bg-warning" },
+  { id: "published", name: "Đã đăng", nameRu: "Опубликован", color: "bg-success" },
+  { id: "rejected", name: "Bị từ chối", nameRu: "Отклонён", color: "bg-danger" }
+]
+
+// Email nhắc khách đánh giá sau khi nhận hàng ("Как вам покупка?"), có link chấm sao cho từng sản phẩm
+// - reviewRequestDelayHours: gửi sau khi đơn chuyển sang "Đã giao hàng" bao nhiêu giờ (để khách kịp dùng thử)
+// - reviewRequestMaxDays: chỉ gửi cho đơn giao trong bao nhiêu ngày gần đây (đơn cũ hơn thì bỏ qua)
+// Chưa cấu hình SMTP trong .env thì nội dung email được in ra terminal (giống email đơn hàng)
+export const reviewRequestEmail: boolean = true
+export const reviewRequestDelayHours: number = 24
+export const reviewRequestMaxDays: number = 14

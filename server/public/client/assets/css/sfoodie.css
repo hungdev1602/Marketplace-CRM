@@ -6476,3 +6476,1743 @@ a.sf-sd-note b {
         display: none;
     }
 }
+
+/*===========================
+    ĐÁNH GIÁ SẢN PHẨM
+===========================*/
+:root {
+    --sf-star-empty: #D5DEE0; /* sao chưa tô */
+    --sf-star-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.2l2.95 6.1 6.7.85-4.92 4.62 1.27 6.63L12 17.18 6 20.4l1.27-6.63L2.35 9.15l6.7-.85z'/%3E%3C/svg%3E");
+}
+
+:root[data-theme="dark"] {
+    --sf-star-empty: #34474D;
+}
+
+/* Ngôi sao hiển thị điểm: 5 ngôi sao cắt bằng mask, phần màu vàng rộng theo % điểm (4,3 sao = 86%) */
+.sf-stars {
+    --sf-star-size: 17px;
+    position: relative;
+    display: inline-block;
+    flex: 0 0 auto;
+    width: calc(var(--sf-star-size) * 5);
+    height: var(--sf-star-size);
+    background: var(--sf-star-empty);
+    -webkit-mask: var(--sf-star-mask) left center / var(--sf-star-size) var(--sf-star-size) repeat-x;
+    mask: var(--sf-star-mask) left center / var(--sf-star-size) var(--sf-star-size) repeat-x;
+    vertical-align: -3px;
+}
+
+.sf-stars-fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    background: var(--sf-yellow);
+}
+
+.sf-stars-sm {
+    --sf-star-size: 14px;
+    vertical-align: -2px;
+}
+
+.sf-stars-lg {
+    --sf-star-size: 24px;
+}
+
+/* Thẻ sản phẩm: ★ 4,8 · 12 оценок */
+.sf-card-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    font-size: 13.5px;
+    line-height: 1.3;
+    color: var(--sf-muted) !important;
+}
+
+.sf-card-rating i {
+    font-size: 12px;
+    color: var(--sf-yellow);
+}
+
+.sf-card-rating b {
+    font-weight: 900;
+    color: var(--sf-ink);
+}
+
+.sf-card-rating span {
+    font-size: 13.5px;
+    color: var(--sf-muted);
+}
+
+.sf-card-rating:hover span {
+    text-decoration: underline;
+}
+
+/* Trang sản phẩm: dòng số sao dưới tên sản phẩm */
+.sf-product-rating {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin-top: 12px;
+    color: var(--sf-muted) !important;
+}
+
+.sf-product-rating b {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--sf-ink);
+}
+
+.sf-product-rating span:not(.sf-stars):not(.sf-stars-fill) {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--sf-muted);
+}
+
+.sf-product-rating:hover span:not(.sf-stars):not(.sf-stars-fill) {
+    color: var(--sf-cyan-dark);
+    text-decoration: underline;
+}
+
+/* Phần đánh giá ở trang sản phẩm */
+.sf-reviews {
+    margin-top: 64px;
+    scroll-margin-top: 90px;
+}
+
+.sf-reviews .sf-section-heading h2 {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.sf-reviews-count {
+    font-family: var(--sf-font-body);
+    font-size: 20px !important;
+    font-weight: 800 !important;
+    color: var(--sf-muted) !important;
+}
+
+/* Tổng quan + ảnh của khách (trên cùng phần đánh giá)
+   - Có ảnh của khách: 2 cột (tổng quan | ảnh)
+   - Không có ảnh: khung tổng quan nằm ngang (điểm | thanh số sao | nút viết đánh giá) */
+.sf-review-overview {
+    display: grid;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.sf-review-overview.has-photos {
+    grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
+    align-items: start;
+}
+
+.sf-review-summary {
+    padding: 24px;
+    border: 2px solid var(--sf-line);
+    border-radius: 22px;
+    background: var(--sf-surface);
+}
+
+.sf-review-overview:not(.has-photos) .sf-review-summary {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 300px);
+    align-items: center;
+    gap: 24px 40px;
+}
+
+.sf-review-overview:not(.has-photos) .sf-review-score,
+.sf-review-overview:not(.has-photos) .sf-review-bars,
+.sf-review-overview:not(.has-photos) .sf-review-none {
+    margin-bottom: 0;
+}
+
+.sf-review-score {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.sf-review-score > b {
+    font-family: var(--sf-font-heading);
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--sf-ink);
+}
+
+.sf-review-score > div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sf-review-score > div > span:not(.sf-stars) {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--sf-muted);
+}
+
+.sf-review-bars {
+    display: grid;
+    gap: 4px;
+    margin-bottom: 20px;
+}
+
+.sf-review-bars button {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 5px 8px;
+    border-radius: 10px;
+    background: none;
+    color: var(--sf-ink);
+    cursor: pointer;
+    transition: background-color .15s ease;
+}
+
+.sf-review-bars button:hover:not(:disabled) {
+    background: var(--sf-soft);
+}
+
+.sf-review-bars button:disabled {
+    cursor: default;
+    opacity: .75;
+}
+
+.sf-review-bar-star {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14.5px !important;
+    font-weight: 800 !important;
+    color: var(--sf-ink) !important;
+}
+
+.sf-review-bar-star i {
+    font-size: 11px;
+    color: var(--sf-yellow);
+}
+
+.sf-review-bar {
+    display: block;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--sf-soft);
+    overflow: hidden;
+}
+
+.sf-review-bar span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--sf-yellow);
+}
+
+.sf-review-bar-count {
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    color: var(--sf-muted) !important;
+    text-align: right;
+}
+
+.sf-review-none {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.sf-review-none b {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--sf-ink);
+}
+
+.sf-review-none p {
+    font-size: 15px !important;
+    color: var(--sf-muted) !important;
+}
+
+.sf-review-write-btn {
+    width: 100%;
+}
+
+.sf-review-write-btn small {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.sf-review-buyers-note {
+    display: flex;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: var(--sf-cyan-light);
+    font-size: 14px !important;
+    line-height: 1.5;
+    color: var(--sf-text) !important;
+}
+
+.sf-review-buyers-note i {
+    margin-top: 3px;
+    color: var(--sf-cyan-dark);
+}
+
+/* Ảnh của khách */
+.sf-review-gallery {
+    margin-bottom: 22px;
+}
+
+.sf-review-gallery h3 {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-family: var(--sf-font-body);
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.sf-review-gallery h3 span {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--sf-muted);
+}
+
+.sf-review-gallery ul,
+.sf-review-photos {
+    display: flex;
+    gap: 10px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.sf-review-gallery ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+}
+
+.sf-review-gallery li button {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+}
+
+.sf-review-photos {
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.sf-review-gallery li,
+.sf-review-photos li {
+    flex: 0 0 auto;
+}
+
+.sf-review-gallery button,
+.sf-review-photos button,
+.sf-review-photos li > span {
+    display: block;
+    width: 84px;
+    height: 84px;
+    padding: 0;
+    overflow: hidden;
+    border: 2px solid var(--sf-line);
+    border-radius: 14px;
+    background: var(--sf-img-bg);
+    cursor: zoom-in;
+    transition: border-color .15s ease;
+}
+
+.sf-review-photos li > span {
+    width: 64px;
+    height: 64px;
+    cursor: default;
+}
+
+.sf-review-gallery button:hover,
+.sf-review-photos button:hover {
+    border-color: var(--sf-outline);
+}
+
+/* Thanh lọc, sắp xếp */
+.sf-review-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.sf-review-toolbar .sf-chip-list {
+    margin-bottom: 0;
+}
+
+.sf-review-toolbar .sf-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.sf-review-toolbar .sf-chip i {
+    font-size: 12px;
+}
+
+.sf-review-toolbar .sf-chip .fa-star {
+    color: var(--sf-yellow);
+}
+
+.sf-review-toolbar button.sf-chip:hover:not(.active) {
+    background: var(--sf-cyan);
+    color: var(--sf-black) !important;
+}
+
+.sf-review-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.sf-review-sort span {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--sf-muted);
+}
+
+.sf-review-sort select {
+    height: 40px;
+    padding: 0 36px 0 14px;
+    border: 2px solid var(--sf-line);
+    border-radius: 999px;
+    background: var(--sf-surface) var(--sf-select-arrow) no-repeat right 12px center / 14px;
+    color: var(--sf-ink);
+    font-family: var(--sf-font-body);
+    font-size: 14.5px;
+    font-weight: 700;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+/* Slider ngang các thẻ đánh giá (vuốt trên điện thoại, mũi tên trên máy tính) */
+.sf-review-slider {
+    position: relative;
+}
+
+.sf-review-track {
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+    padding: 4px 2px 14px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    transition: opacity .2s ease;
+}
+
+.sf-review-track::-webkit-scrollbar {
+    display: none;
+}
+
+.sf-review-track:focus-visible {
+    outline: 3px solid var(--sf-cyan-soft);
+    outline-offset: 2px;
+    border-radius: 20px;
+}
+
+.sf-review-track.is-loading {
+    opacity: .5;
+    pointer-events: none;
+}
+
+/* 1 thẻ: máy tính rộng 4 thẻ / màn hình, nhỏ hơn 3 - 2 thẻ, điện thoại 1 thẻ và lộ 1 phần thẻ sau */
+.sf-review-card {
+    display: flex;
+    flex: 0 0 calc((100% - 48px) / 4);
+    flex-direction: column;
+    min-width: 0;
+    padding: 18px;
+    border: 2px solid var(--sf-line);
+    border-radius: 20px;
+    background: var(--sf-surface);
+    scroll-snap-align: start;
+}
+
+.sf-review-card .sf-review-head {
+    align-items: flex-start;
+}
+
+.sf-review-card .sf-review-head .sf-stars {
+    margin-top: 4px;
+}
+
+.sf-review-card .sf-review-avatar {
+    width: 38px;
+    height: 38px;
+    font-size: 15px !important;
+}
+
+.sf-review-card-text {
+    display: grid;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.sf-review-card-text p {
+    font-size: 14.5px !important;
+    line-height: 1.55 !important;
+    color: var(--sf-text) !important;
+    overflow-wrap: anywhere;
+}
+
+.sf-review-card-text b {
+    font-weight: 900;
+    color: var(--sf-ink);
+}
+
+.sf-review-card .sf-review-photos button {
+    width: 58px;
+    height: 58px;
+    border-radius: 12px;
+}
+
+/* "+2": số ảnh còn lại trên ảnh cuối của thẻ */
+.sf-review-photos button {
+    position: relative;
+}
+
+.sf-review-photo-more {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgb(17 20 23 / 55%);
+    color: #fff !important;
+    font-size: 16px !important;
+    font-weight: 900 !important;
+}
+
+.sf-review-card-reply {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-left: 3px solid var(--sf-cyan);
+    border-radius: 0 12px 12px 0;
+    background: var(--sf-bg-tint);
+}
+
+.sf-review-card-reply b {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 900;
+    color: var(--sf-ink);
+}
+
+.sf-review-card-reply b i {
+    color: var(--sf-cyan-dark);
+}
+
+.sf-review-card-reply p {
+    margin-top: 2px !important;
+    font-size: 13.5px !important;
+    line-height: 1.5 !important;
+    color: var(--sf-text) !important;
+    overflow-wrap: anywhere;
+}
+
+/* "Читать полностью" */
+.sf-review-read-more {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 0;
+    background: none;
+    color: var(--sf-cyan-dark);
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.sf-review-read-more i {
+    font-size: 11px;
+}
+
+.sf-review-read-more:hover {
+    text-decoration: underline;
+}
+
+/* Nút "Отзыв полезен?" luôn nằm cuối thẻ (các thẻ cao bằng nhau) */
+.sf-review-card .sf-review-foot {
+    margin-top: auto;
+    padding-top: 14px;
+}
+
+.sf-review-card .sf-review-foot > span {
+    width: 100%;
+    margin-right: 0;
+}
+
+/* Ô cuối slider: đang tải thêm thì hiện vòng xoay */
+.sf-review-more {
+    display: flex;
+    flex: 0 0 200px;
+    align-items: center;
+    justify-content: center;
+    scroll-snap-align: start;
+}
+
+.sf-review-more .fa-spinner {
+    display: none;
+}
+
+.sf-review-more.is-loading .fa-spinner {
+    display: inline-block;
+}
+
+.sf-review-more.is-loading .sf-btn {
+    pointer-events: none;
+    opacity: .7;
+}
+
+.sf-review-track .sf-review-empty-filter {
+    flex: 0 0 100%;
+}
+
+/* Mũi tên ‹ › (ẩn khi đã ở đầu / cuối) */
+.sf-slider-arrow {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border: 2px solid var(--sf-outline);
+    border-radius: 50%;
+    background: var(--sf-surface);
+    color: var(--sf-ink);
+    box-shadow: var(--sf-menu-shadow);
+    transform: translateY(-50%);
+    cursor: pointer;
+    transition: opacity .2s ease, background-color .15s ease;
+}
+
+.sf-slider-arrow:hover {
+    background: var(--sf-cyan);
+    color: var(--sf-black);
+}
+
+.sf-slider-arrow:disabled {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sf-slider-arrow.is-prev {
+    left: -14px;
+}
+
+.sf-slider-arrow.is-next {
+    right: -14px;
+}
+
+/* Cửa sổ "Читать полностью" */
+.sf-review-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    background: rgb(5 9 11 / 60%);
+}
+
+.sf-review-modal[hidden] {
+    display: none;
+}
+
+.sf-review-modal-box {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    max-height: 100%;
+    padding: 28px 24px 24px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 2px solid var(--sf-line);
+    border-radius: 22px;
+    background: var(--sf-surface);
+}
+
+.sf-review-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--sf-soft);
+    color: var(--sf-ink);
+    cursor: pointer;
+}
+
+.sf-review-modal-close:hover {
+    background: var(--sf-inverse-bg);
+    color: var(--sf-inverse-text);
+}
+
+.sf-review-modal-loading {
+    padding: 40px 0;
+    font-size: 26px;
+    color: var(--sf-cyan-dark);
+    text-align: center;
+}
+
+.sf-review-modal .sf-review-head {
+    padding-right: 44px;
+}
+
+body.sf-modal-open {
+    overflow: hidden;
+}
+
+/* Trang "Мои отзывы": đánh giá dài chỉ hiện vài dòng (mờ dần ở cuối) */
+.sf-clamp {
+    position: relative;
+    max-height: 9.5em;
+    overflow: hidden;
+}
+
+.sf-clamp:not(.is-expanded)::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 2.5em;
+    background: linear-gradient(to bottom, transparent, var(--sf-surface));
+}
+
+.sf-clamp.is-expanded {
+    max-height: none;
+}
+
+.sf-clamp-wrap .sf-review-read-more[hidden] {
+    display: none;
+}
+
+.sf-review-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sf-review-avatar {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--sf-cyan-light);
+    color: var(--sf-cyan-dark) !important;
+    font-family: var(--sf-font-heading);
+    font-size: 16px !important;
+    font-weight: 700 !important;
+}
+
+.sf-review-author {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.sf-review-author b {
+    font-size: 15.5px;
+    font-weight: 900;
+    color: var(--sf-ink);
+    overflow-wrap: anywhere;
+}
+
+.sf-review-author span {
+    font-size: 13.5px;
+    color: var(--sf-muted);
+}
+
+.sf-review-verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 10px 0 4px !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    color: var(--sf-green) !important;
+}
+
+.sf-review-block {
+    margin-top: 10px;
+}
+
+.sf-review-block h4 {
+    margin: 0 0 2px !important;
+    font-family: var(--sf-font-body);
+    font-size: 14.5px !important;
+    font-weight: 900;
+    color: var(--sf-ink);
+}
+
+.sf-review-block p {
+    font-size: 15.5px !important;
+    line-height: 1.6 !important;
+    color: var(--sf-text) !important;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+/* Cửa hàng trả lời */
+.sf-review-reply {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-left: 4px solid var(--sf-cyan);
+    border-radius: 0 14px 14px 0;
+    background: var(--sf-bg-tint);
+}
+
+.sf-review-reply-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 12px;
+    margin-bottom: 4px;
+}
+
+.sf-review-reply-head b {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14.5px;
+    font-weight: 900;
+    color: var(--sf-ink);
+}
+
+.sf-review-reply-head b i {
+    color: var(--sf-cyan-dark);
+}
+
+.sf-review-reply-head span {
+    font-size: 13px;
+    color: var(--sf-muted);
+}
+
+.sf-review-reply p {
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+    color: var(--sf-text) !important;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+/* "Отзыв полезен?" */
+.sf-review-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.sf-review-foot > span {
+    margin-right: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--sf-muted);
+}
+
+.sf-review-vote {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border: 2px solid var(--sf-line) !important;
+    border-radius: 999px;
+    background: var(--sf-surface);
+    color: var(--sf-ink);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color .15s ease, background-color .15s ease;
+}
+
+.sf-review-vote span,
+.sf-review-vote b {
+    font-size: 14px;
+    color: inherit;
+}
+
+.sf-review-vote b:empty {
+    display: none;
+}
+
+.sf-review-vote:hover {
+    border-color: var(--sf-outline) !important;
+}
+
+.sf-review-vote.is-active {
+    border-color: var(--sf-cyan-dark) !important;
+    background: var(--sf-cyan-light);
+    color: var(--sf-cyan-dark);
+}
+
+.sf-review-vote:disabled {
+    opacity: .6;
+}
+
+.sf-review-mine {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    color: var(--sf-cyan-dark) !important;
+}
+
+.sf-review-empty-filter {
+    padding: 28px 0;
+    font-size: 15px !important;
+    color: var(--sf-muted) !important;
+}
+
+/* Xem ảnh lớn */
+.sf-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 56px 64px;
+    background: rgb(5 9 11 / 92%);
+}
+
+.sf-lightbox[hidden] {
+    display: none;
+}
+
+.sf-lightbox img {
+    width: auto !important;
+    height: auto !important;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 12px;
+    object-fit: contain !important;
+    background: #fff;
+}
+
+.sf-lightbox-close,
+.sf-lightbox-nav {
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 14%);
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color .15s ease;
+}
+
+.sf-lightbox-close:hover,
+.sf-lightbox-nav:hover {
+    background: var(--sf-cyan);
+    color: var(--sf-black);
+}
+
+.sf-lightbox-close {
+    top: 14px;
+    right: 14px;
+}
+
+.sf-lightbox-nav {
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.sf-lightbox-nav[hidden] {
+    display: none;
+}
+
+.sf-lightbox-nav.is-prev {
+    left: 10px;
+}
+
+.sf-lightbox-nav.is-next {
+    right: 10px;
+}
+
+.sf-lightbox-counter {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #fff !important;
+}
+
+body.sf-lightbox-open {
+    overflow: hidden;
+}
+
+/* 5 ngôi sao bấm được (trang đơn hàng, "Мои отзывы"): thẻ a xếp ngược, hiện từ phải sang trái để rê chuột tô các sao bên trái */
+.sf-star-links {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 2px;
+}
+
+.sf-star-links a {
+    padding: 2px;
+    font-size: 20px;
+    line-height: 1;
+    color: var(--sf-star-empty) !important;
+    transition: color .1s ease, transform .1s ease;
+}
+
+.sf-star-links a:hover,
+.sf-star-links a:hover ~ a,
+.sf-star-links a:focus-visible,
+.sf-star-links a:focus-visible ~ a {
+    color: var(--sf-yellow) !important;
+}
+
+.sf-star-links a:hover {
+    transform: scale(1.15);
+}
+
+/* Trang đơn hàng: sao / sửa đánh giá dưới từng sản phẩm */
+.sf-order-item-review {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+    margin-top: 6px;
+}
+
+.sf-order-item-info .sf-order-item-review > a {
+    font-size: 14px !important;
+    font-weight: 800;
+    color: var(--sf-cyan-dark) !important;
+}
+
+.sf-order-item-review .fa-pen {
+    margin-right: 4px;
+    font-size: 12px;
+}
+
+.sf-order-review-cta {
+    display: flex !important;
+    align-items: center;
+    gap: 14px;
+    margin-top: 16px;
+    padding: 14px 18px;
+    border: 2px solid var(--sf-black);
+    border-radius: 16px;
+    background: var(--sf-yellow);
+    color: var(--sf-black) !important;
+    transition: transform .15s ease;
+}
+
+.sf-order-review-cta:hover {
+    transform: translateY(-1px);
+}
+
+.sf-order-review-cta > i {
+    font-size: 20px;
+}
+
+.sf-order-review-cta span {
+    flex: 1;
+    font-size: 14.5px;
+    line-height: 1.45;
+    color: var(--sf-black);
+}
+
+.sf-order-review-cta b {
+    display: block;
+    font-size: 16px;
+    font-weight: 900;
+}
+
+/* Trang viết đánh giá */
+.sf-review-layout {
+    display: grid;
+    gap: 20px;
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.sf-review-layout .sf-account-box + .sf-account-box {
+    margin-top: 0;
+}
+
+.sf-review-product {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.sf-review-product .sf-order-item-img {
+    flex: 0 0 auto;
+    width: 72px;
+    height: 72px;
+}
+
+.sf-review-product > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.sf-review-product a,
+.sf-review-product b {
+    font-size: 17px;
+    font-weight: 900;
+    line-height: 1.35;
+    color: var(--sf-ink) !important;
+}
+
+.sf-review-product a:hover {
+    color: var(--sf-cyan-dark) !important;
+}
+
+.sf-review-product small {
+    font-size: 14px;
+    color: var(--sf-muted);
+}
+
+.sf-review-form .sf-field {
+    margin-bottom: 20px;
+}
+
+.sf-review-form .sf-field textarea {
+    resize: vertical;
+}
+
+.sf-review-form .sf-field textarea[aria-invalid="true"] {
+    border-color: var(--sf-red);
+}
+
+.sf-field-title {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 8px;
+    font-size: 14.5px !important;
+    font-weight: 800 !important;
+    color: var(--sf-ink) !important;
+}
+
+.sf-text-counter {
+    display: block;
+    margin-top: 4px;
+    font-size: 12.5px !important;
+    color: var(--sf-muted) !important;
+    text-align: right;
+}
+
+/* Chọn số sao */
+.sf-rating-field {
+    margin: 0 0 22px;
+    padding: 0;
+    border: 0;
+}
+
+.sf-rating-field legend {
+    float: none;
+    width: auto;
+    margin-bottom: 8px;
+    font-size: 14.5px;
+    font-weight: 800;
+    color: var(--sf-ink);
+}
+
+.sf-rating-input-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+}
+
+.sf-star-input {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    gap: 4px;
+    padding: 4px;
+    border: 2px solid transparent;
+    border-radius: 14px;
+}
+
+.sf-star-input.is-invalid {
+    border-color: var(--sf-red);
+    background: var(--sf-red-light);
+}
+
+/* Ô chọn tròn ẩn đi nhưng vẫn dùng được bằng bàn phím (Tab, phím mũi tên) */
+.sf-star-input input {
+    position: absolute;
+    width: 1px !important;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    border: 0;
+}
+
+.sf-star-input label {
+    margin: 0;
+    padding: 2px;
+    font-size: 38px;
+    line-height: 1;
+    color: var(--sf-star-empty);
+    cursor: pointer;
+    transition: color .1s ease, transform .1s ease;
+}
+
+.sf-star-input input:checked ~ label {
+    color: var(--sf-yellow);
+}
+
+/* Đang rê chuột: tô theo sao đang trỏ (bỏ qua sao đang chọn) */
+.sf-star-input:hover label {
+    color: var(--sf-star-empty);
+}
+
+.sf-star-input label:hover,
+.sf-star-input label:hover ~ label {
+    color: var(--sf-yellow);
+}
+
+.sf-star-input label:hover {
+    transform: scale(1.12);
+}
+
+.sf-star-input input:focus-visible + label {
+    outline: 3px solid var(--sf-cyan-soft);
+    outline-offset: 2px;
+    border-radius: 8px;
+}
+
+.sf-rating-hint {
+    font-size: 17px !important;
+    font-weight: 900 !important;
+    color: var(--sf-ink) !important;
+}
+
+/* Ảnh tải lên */
+.sf-review-upload {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.sf-review-upload-item,
+.sf-review-upload-add {
+    position: relative;
+    width: 96px;
+    height: 96px;
+}
+
+.sf-review-upload-item {
+    border: 2px solid var(--sf-line);
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--sf-img-bg);
+}
+
+.sf-review-upload-add[hidden] {
+    display: none;
+}
+
+.sf-review-upload-remove {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgb(17 20 23 / 75%);
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.sf-review-upload-remove:hover {
+    background: var(--sf-red);
+}
+
+.sf-review-upload-add label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    border: 2px dashed var(--sf-outline);
+    border-radius: 16px;
+    color: var(--sf-ink);
+    text-align: center;
+    cursor: pointer;
+    transition: background-color .15s ease;
+}
+
+.sf-review-upload-add label:hover {
+    background: var(--sf-cyan-light);
+}
+
+.sf-review-upload-add label:focus-within {
+    outline: 3px solid var(--sf-cyan-soft);
+}
+
+.sf-review-upload-add i {
+    font-size: 22px;
+    color: var(--sf-cyan-dark);
+}
+
+.sf-review-upload-add span {
+    font-size: 12.5px !important;
+    font-weight: 800 !important;
+    line-height: 1.2;
+    color: var(--sf-ink) !important;
+}
+
+/* Ô chọn file ẩn đi, bấm vào cả ô "Добавить фото" */
+.sf-review-upload-add input {
+    position: absolute;
+    width: 1px !important;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    opacity: 0;
+}
+
+.sf-review-author-preview {
+    margin: 6px 0 18px !important;
+    font-size: 14px !important;
+    color: var(--sf-muted) !important;
+}
+
+.sf-review-author-preview b {
+    margin-left: 6px;
+    color: var(--sf-ink);
+}
+
+.sf-review-notes {
+    display: grid;
+    gap: 8px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: var(--sf-bg-tint);
+}
+
+.sf-review-notes p {
+    display: flex;
+    gap: 10px;
+    font-size: 13.5px !important;
+    line-height: 1.5;
+    color: var(--sf-text) !important;
+}
+
+.sf-review-notes i {
+    margin-top: 3px;
+    width: 16px;
+    color: var(--sf-cyan-dark);
+    text-align: center;
+}
+
+.sf-review-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.sf-review-actions .sf-btn {
+    margin-top: 18px;
+}
+
+.sf-review-delete:hover {
+    border-color: var(--sf-red) !important;
+    color: var(--sf-red-text) !important;
+}
+
+.sf-review-status {
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    background: var(--sf-soft);
+    font-size: 14.5px;
+}
+
+.sf-review-status > span {
+    margin-right: 6px;
+    font-size: 14.5px;
+    color: var(--sf-muted);
+}
+
+.sf-review-status b {
+    color: var(--sf-ink);
+}
+
+.sf-review-status p {
+    margin-top: 6px !important;
+    font-size: 14.5px !important;
+    color: var(--sf-text) !important;
+}
+
+.sf-review-status.is-pending {
+    background: var(--sf-amber-light);
+}
+
+.sf-review-status.is-published {
+    background: var(--sf-green-light);
+}
+
+.sf-review-status.is-rejected {
+    background: var(--sf-red-light);
+}
+
+/* Nhãn trạng thái đánh giá */
+.sf-review-badge {
+    flex: 0 0 auto;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--sf-soft);
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    color: var(--sf-ink) !important;
+    white-space: nowrap;
+}
+
+.sf-review-badge.is-pending {
+    background: var(--sf-amber-light);
+    color: var(--sf-amber) !important;
+}
+
+.sf-review-badge.is-published {
+    background: var(--sf-green-light);
+    color: var(--sf-green) !important;
+}
+
+.sf-review-badge.is-rejected {
+    background: var(--sf-red-light);
+    color: var(--sf-red-text) !important;
+}
+
+/* Trang "Мои отзывы" */
+.sf-account-reviews {
+    max-width: 920px;
+    margin: 0 auto;
+}
+
+.sf-review-waiting {
+    display: grid;
+    gap: 0;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.sf-review-waiting li {
+    display: grid;
+    grid-template-columns: 60px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--sf-line);
+}
+
+.sf-review-waiting li:last-child {
+    border-bottom: 0;
+}
+
+.sf-review-waiting-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.sf-review-waiting-info > a {
+    font-size: 15.5px;
+    font-weight: 800;
+    color: var(--sf-ink) !important;
+}
+
+.sf-review-waiting-info > a:hover {
+    color: var(--sf-cyan-dark) !important;
+}
+
+.sf-review-waiting-info small {
+    font-size: 13.5px;
+    color: var(--sf-muted);
+}
+
+.sf-review-waiting .sf-btn {
+    margin-top: 0;
+}
+
+.sf-my-reviews {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.sf-my-review {
+    padding: 18px 0;
+    border-bottom: 1px solid var(--sf-line);
+}
+
+.sf-my-review:first-child {
+    padding-top: 0;
+}
+
+.sf-my-review:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.sf-my-review-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.sf-my-review-head .sf-order-item-img {
+    flex: 0 0 auto;
+}
+
+.sf-my-review-title {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.sf-my-review-title > a,
+.sf-my-review-title > b {
+    font-size: 15.5px;
+    font-weight: 800;
+    color: var(--sf-ink) !important;
+}
+
+.sf-my-review-title > a:hover {
+    color: var(--sf-cyan-dark) !important;
+}
+
+.sf-my-review-title > span {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sf-my-review-title small {
+    font-size: 13.5px;
+    color: var(--sf-muted);
+}
+
+.sf-my-review .sf-order-message {
+    margin-top: 12px;
+    font-size: 14.5px !important;
+}
+
+.sf-my-review-actions .sf-btn {
+    margin-top: 14px;
+}
+
+@media (max-width: 1199.98px) {
+    .sf-review-card {
+        flex-basis: calc((100% - 32px) / 3);
+    }
+}
+
+@media (max-width: 991.98px) {
+    .sf-review-overview.has-photos,
+    .sf-review-overview:not(.has-photos) .sf-review-summary {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sf-review-card {
+        flex-basis: calc((100% - 16px) / 2);
+    }
+
+    .sf-slider-arrow.is-prev {
+        left: 4px;
+    }
+
+    .sf-slider-arrow.is-next {
+        right: 4px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .sf-reviews {
+        margin-top: 48px;
+    }
+
+    .sf-review-summary {
+        padding: 18px 16px;
+    }
+
+    .sf-review-score > b {
+        font-size: 40px;
+    }
+
+    /* Xếp dọc, không tự xuống dòng (flex-wrap: wrap làm hàng nút lọc giãn rộng hơn màn hình) */
+    .sf-review-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+        flex-wrap: nowrap;
+    }
+
+    .sf-review-toolbar .sf-chip-list {
+        min-width: 0;
+    }
+
+    .sf-review-sort select {
+        min-width: 0;
+        max-width: 70%;
+    }
+
+    .sf-review-toolbar .sf-chip-list {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: none;
+    }
+
+    .sf-review-toolbar .sf-chip {
+        flex: 0 0 auto;
+    }
+
+    .sf-review-sort {
+        justify-content: space-between;
+    }
+
+    .sf-review-gallery ul {
+        grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+        gap: 8px;
+    }
+
+    /* Điện thoại: 1 thẻ, lộ 1 phần thẻ sau để khách biết vuốt được, không có mũi tên */
+    .sf-review-card {
+        flex-basis: 86%;
+        padding: 16px;
+    }
+
+    .sf-review-track {
+        gap: 12px;
+    }
+
+    .sf-slider-arrow {
+        display: none;
+    }
+
+    .sf-review-modal {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .sf-review-modal-box {
+        max-height: 88vh;
+        padding: 24px 16px 20px;
+        border-radius: 22px 22px 0 0;
+    }
+
+    .sf-review-head .sf-stars {
+        align-self: flex-start;
+        margin-top: 4px;
+    }
+
+    .sf-lightbox {
+        padding: 60px 8px;
+    }
+
+    .sf-lightbox-nav {
+        top: auto;
+        bottom: 10px;
+        transform: none;
+    }
+
+    .sf-lightbox-counter {
+        bottom: 24px;
+    }
+
+    .sf-star-input label {
+        font-size: 34px;
+    }
+
+    .sf-review-upload-item,
+    .sf-review-upload-add {
+        width: 84px;
+        height: 84px;
+    }
+
+    .sf-review-actions .sf-btn {
+        width: 100%;
+    }
+
+    .sf-review-waiting li {
+        grid-template-columns: 48px minmax(0, 1fr);
+    }
+
+    .sf-review-waiting .sf-btn {
+        grid-column: 2;
+        justify-self: start;
+    }
+
+    .sf-my-review-head {
+        flex-wrap: wrap;
+    }
+
+    .sf-order-review-cta {
+        padding: 12px 14px;
+    }
+}

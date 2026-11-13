@@ -1,0 +1,27 @@
+//- Ngôi sao hiển thị điểm đánh giá (0-5, có số lẻ, ví dụ 4,3 sao tô 86%)
+//- - size: "sm" (thẻ sản phẩm, danh sách), "lg" (tổng quan ở trang sản phẩm), để trống là cỡ thường
+//- Vẽ bằng CSS (sfoodie.css: .sf-stars), không dùng ảnh
+mixin ratingStars(rating, size)
+  - const ratingValue = Math.max(0, Math.min(5, Number(rating) || 0))
+  span(
+    class="sf-stars" + (size ? ` sf-stars-${size}` : "")
+    role="img"
+    aria-label=`${t("reviewStarsLabel")} ${formatNumber(ratingValue)} ${t("ratingOutOf")}`
+    )
+    span(
+      class="sf-stars-fill"
+      style=`width: ${ratingValue / 5 * 100}%`
+      )
+
+//- 5 ngôi sao bấm được (trang đơn hàng, "Мои отзывы"): bấm sao nào thì mở trang viết đánh giá chọn sẵn số sao đó
+//- - urlList: link của 1 sao, 2 sao, ..., 5 sao
+//- Thẻ a xếp ngược (5 => 1) và hiện từ phải sang trái (CSS row-reverse) để rê chuột tô được các sao bên trái
+mixin starLinks(urlList)
+  span(class="sf-star-links")
+    each star in [5, 4, 3, 2, 1]
+      a(
+        href=urlList[star - 1]
+        title=t(`ratingHint${star}`)
+        aria-label=`${t("reviewRateAction")}: ${star} ${t("ratingOutOf")}`
+        )
+        i.fas.fa-star

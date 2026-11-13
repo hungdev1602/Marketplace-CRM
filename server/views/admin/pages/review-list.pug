@@ -1,0 +1,242 @@
+extends ../layouts/default.pug
+include ../mixins/pagination.pug
+
+//- Đánh giá sản phẩm của khách (controller/admin/review.controller.ts)
+//- Nút thao tác [order-action] (duyệt, từ chối, xoá): main.js gửi data-api (JSON), xong thì tải lại trang
+//- Form [review-reply-form]: trả lời khách thay mặt cửa hàng
+block main
+  - const canModerate = permissions.includes("review-moderate")
+  - const canReply = permissions.includes("review-reply")
+  - const stars = (rating) => "★".repeat(rating) + "☆".repeat(5 - rating)
+
+  .row
+    .col-12
+      .card
+        .card-header
+          .row.align-items-center
+            .col
+              h4.card-title #{pageTitle}
+              if filterProduct
+                div.small.text-muted.mt-1
+                  | Sản phẩm:
+                  b  #{filterProduct.name}
+                  a.ms-2(href=`/${pathAdmin}/review/list`) Xem tất cả sản phẩm
+            .col-auto
+              if pendingCount > 0
+                a.btn.btn-warning(href=`/${pathAdmin}/review/list?status=pending`)
+                  i.fa-solid.fa-hourglass-half.me-1
+                  | #{pendingCount} đánh giá chờ duyệt
+        .card-body.pt-0
+          if moderation
+            p.text-muted.small.mb-3
+              i.fa-solid.fa-circle-info.me-1
+              | Đánh giá có chữ / ảnh chỉ hiện trên trang sản phẩm sau khi được duyệt. Chỉ chấm sao (không viết gì) thì được đăng ngay.
+              |  Đổi cách duyệt ở reviewModeration (config/variable.config.ts).
+          //- Bộ lọc
+          form.row.g-2.align-items-end.mb-3(form-filter)
+            if filter.productId
+              input(type="hidden" name="productId" value=filter.productId)
+            .col-md-6.col-lg-4
+              label.form-label(for="filterKeyword") Từ khoá
+              input.form-control(
+                id="filterKeyword"
+                type="text"
+                name="keyword"
+                placeholder="Tên sản phẩm, tên / email khách, mã đơn, nội dung..."
+                value=filter.keyword
+                )
+            .col-md-6.col-lg-2
+              label.form-label(for="filterStatus") Trạng thái
+              select.form-select(id="filterStatus" name="status")
+                option(value="") -- Tất cả --
+                each item in statusList
+                  option(value=item.id selected=(item.id == filter.status)) #{item.name}
+            .col-md-6.col-lg-2
+              label.form-label(for="filterRating") Số sao
+              select.form-select(id="filterRating" name="rating")
+                option(value="") -- Tất cả --
+                each star in [5, 4, 3, 2, 1]
+                  option(value=star selected=(star == filter.rating)) #{star} sao
+            .col-md-6.col-lg-2
+              label.form-label(for="filterType") Loại
+              select.form-select(id="filterType" name="type")
+                option(value="") -- Tất cả --
+                option(value="content" selected=(filter.type == "content")) Có chữ / ảnh
+                option(value="photo" selected=(filter.type == "photo")) Có ảnh
+                option(value="rating-only" selected=(filter.type == "rating-only")) Chỉ chấm sao
+            .col-md-12.col-lg-2
+              button.btn.btn-primary.me-1(type="submit")
+                i.fa-solid.fa-filter.me-1
+                | Lọc
+              a.btn.btn-secondary(href=`/${pathAdmin}/review/list`) Xoá lọc
+          p.text-muted.mb-2 Tìm thấy #{pagination.totalRecord} đánh giá
+        .table-responsive
+          table.table.mb-0.align-top
+            thead.table-light
+              tr
+                th Sản phẩm
+                th Khách hàng
+                th(style="min-width: 360px;") Đánh giá
+                th Trạng thái
+                th.text-end Thao tác
+            tbody
+              if reviewList.length > 0
+                each review in reviewList
+                  - const product = review.productInfo
+                  tr
+                    td(style="min-width: 200px; max-width: 260px;")
+                      if product
+                        div.d-flex.align-items-start.gap-2
+                          if review.productImage
+                            img.rounded.border(
+                              src=`${domainFileManager}${review.productImage}`
+                              alt=""
+                              style="width: 48px; height: 48px; object-fit: contain; flex: 0 0 auto;"
+                              )
+                          div
+                            if !product.deleted && product.status == "active"
+                              a.fw-medium(
+                                href=`/product/${product.slug}#reviews`
+                                target="_blank"
+                                rel="noopener"
+                                ) #{product.name}
+                            else
+                              span.fw-medium #{product.name}
+                              div.small.text-muted (đã ngừng bán / đã xoá)
+                            if product.ratingCount > 0
+                              div.small.text-muted.mt-1
+                                span.text-warning ★
+                                |  #{product.rating} · #{product.ratingCount} lượt
+                            a.small(href=`/${pathAdmin}/review/list?productId=${review.productId}`) Đánh giá của sản phẩm này
+                      else
+                        span.text-muted Sản phẩm không còn
+                    td(style="min-width: 180px;")
+                      div.fw-medium #{review.customerName}
+                      div.small.text-muted #{review.customerEmail}
+                      div.small
+                        | Đơn
+                        a.font-monospace(href=`/${pathAdmin}/order/detail/${review.orderId}`)  #{review.orderCode}
+                      div.small.text-muted
+                        | Tên hiện: #{review.anonymous ? "Покупатель (ẩn tên)" : review.authorName}
+                      div.small.text-muted Ngôn ngữ: #{review.lang == "vi" ? "Tiếng Việt" : "Tiếng Nga"}
+                    td
+                      div.text-warning.fs-5(title=`${review.rating} sao`) #{stars(review.rating)}
+                      if !review.hasContent
+                        div.small.text-muted Chỉ chấm sao, không viết gì
+                      //- Nội dung dài: cuộn trong khung (không làm dòng quá cao), vẫn đọc được hết để duyệt
+                      if review.pros || review.cons || review.comment
+                        div(style="max-height: 260px; overflow-y: auto;")
+                          if review.pros
+                            div.mt-1
+                              div.small.fw-bold Ưu điểm (Достоинства)
+                              div.text-break(style="white-space: pre-line;") #{review.pros}
+                          if review.cons
+                            div.mt-1
+                              div.small.fw-bold Nhược điểm (Недостатки)
+                              div.text-break(style="white-space: pre-line;") #{review.cons}
+                          if review.comment
+                            div.mt-1
+                              div.small.fw-bold Nhận xét (Комментарий)
+                              div.text-break(style="white-space: pre-line;") #{review.comment}
+                      if review.photos && review.photos.length > 0
+                        div.d-flex.flex-wrap.gap-2.mt-2
+                          each photo in review.photos
+                            a(
+                              href=`${domainFileManager}${photo}`
+                              target="_blank"
+                              rel="noopener"
+                              title="Xem ảnh lớn"
+                              )
+                              img.rounded.border(
+                                src=`${domainFileManager}${photo}`
+                                alt=""
+                                style="width: 72px; height: 72px; object-fit: cover;"
+                                )
+                      if review.rejectReason
+                        div.small.text-danger.mt-2
+                          i.fa-solid.fa-ban.me-1
+                          | Lý do từ chối (khách xem được): #{review.rejectReason}
+
+                      //- Câu trả lời của cửa hàng
+                      if review.reply && review.reply.text
+                        div.border-start.border-3.border-info.ps-2.mt-2
+                          div.small.fw-bold
+                            i.fa-solid.fa-store.me-1
+                            | Cửa hàng trả lời
+                            span.fw-normal.text-muted  · #{review.replyAtFormat} · #{review.reply.by}
+                          div.text-break(style="white-space: pre-line;") #{review.reply.text}
+                      //- Chỉ chấm sao (không viết gì) không hiện trên trang sản phẩm nên không cần trả lời
+                      if canReply && review.hasContent
+                        - const replyId = `reply-${review.id}`
+                        a.small.d-inline-block.mt-2(
+                          data-bs-toggle="collapse"
+                          href=`#${replyId}`
+                          role="button"
+                          aria-expanded="false"
+                          aria-controls=replyId
+                          )
+                          i.fa-solid.fa-reply.me-1
+                          | #{review.reply && review.reply.text ? "Sửa câu trả lời" : "Trả lời khách"}
+                        .collapse.mt-2(id=replyId)
+                          form(
+                            review-reply-form
+                            data-api=`/${pathAdmin}/review/reply/${review.id}`
+                            )
+                            textarea.form-control.mb-2(
+                              name="reply"
+                              rows="3"
+                              maxlength="2000"
+                              placeholder=review.lang == "vi" ? "Câu trả lời hiện công khai dưới đánh giá" : "Ответ виден всем под отзывом (khách viết tiếng Nga: nên trả lời bằng tiếng Nga)"
+                              ) #{review.reply && review.reply.text ? review.reply.text : ""}
+                            button.btn.btn-sm.btn-primary(type="submit")
+                              i.fa-solid.fa-floppy-disk.me-1
+                              | Lưu câu trả lời
+                            span.small.text-muted.ms-2 Để trống rồi lưu là xoá câu trả lời
+                    td.text-nowrap
+                      span(class=`badge ${review.statusInfo.color}`) #{review.statusInfo.name}
+                      div.small.text-muted.mt-1 #{review.createdAtFormat}
+                      if review.editedAtFormat
+                        div.small.text-muted Sửa: #{review.editedAtFormat}
+                      if review.moderatedBy
+                        div.small.text-muted(title="Người duyệt / từ chối") #{review.moderatedBy}
+                    td.text-end.text-nowrap
+                      if canModerate
+                        if review.status != "published"
+                          button.btn.btn-sm.btn-success.mb-1(
+                            type="button"
+                            order-action
+                            data-api=`/${pathAdmin}/review/approve/${review.id}`
+                            data-method="PATCH"
+                            title="Đăng lên trang sản phẩm"
+                            )
+                            i.fa-solid.fa-check.me-1
+                            | Duyệt
+                          br
+                        if review.status != "rejected"
+                          button.btn.btn-sm.btn-outline-warning.mb-1(
+                            type="button"
+                            order-action
+                            data-api=`/${pathAdmin}/review/reject/${review.id}`
+                            data-method="PATCH"
+                            data-confirm="Từ chối đánh giá này? Đánh giá sẽ không hiện trên trang sản phẩm"
+                            data-reason
+                            data-reason-placeholder="Lý do (khách xem được), ví dụ: Отзыв не о товаре / Нецензурная лексика"
+                            title="Ẩn khỏi trang sản phẩm, khách sửa lại được"
+                            )
+                            i.fa-solid.fa-ban.me-1
+                            | Từ chối
+                          br
+                        button.btn.btn-sm.btn-outline-danger(
+                          type="button"
+                          order-action
+                          data-api=`/${pathAdmin}/review/delete/${review.id}`
+                          data-method="DELETE"
+                          data-confirm="Xoá hẳn đánh giá này (cả ảnh)? Không khôi phục được"
+                          title="Xoá hẳn (ví dụ spam)"
+                          )
+                          i.fa-solid.fa-trash.me-1
+                          | Xoá
+              else
+                tr
+                  td(colspan=5 class="text-center") Không có đánh giá nào
+          +pagination(pagination, page)

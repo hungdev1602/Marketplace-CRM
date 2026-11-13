@@ -142,6 +142,7 @@ const orderSchema = new mongoose.Schema(
     }, // đã trả sản phẩm về kho (đơn bị huỷ)
     cancelReason: String,
     adminNote: String, // ghi chú nội bộ (chỉ hiện ở trang admin)
+    reviewRequestSentAt: Date, // đã gửi email nhắc khách đánh giá sản phẩm (sau khi nhận hàng)
     search: String // tìm kiếm ở trang admin: mã đơn, tên, số điện thoại, email
   },
   {

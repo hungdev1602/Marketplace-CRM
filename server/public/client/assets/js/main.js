@@ -2060,3 +2060,605 @@ if(checkoutForm) {
   }
 }
 // Hết Trang đặt hàng
+
+// ===== Đánh giá sản phẩm =====
+// - Trang viết / sửa đánh giá (views/client/pages/review-write.pug): chọn sao, thu nhỏ ảnh trước khi gửi, gửi form bằng fetch
+// - Trang sản phẩm (phần #reviews): lọc theo số sao / có ảnh, sắp xếp, "Показать ещё" (tải HTML từ /review/product/:id),
+//   "Отзыв полезен?" 👍 / 👎, xem ảnh lớn
+// Server trả về JSON { code, message, field, redirect } (controller/client/review.controller.ts)
+
+// Thông báo hiện ở trang tiếp theo sau khi chuyển trang (ví dụ "Отзыв отправлен на проверку")
+const saveToastForNextPage = (message) => {
+  try { sessionStorage.setItem("sf-toast", message) } catch (error) {}
+}
+try {
+  const savedToast = sessionStorage.getItem("sf-toast")
+  if(savedToast) {
+    sessionStorage.removeItem("sf-toast")
+    showToast(savedToast, "success")
+  }
+} catch (error) {}
+
+// --- Form viết đánh giá ---
+const reviewForm = document.querySelector("[review-form]")
+if(reviewForm) {
+  const maxPhotos = Number(reviewForm.getAttribute("data-max-photos")) || 5
+  const maxSide = Number(reviewForm.getAttribute("data-max-side")) || 1600
+  const maxSize = (Number(reviewForm.getAttribute("data-max-size")) || 10) * 1024 * 1024
+  const message = reviewForm.querySelector("[form-message]")
+  const submitButton = reviewForm.querySelector("[type='submit']")
+  const photoList = reviewForm.querySelector("[photo-list]")
+  const photoAdd = reviewForm.querySelector("[photo-add]")
+  const photoInput = reviewForm.querySelector("[photo-input]")
+  const photoProcessing = reviewForm.querySelector("[photo-processing]")
+  const ratingHint = reviewForm.querySelector("[rating-hint]")
+  const ratingHintList = JSON.parse(ratingHint.getAttribute("data-hints") || "[]")
+  const ratingInputs = reviewForm.querySelectorAll("input[name='rating']")
+
+  const showMessage = (text, type = "error") => {
+    message.textContent = text || ""
+    message.className = `sf-form-message is-${type}`
+    message.hidden = !text
+  }
+
+  // Số sao: chữ gợi ý (Ужасно ... Отлично) theo sao đang chọn / đang rê chuột
+  const getCheckedRating = () => reviewForm.querySelector("input[name='rating']:checked")
+  const showRatingHint = (rating) => {
+    ratingHint.textContent = rating ? ratingHintList[rating - 1] || "" : ""
+  }
+  ratingInputs.forEach((input) => {
+    input.addEventListener("change", () => {
+      showRatingHint(Number(input.value))
+      reviewForm.querySelector(".sf-star-input").classList.remove("is-invalid")
+      showMessage("")
+    })
+    const label = reviewForm.querySelector(`label[for="${input.id}"]`)
+    label.addEventListener("mouseenter", () => showRatingHint(Number(input.value)))
+    label.addEventListener("mouseleave", () => {
+      const checked = getCheckedRating()
+      showRatingHint(checked ? Number(checked.value) : 0)
+    })
+  })
+
+  // Đếm số ký tự đã nhập
+  reviewForm.querySelectorAll("[text-counter]").forEach((textarea) => {
+    const output = textarea.parentElement.querySelector("[text-counter-output]")
+    textarea.addEventListener("input", () => {
+      output.textContent = `${textarea.value.length} / ${textarea.maxLength}`
+    })
+  })
+
+  // Tên hiện công khai: bấm "Оставить отзыв анонимно" thì đổi thành "Покупатель"
+  const anonymousInput = reviewForm.querySelector("[review-anonymous]")
+  const authorPreview = reviewForm.querySelector("[review-author]")
+  if(anonymousInput && authorPreview) {
+    anonymousInput.addEventListener("change", () => {
+      authorPreview.textContent = anonymousInput.checked
+        ? authorPreview.getAttribute("data-anonymous-name")
+        : authorPreview.getAttribute("data-name")
+    })
+  }
+
+  // --- Ảnh ---
+  const getPhotoItems = () => photoList.querySelectorAll(".sf-review-upload-item")
+  const updatePhotoAdd = () => {
+    photoAdd.hidden = getPhotoItems().length >= maxPhotos
+  }
+
+  // Thu nhỏ ảnh (cạnh dài nhất maxSide px) và đổi sang JPG ngay trên trình duyệt:
+  // ảnh điện thoại 5-10MB còn khoảng vài trăm KB, gửi nhanh hơn, không tốn dung lượng server
+  // Trình duyệt tự xoay ảnh theo thông tin chụp (EXIF) khi vẽ lên canvas
+  const resizePhoto = (file) => new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const image = new Image()
+    image.onload = () => {
+      const scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight))
+      const canvas = document.createElement("canvas")
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale))
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale))
+      const context = canvas.getContext("2d")
+      context.fillStyle = "#FFFFFF" // ảnh PNG nền trong suốt: tô nền trắng
+      context.fillRect(0, 0, canvas.width, canvas.height)
+      context.drawImage(image, 0, 0, canvas.width, canvas.height)
+      URL.revokeObjectURL(url)
+      canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("toBlob")), "image/jpeg", 0.85)
+    }
+    image.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error("decode"))
+    }
+    image.src = url
+  })
+
+  // 1 ô ảnh xem trước (ảnh mới chọn), nút × để bỏ ảnh
+  const createPhotoItem = (blob) => {
+    const item = document.createElement("li")
+    item.className = "sf-review-upload-item"
+    item.photoBlob = blob
+
+    const image = document.createElement("img")
+    image.alt = ""
+    image.src = URL.createObjectURL(blob)
+
+    const removeButton = document.createElement("button")
+    removeButton.type = "button"
+    removeButton.className = "sf-review-upload-remove"
+    removeButton.setAttribute("photo-remove", "")
+    removeButton.setAttribute("aria-label", reviewForm.getAttribute("data-remove-text"))
+    removeButton.title = reviewForm.getAttribute("data-remove-text")
+    removeButton.innerHTML = `<i class="fas fa-times"></i>`
+
+    item.append(image, removeButton)
+    return item
+  }
+
+  photoInput.addEventListener("change", async () => {
+    const fileList = [...photoInput.files]
+    photoInput.value = "" // chọn lại đúng ảnh vừa bỏ vẫn nhận được
+    if(fileList.length === 0) return
+
+    showMessage("")
+    const freeCount = maxPhotos - getPhotoItems().length
+    if(fileList.length > freeCount) {
+      showMessage(reviewForm.getAttribute("data-too-many-text"))
+    }
+
+    photoProcessing.hidden = false
+    submitButton.disabled = true
+
+    for (const file of fileList.slice(0, Math.max(0, freeCount))) {
+      // Trình duyệt không đọc được (file không phải ảnh, ảnh hỏng, định dạng lạ như HEIC trên máy tính): báo lỗi
+      let blob = null
+      try {
+        blob = await resizePhoto(file)
+      } catch (error) {}
+
+      if(!blob) {
+        showMessage(reviewForm.getAttribute("data-invalid-text"))
+        continue
+      }
+      if(blob.size > maxSize) {
+        showMessage(reviewForm.getAttribute("data-too-large-text"))
+        continue
+      }
+      photoList.insertBefore(createPhotoItem(blob), photoAdd)
+    }
+
+    photoProcessing.hidden = true
+    submitButton.disabled = false
+    updatePhotoAdd()
+  })
+
+  photoList.addEventListener("click", (event) => {
+    const removeButton = event.target.closest("[photo-remove]")
+    if(!removeButton) return
+    const item = removeButton.closest(".sf-review-upload-item")
+    const image = item.querySelector("img")
+    if(item.photoBlob && image) URL.revokeObjectURL(image.src)
+    item.remove()
+    updatePhotoAdd()
+  })
+
+  // --- Gửi đánh giá ---
+  reviewForm.addEventListener("submit", async (event) => {
+    event.preventDefault()
+    showMessage("")
+    reviewForm.querySelectorAll("[aria-invalid]").forEach(input => input.removeAttribute("aria-invalid"))
+
+    const checkedRating = getCheckedRating()
+    if(!checkedRating) {
+      showMessage(reviewForm.getAttribute("data-rating-text"))
+      const starInput = reviewForm.querySelector(".sf-star-input")
+      starInput.classList.add("is-invalid")
+      starInput.scrollIntoView({ behavior: "smooth", block: "center" })
+      return
+    }
+
+    const formData = new FormData()
+    formData.append("key", reviewForm.elements.key.value)
+    formData.append("rating", checkedRating.value)
+    formData.append("pros", reviewForm.elements.pros.value)
+    formData.append("cons", reviewForm.elements.cons.value)
+    formData.append("comment", reviewForm.elements.comment.value)
+    formData.append("anonymous", anonymousInput && anonymousInput.checked ? "1" : "")
+    // Ảnh cũ giữ lại (khi sửa đánh giá)
+    const keepPhotos = [...photoList.querySelectorAll("[data-keep]")].map(item => item.getAttribute("data-keep"))
+    formData.append("keepPhotos", JSON.stringify(keepPhotos))
+    // Ảnh mới
+    getPhotoItems().forEach((item, index) => {
+      if(item.photoBlob) {
+        formData.append("photos", item.photoBlob, item.photoBlob.name || `photo-${index + 1}.jpg`)
+      }
+    })
+
+    submitButton.disabled = true
+    let result
+    try {
+      const response = await fetch(reviewForm.getAttribute("action"), {
+        method: "POST",
+        headers: { "Accept": "application/json" },
+        body: formData
+      })
+      result = await response.json()
+    } catch (error) {
+      result = { code: "error", message: errorText }
+    }
+
+    if(result.code === "success") {
+      saveToastForNextPage(result.message)
+      location.href = result.redirect || "/"
+      return
+    }
+
+    showMessage(result.message)
+    const input = result.field && reviewForm.querySelector(`[name="${result.field}"]`)
+    if(input && input.type !== "radio") {
+      input.setAttribute("aria-invalid", "true")
+      input.focus()
+    }
+    submitButton.disabled = false
+  })
+
+  // --- Xoá đánh giá ---
+  const reviewDeleteButton = reviewForm.querySelector("[review-delete]")
+  if(reviewDeleteButton) {
+    reviewDeleteButton.addEventListener("click", async () => {
+      if(!confirm(reviewDeleteButton.getAttribute("data-confirm"))) return
+
+      reviewDeleteButton.disabled = true
+      const result = await sendJson(reviewDeleteButton.getAttribute("review-delete"), "POST", {
+        key: reviewForm.elements.key.value
+      })
+      if(result.code === "success") {
+        saveToastForNextPage(result.message)
+        location.href = result.redirect || "/"
+        return
+      }
+      showMessage(result.message)
+      reviewDeleteButton.disabled = false
+    })
+  }
+}
+
+// --- Trang sản phẩm: các thẻ đánh giá trong slider ngang ---
+// - Lọc theo số sao / có ảnh, sắp xếp: tải lại slider (trang 1)
+// - Kéo / bấm mũi tên tới cuối slider: tự tải thêm reviewPerPage đánh giá (ô [review-more] ở cuối slider)
+// - "Читать полностью": tải toàn bộ 1 đánh giá (/review/item/:id) và hiện trong cửa sổ [review-modal]
+const reviewSection = document.querySelector("[review-section]")
+if(reviewSection) {
+  const reviewTrack = reviewSection.querySelector("[review-list]")
+  const reviewToolbar = reviewSection.querySelector(".sf-review-toolbar")
+  const reviewSort = reviewSection.querySelector("[review-sort]")
+  const reviewPrev = reviewSection.querySelector("[review-prev]")
+  const reviewNext = reviewSection.querySelector("[review-next]")
+  const reviewUrl = reviewSection.getAttribute("data-url")
+  const reviewState = { rating: "", photo: false, sort: "" }
+  let reviewRequestId = 0
+  let isLoadingMore = false
+
+  const buildReviewUrl = (page) => {
+    const params = new URLSearchParams()
+    if(reviewState.rating) params.set("rating", reviewState.rating)
+    if(reviewState.photo) params.set("photo", "1")
+    if(reviewState.sort) params.set("sort", reviewState.sort)
+    if(page > 1) params.set("page", page)
+    const query = params.toString()
+    return query ? `${reviewUrl}?${query}` : reviewUrl
+  }
+
+  // Mũi tên ‹ ›: khoá khi đã ở đầu / cuối slider
+  const updateReviewArrows = () => {
+    if(!reviewTrack || !reviewPrev || !reviewNext) return
+    const maxScroll = reviewTrack.scrollWidth - reviewTrack.clientWidth
+    reviewPrev.disabled = reviewTrack.scrollLeft <= 2
+    reviewNext.disabled = reviewTrack.scrollLeft >= maxScroll - 2
+  }
+
+  // Tô nút lọc đang chọn
+  const updateReviewChips = () => {
+    if(!reviewToolbar) return
+    reviewToolbar.querySelectorAll("[review-filter-rating]").forEach((chip) => {
+      const value = chip.getAttribute("review-filter-rating")
+      const isActive = value === "" ? !reviewState.rating && !reviewState.photo : value === reviewState.rating
+      chip.classList.toggle("active", isActive)
+      chip.setAttribute("aria-pressed", isActive)
+    })
+    const photoChip = reviewToolbar.querySelector("[review-filter-photo]")
+    if(photoChip) {
+      photoChip.classList.toggle("active", reviewState.photo)
+      photoChip.setAttribute("aria-pressed", reviewState.photo)
+    }
+  }
+
+  // Ô [review-more] ở cuối slider hiện ra (khách kéo tới cuối) thì tự tải thêm
+  const moreObserver = "IntersectionObserver" in window && reviewTrack
+    ? new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if(entry.isIntersecting) loadMoreReviews()
+      })
+    }, { root: reviewTrack, rootMargin: "0px 240px 0px 0px" })
+    : null
+  const observeMoreBox = () => {
+    if(!moreObserver) return
+    moreObserver.disconnect()
+    const moreBox = reviewTrack.querySelector("[review-more]")
+    if(moreBox) moreObserver.observe(moreBox)
+  }
+
+  // Tải các thẻ đánh giá: trang 1 thì thay toàn bộ slider (về đầu slider), trang sau thì nối vào cuối
+  const loadReviews = async (page = 1) => {
+    if(!reviewTrack) return
+    const requestId = ++reviewRequestId
+    if(page === 1) reviewTrack.classList.add("is-loading")
+
+    try {
+      const response = await fetch(buildReviewUrl(page), { headers: { "Accept": "text/html" } })
+      if(!response.ok) throw new Error(`${response.status}`)
+      const html = await response.text()
+      if(requestId !== reviewRequestId) return // khách đã đổi bộ lọc khác trong lúc chờ
+
+      if(page === 1) {
+        reviewTrack.innerHTML = html
+        reviewTrack.scrollLeft = 0
+      }
+      else {
+        const moreBox = reviewTrack.querySelector("[review-more]")
+        if(moreBox) moreBox.remove()
+        reviewTrack.insertAdjacentHTML("beforeend", html)
+      }
+    } catch (error) {
+      showToast(errorText, "error")
+      const moreBox = reviewTrack.querySelector("[review-more]")
+      if(moreBox) moreBox.classList.remove("is-loading")
+    }
+
+    if(requestId === reviewRequestId) {
+      reviewTrack.classList.remove("is-loading")
+      observeMoreBox()
+      updateReviewArrows()
+    }
+  }
+
+  const loadMoreReviews = async () => {
+    const moreBox = reviewTrack && reviewTrack.querySelector("[review-more]")
+    if(!moreBox || isLoadingMore) return
+    isLoadingMore = true
+    moreBox.classList.add("is-loading")
+    const moreButton = moreBox.querySelector("[review-more-button]")
+    await loadReviews(Number(moreButton.getAttribute("data-page")) || 2)
+    isLoadingMore = false
+  }
+
+  if(reviewTrack) {
+    observeMoreBox()
+    updateReviewArrows()
+    reviewTrack.addEventListener("scroll", updateReviewArrows, { passive: true })
+    window.addEventListener("resize", updateReviewArrows)
+  }
+
+  // Bấm mũi tên: cuộn gần 1 màn hình thẻ
+  const scrollReviews = (direction) => {
+    reviewTrack.scrollBy({ left: direction * reviewTrack.clientWidth * 0.9, behavior: "smooth" })
+  }
+  if(reviewPrev) reviewPrev.addEventListener("click", () => scrollReviews(-1))
+  if(reviewNext) reviewNext.addEventListener("click", () => scrollReviews(1))
+
+  reviewSection.addEventListener("click", (event) => {
+    const ratingButton = event.target.closest("[review-filter-rating]")
+    if(ratingButton && reviewTrack) {
+      const value = ratingButton.getAttribute("review-filter-rating")
+      const isFromSummary = !ratingButton.closest(".sf-review-toolbar")
+      if(value === "") {
+        reviewState.rating = ""
+        reviewState.photo = false
+      }
+      else {
+        // Bấm lại số sao đang lọc ở thanh lọc thì bỏ lọc
+        reviewState.rating = reviewState.rating === value && !isFromSummary ? "" : value
+      }
+      updateReviewChips()
+      loadReviews(1)
+      if(isFromSummary && reviewToolbar) reviewToolbar.scrollIntoView({ behavior: "smooth", block: "start" })
+      return
+    }
+
+    const photoButton = event.target.closest("[review-filter-photo]")
+    if(photoButton) {
+      reviewState.photo = !reviewState.photo
+      updateReviewChips()
+      loadReviews(1)
+      return
+    }
+
+    if(event.target.closest("[review-more-button]")) {
+      loadMoreReviews()
+    }
+  })
+
+  if(reviewSort) {
+    reviewSort.addEventListener("change", () => {
+      reviewState.sort = reviewSort.value
+      loadReviews(1)
+    })
+  }
+
+  // "Отзыв полезен?" 👍 / 👎: bấm lại nút đã bấm là bỏ lượt bấm. Chưa đăng nhập: thông báo kèm link "Войти"
+  // Cập nhật cả thẻ trong slider và cửa sổ "Читать полностью" (cùng 1 đánh giá)
+  reviewSection.addEventListener("click", async (event) => {
+    const voteButton = event.target.closest("[review-vote]")
+    if(!voteButton) return
+
+    const reviewId = voteButton.getAttribute("review-vote")
+    const voteButtons = reviewSection.querySelectorAll(`[review-vote="${reviewId}"]`)
+    voteButtons.forEach(button => button.disabled = true)
+
+    const result = await sendJson(`/review/${reviewId}/vote`, "POST", {
+      value: Number(voteButton.getAttribute("data-value"))
+    })
+    voteButtons.forEach(button => button.disabled = false)
+
+    if(result.code !== "success") {
+      const loginLink = result.login
+        ? { url: `/account/login?next=${encodeURIComponent(`${location.pathname}#reviews`)}`, text: reviewSection.getAttribute("data-login-text") }
+        : null
+      showToast(result.message, "warning", loginLink)
+      return
+    }
+
+    voteButtons.forEach((button) => {
+      const value = Number(button.getAttribute("data-value"))
+      const count = value === 1 ? result.helpfulCount : result.unhelpfulCount
+      button.classList.toggle("is-active", value === result.myVote)
+      button.setAttribute("aria-pressed", value === result.myVote)
+      button.querySelector("[review-vote-count]").textContent = count > 0 ? count : ""
+    })
+  })
+
+  // --- Cửa sổ "Читать полностью": chỉ tải toàn bộ đánh giá khi khách bấm ---
+  const reviewModal = reviewSection.querySelector("[review-modal]")
+  if(reviewModal) {
+    const modalBody = reviewModal.querySelector("[review-modal-body]")
+    const modalClose = reviewModal.querySelector("[review-modal-close]")
+    const itemUrl = reviewSection.getAttribute("data-item-url")
+    let modalLastFocus = null
+
+    const closeReviewModal = () => {
+      reviewModal.hidden = true
+      modalBody.innerHTML = ""
+      document.body.classList.remove("sf-modal-open")
+      if(modalLastFocus) modalLastFocus.focus()
+    }
+
+    reviewSection.addEventListener("click", async (event) => {
+      const readMoreButton = event.target.closest("[review-read-more]")
+      if(!readMoreButton) return
+
+      modalLastFocus = readMoreButton
+      modalBody.innerHTML = `<div class="sf-review-modal-loading"><i class="fas fa-spinner fa-spin"></i></div>`
+      reviewModal.hidden = false
+      document.body.classList.add("sf-modal-open")
+      modalClose.focus()
+
+      try {
+        const response = await fetch(`${itemUrl}${readMoreButton.getAttribute("review-read-more")}`, { headers: { "Accept": "text/html" } })
+        if(!response.ok) throw new Error(`${response.status}`)
+        const html = await response.text()
+        if(!reviewModal.hidden) modalBody.innerHTML = html
+      } catch (error) {
+        closeReviewModal()
+        showToast(errorText, "error")
+      }
+    })
+
+    modalClose.addEventListener("click", closeReviewModal)
+    // Bấm ra vùng tối xung quanh thì đóng
+    reviewModal.addEventListener("click", (event) => {
+      if(event.target === reviewModal) closeReviewModal()
+    })
+    document.addEventListener("keydown", (event) => {
+      if(event.key !== "Escape" || reviewModal.hidden) return
+      // Đang xem ảnh lớn (mở từ trong cửa sổ): phím Esc chỉ đóng ảnh
+      const lightbox = document.querySelector("[review-lightbox]")
+      if(lightbox && !lightbox.hidden) return
+      closeReviewModal()
+    })
+  }
+}
+
+// --- Xem ảnh lớn (ảnh của khách trong đánh giá) ---
+// Nút [review-photo] (data-index) nằm trong danh sách có data-gallery-list = link tất cả ảnh của nhóm đó
+// (thẻ đánh giá chỉ hiện vài ảnh, ảnh còn lại chỉ tải khi xem), bấm ‹ ›, phím ← →, vuốt để xem ảnh khác
+const reviewLightbox = document.querySelector("[review-lightbox]")
+if(reviewLightbox) {
+  const lightboxImage = reviewLightbox.querySelector("[lightbox-image]")
+  const lightboxCounter = reviewLightbox.querySelector("[lightbox-counter]")
+  const lightboxClose = reviewLightbox.querySelector("[lightbox-close]")
+  const lightboxPrev = reviewLightbox.querySelector("[lightbox-prev]")
+  const lightboxNext = reviewLightbox.querySelector("[lightbox-next]")
+  let galleryList = []
+  let galleryIndex = 0
+  let lastFocus = null
+
+  const showGalleryPhoto = () => {
+    lightboxImage.src = galleryList[galleryIndex]
+    lightboxCounter.textContent = galleryList.length > 1 ? `${galleryIndex + 1} / ${galleryList.length}` : ""
+    lightboxPrev.hidden = galleryList.length < 2
+    lightboxNext.hidden = galleryList.length < 2
+  }
+
+  const moveGallery = (step) => {
+    if(galleryList.length < 2) return
+    galleryIndex = (galleryIndex + step + galleryList.length) % galleryList.length
+    showGalleryPhoto()
+  }
+
+  const openLightbox = (button) => {
+    const group = button.closest("[data-gallery-list]")
+    try {
+      galleryList = JSON.parse(group.getAttribute("data-gallery-list")) || []
+    } catch (error) {
+      galleryList = []
+    }
+    if(galleryList.length === 0) return
+    galleryIndex = Math.min(galleryList.length - 1, Math.max(0, Number(button.getAttribute("data-index")) || 0))
+    lastFocus = button
+    reviewLightbox.hidden = false
+    document.body.classList.add("sf-lightbox-open")
+    showGalleryPhoto()
+    lightboxClose.focus()
+  }
+
+  const closeLightbox = () => {
+    reviewLightbox.hidden = true
+    lightboxImage.removeAttribute("src")
+    document.body.classList.remove("sf-lightbox-open")
+    if(lastFocus) lastFocus.focus()
+  }
+
+  document.addEventListener("click", (event) => {
+    const photoButton = event.target.closest("[review-photo]")
+    if(photoButton) openLightbox(photoButton)
+  })
+  lightboxClose.addEventListener("click", closeLightbox)
+  lightboxPrev.addEventListener("click", () => moveGallery(-1))
+  lightboxNext.addEventListener("click", () => moveGallery(1))
+  // Bấm ra vùng tối xung quanh ảnh thì đóng
+  reviewLightbox.addEventListener("click", (event) => {
+    if(event.target === reviewLightbox) closeLightbox()
+  })
+  document.addEventListener("keydown", (event) => {
+    if(reviewLightbox.hidden) return
+    if(event.key === "Escape") closeLightbox()
+    if(event.key === "ArrowLeft") moveGallery(-1)
+    if(event.key === "ArrowRight") moveGallery(1)
+  })
+
+  let touchStartX = null
+  reviewLightbox.addEventListener("touchstart", (event) => {
+    touchStartX = event.touches[0].clientX
+  }, { passive: true })
+  reviewLightbox.addEventListener("touchend", (event) => {
+    if(touchStartX === null) return
+    const distance = event.changedTouches[0].clientX - touchStartX
+    touchStartX = null
+    if(Math.abs(distance) > 50) moveGallery(distance > 0 ? -1 : 1)
+  })
+}
+
+// --- Trang "Мои отзывы": đánh giá dài chỉ hiện vài dòng, bấm "Читать полностью" để mở hết ---
+document.querySelectorAll("[clamp-text]").forEach((box) => {
+  const toggle = box.parentElement.querySelector("[clamp-toggle]")
+  if(!toggle) return
+  // Chỉ hiện nút khi chữ thật sự dài hơn khung
+  if(box.scrollHeight > box.clientHeight + 4) {
+    toggle.hidden = false
+  }
+  else {
+    box.classList.add("is-expanded")
+  }
+  toggle.addEventListener("click", () => {
+    box.classList.add("is-expanded")
+    toggle.hidden = true
+  })
+})
+// Hết Đánh giá sản phẩm
