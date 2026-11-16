@@ -32,16 +32,15 @@ Website đang chạy bằng file `.env` vẫn chạy như cũ: ô nào chưa nh�
 
 ## Bước 1 — Lấy code về máy
 
-Mở Terminal (macOS / Linux) hoặc Git Bash / PowerShell (Windows) trong thư mục dự án `Marketplace-CRM`:
+Tính năng đã được merge vào nhánh `main`. Mở Terminal (macOS / Linux) hoặc Git Bash / PowerShell (Windows)
+trong thư mục dự án `Marketplace-CRM`:
 
 ```bash
-git fetch origin
-git checkout claude/sleepy-rubin-fy0g7m
+git checkout main
+git pull origin main
 cd server
 yarn install
 ```
-
-Nhánh `claude/sleepy-rubin-fy0g7m` được tách ra từ `main`, **nhánh `main` không bị thay đổi**. Muốn quay lại bản cũ: `git checkout main`.
 
 ## Bước 2 — Thêm khoá mã hoá vào `server/.env`
 
@@ -173,10 +172,9 @@ xuất thêm чек «Полный расчёт» lúc giao hàng — website **
 - Trang danh sách kết nối hiện số lần gọi và số lỗi trong 24 giờ, lỗi gần nhất của từng dịch vụ.
 - Trang báo *"Không giải mã được khoá đã lưu"*: `INTEGRATION_SECRET_KEY` (hoặc `JWT_SECRET`) trong `.env` đã bị đổi → nhập lại khoá.
 
-## Đưa lên nhánh main
+## Đưa lên server thật
 
-Thử xong, thấy ổn thì tạo Pull Request từ nhánh `claude/sleepy-rubin-fy0g7m` vào `main` trên GitHub và merge.
-Nhớ thêm `INTEGRATION_SECRET_KEY` vào file `.env` trên server thật.
+Nhớ thêm `INTEGRATION_SECRET_KEY` vào file `.env` trên server thật (giống hệt trên máy nếu dùng chung database).
 
 ## Những file chính
 
