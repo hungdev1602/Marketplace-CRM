@@ -1,16 +1,9 @@
 import axios, { AxiosError, Method } from "axios"
 import crypto from "crypto"
-import {
-  apishipBoxList,
-  apishipDefaultItemSize,
-  apishipDefaultItemWeight,
-  apishipPackagingWeight,
-  apishipPickupType,
-  apishipPointInIds,
-  apishipProviderList
-} from "../config/variable.config"
+import { apishipProviderList } from "../config/variable.config"
 import {
   getIntegrationMode,
+  getIntegrationNumber,
   getIntegrationSetting,
   getIntegrationString,
   isIntegrationEnabled
@@ -73,6 +66,45 @@ export const getApishipSender = () => {
     phone: get("senderPhone"),
     email: get("senderEmail")
   }
+}
+
+// ===== Cách gửi hàng, đóng gói, vận đơn (trang admin: Kết nối API => ApiShip, mặc định trong variable.config.ts) =====
+// Cách giao hàng cho hãng (pickupType): 1 - hãng tới kho lấy hàng, 2 - cửa hàng tự mang tới điểm của hãng
+export const getApishipPickupType = (): number => {
+  return getIntegrationString("apiship", "pickupType") === "2" ? 2 : 1
+}
+
+// pickupType = 2: id điểm cửa hàng tự mang hàng tới, theo từng hãng { cdek: 12345 }
+export const getApishipPointInIds = (): { [providerKey: string]: number } => {
+  const value = getIntegrationSetting("apiship", "pointInIds")
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {}
+}
+
+// Khối lượng (gram), kích thước (cm) mặc định của 1 sản phẩm chưa nhập "Vận chuyển" ở trang sửa sản phẩm
+const getDefaultItemWeight = (): number => Math.max(1, getIntegrationNumber("apiship", "defaultItemWeight"))
+const getDefaultItemSize = () => ({
+  length: Math.max(1, getIntegrationNumber("apiship", "defaultItemLength")),
+  width: Math.max(1, getIntegrationNumber("apiship", "defaultItemWidth")),
+  height: Math.max(1, getIntegrationNumber("apiship", "defaultItemHeight"))
+})
+
+// Khối lượng bao bì cộng thêm mỗi đơn (gram)
+const getPackagingWeight = (): number => Math.max(0, getIntegrationNumber("apiship", "packagingWeight"))
+
+// Các cỡ thùng đóng hàng (cm)
+const getBoxList = (): { length: number, width: number, height: number }[] => {
+  const value = getIntegrationSetting("apiship", "boxList")
+  return Array.isArray(value) ? value : []
+}
+
+// Tự tạo vận đơn ngay khi khách thanh toán
+export const isApishipAutoCreateShipment = (): boolean => {
+  return getIntegrationSetting("apiship", "autoCreateShipment") === true
+}
+
+// Số phút giữa 2 lần tự cập nhật trạng thái giao hàng (ít nhất 5 phút)
+export const getApishipStatusSyncMinutes = (): number => {
+  return Math.max(5, getIntegrationNumber("apiship", "statusSyncMinutes"))
 }
 
 // Kho gửi hàng còn thiếu thông tin bắt buộc để tạo vận đơn
@@ -266,8 +298,8 @@ export const getOrderProviderName = (delivery: any): string => {
 
 // ===== Kiện hàng: khối lượng, kích thước =====
 // items: [{ weight (gram / 1 sản phẩm), length, width, height (cm), quantity }]
-// - Khối lượng: tổng khối lượng sản phẩm + bao bì (apishipPackagingWeight)
-// - Kích thước: thùng nhỏ nhất trong apishipBoxList vừa với tổng thể tích (cộng 15% khoảng trống)
+// - Khối lượng: tổng khối lượng sản phẩm + bao bì (Khối lượng bao bì ở trang admin)
+// - Kích thước: thùng nhỏ nhất trong các cỡ thùng (trang admin) vừa với tổng thể tích (cộng 15% khoảng trống)
 //   và vừa với sản phẩm to nhất; không thùng nào vừa thì tính theo khối lập phương
 export type ParcelItem = { weight?: number, length?: number, width?: number, height?: number, quantity: number }
 
@@ -280,7 +312,7 @@ export const getItemWeight = (product: any): number => {
     if(product.netWeightUnit === "g" || product.netWeightUnit === "ml") return Math.round(netWeight * 1.1)
     if(product.netWeightUnit === "kg" || product.netWeightUnit === "l") return Math.round(netWeight * 1000 * 1.1)
   }
-  return apishipDefaultItemWeight
+  return getDefaultItemWeight()
 }
 
 export const getItemSize = (product: any) => {
@@ -291,11 +323,13 @@ export const getItemSize = (product: any) => {
       height: Number(product.packageHeight)
     }
   }
-  return { ...apishipDefaultItemSize }
+  return getDefaultItemSize()
 }
 
 export const buildParcel = (items: ParcelItem[]) => {
-  let weight = apishipPackagingWeight
+  const apishipDefaultItemSize = getDefaultItemSize()
+  const apishipDefaultItemWeight = getDefaultItemWeight()
+  let weight = getPackagingWeight()
   let volume = 0
   let maxSides = [0, 0, 0]
 
@@ -313,7 +347,7 @@ export const buildParcel = (items: ParcelItem[]) => {
   }
 
   const needVolume = volume * 1.15
-  const box = apishipBoxList
+  const box = getBoxList()
     .map(box => ({ ...box, sides: [box.length, box.width, box.height].sort((a, b) => b - a) }))
     .sort((a, b) => a.length * a.width * a.height - b.length * b.width * b.height)
     .find(box => box.length * box.width * box.height >= needVolume && box.sides.every((side, index) => side >= maxSides[index]))
@@ -369,7 +403,7 @@ export const calculateDelivery = async (params: {
       addressString: params.to.addressString || undefined
     },
     places: [params.parcel],
-    pickupTypes: [apishipPickupType],
+    pickupTypes: [getApishipPickupType()],
     deliveryTypes: [params.deliveryType],
     assessedCost: params.assessedCost,
     codCost: 0, // khách đã trả trước, không thu tiền khi giao
@@ -505,7 +539,7 @@ export const createShipment = async (order: any, pickupDate: string): Promise<{ 
     clientNumber: order.code,
     description: `Заказ ${order.code}: продукты питания`,
     providerKey: delivery.providerKey,
-    pickupType: apishipPickupType,
+    pickupType: getApishipPickupType(),
     deliveryType: isPoint ? 2 : 1,
     tariffId: delivery.tariffId,
     pickupDate: pickupDate,
@@ -517,8 +551,9 @@ export const createShipment = async (order: any, pickupDate: string): Promise<{ 
   if(isPoint){
     orderPart.pointOutId = delivery.point.id
   }
-  if(apishipPickupType === 2 && apishipPointInIds[delivery.providerKey]){
-    orderPart.pointInId = apishipPointInIds[delivery.providerKey]
+  const pointInIds = getApishipPointInIds()
+  if(getApishipPickupType() === 2 && pointInIds[delivery.providerKey]){
+    orderPart.pointInId = pointInIds[delivery.providerKey]
   }
 
   const recipient: any = {
@@ -655,7 +690,7 @@ export const testApishipConnection = async (): Promise<{ ok: boolean, message: s
         from: { countryCode: "RU", city: city, region: sender.region || undefined, index: sender.postIndex || undefined },
         to: { countryCode: "RU", city: city },
         places: [{ weight: 1000, length: 20, width: 15, height: 10 }],
-        pickupTypes: [apishipPickupType],
+        pickupTypes: [getApishipPickupType()],
         deliveryTypes: [1, 2],
         assessedCost: 1000,
         codCost: 0,

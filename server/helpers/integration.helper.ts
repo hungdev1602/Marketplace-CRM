@@ -1,13 +1,18 @@
 import { ApiIntegration } from "../models/api-integration.model"
+import { ShopSetting } from "../models/shop-setting.model"
 import {
   getIntegrationDefinition,
   IntegrationDefinition,
   IntegrationField,
-  integrationList
+  integrationList,
+  isShopSettingKey
 } from "../config/integration.config"
+import { shopSettingList } from "../config/shop-setting.config"
 import { decryptSecret, encryptSecret } from "./secret.helper"
 
-// ===== Cấu hình kết nối API bên thứ 3 (Т-Банк, ApiShip, email SMTP...) =====
+// ===== Cấu hình kết nối API bên thứ 3 (Т-Банк, ApiShip, email SMTP...) và Cài đặt cửa hàng =====
+// Kết nối API lưu ở collection api-integrations, Cài đặt cửa hàng (config/shop-setting.config.ts) lưu ở shop-settings,
+// cả hai dùng chung cách đọc / lưu / tạo form bên dưới (key của 2 danh sách không trùng nhau)
 // Giá trị của 1 ô: nhập ở trang admin (database) => biến trong file .env => mặc định (config/integration.config.ts)
 // Cấu hình trong database được nạp sẵn vào bộ nhớ server (loadIntegrations) để các hàm đọc cấu hình chạy ngay,
 // không phải hỏi database mỗi lần (ví dụ getPaymentProvider() được gọi ở rất nhiều nơi)
@@ -53,9 +58,12 @@ const toCached = (record: any): CachedIntegration => {
 // Nạp cấu hình từ database vào bộ nhớ
 export const loadIntegrations = async () => {
   try {
-    const records = await ApiIntegration.find({}).lean()
+    const [integrationRecords, settingRecords] = await Promise.all([
+      ApiIntegration.find({}).lean(),
+      ShopSetting.find({}).lean()
+    ])
     const next: { [key: string]: CachedIntegration } = {}
-    for (const record of records) {
+    for (const record of [...integrationRecords, ...settingRecords]) {
       if(record.key) next[record.key] = toCached(record)
     }
     cache = next
@@ -136,6 +144,14 @@ export const getIntegrationSettingInfo = (key: string, fieldKey: string): { valu
 // Giá trị đang dùng của 1 ô, ví dụ getIntegrationSetting("tbank", "terminalKey")
 export const getIntegrationSetting = (key: string, fieldKey: string): any => {
   return getIntegrationSettingInfo(key, fieldKey).value
+}
+
+// Số (giá trị không phải số thì dùng giá trị mặc định của ô, không có thì 0)
+export const getIntegrationNumber = (key: string, fieldKey: string): number => {
+  const number = Number(getIntegrationSetting(key, fieldKey))
+  if(Number.isFinite(number)) return number
+  const field = getIntegrationDefinition(key)?.fields.find(item => item.key === fieldKey)
+  return Number.isFinite(Number(field?.default)) ? Number(field?.default) : 0
 }
 
 // Chuỗi (đã bỏ khoảng trắng 2 đầu)
@@ -236,8 +252,16 @@ export const getIntegrationView = (definition: IntegrationDefinition) => {
     const envValue = getEnvValue(field)
     const fallbackValue = field.type === "secret" ? undefined : envValue !== undefined ? envValue : field.default
 
+    // Ô nhiều dòng: đổi dữ liệu sang chữ để hiện trong ô
+    const toText = (value: any): string => {
+      if(value === undefined || value === null || value === "") return ""
+      return field.format ? field.format(value) : `${value}`
+    }
+
     return {
       ...field,
+      adminText: field.type === "textarea" ? toText(adminValue) : "",
+      fallbackText: field.type === "textarea" ? toText(fallbackValue) : "",
       source: info.source,
       fallbackValue: fallbackValue,
       fallbackSource: envValue !== undefined ? "env" : field.default !== undefined && !isEmptyValue(field.default) ? "default" : "",
@@ -272,6 +296,15 @@ export const getAllIntegrationViews = () => {
   return integrationList.map(definition => getIntegrationView(definition))
 }
 
+export const getAllShopSettingViews = () => {
+  return shopSettingList.map(definition => getIntegrationView(definition))
+}
+
+// Model lưu của 1 key: Cài đặt cửa hàng hoặc Kết nối API
+const getStoreModel = (key: string): any => {
+  return isShopSettingKey(key) ? ShopSetting : ApiIntegration
+}
+
 // ===== Lưu cấu hình từ trang admin =====
 export class IntegrationSaveError extends Error {}
 
@@ -297,13 +330,34 @@ const sanitizeValue = (field: IntegrationField, raw: any): any => {
       return value
     }
     case "number": {
-      const text = `${raw ?? ""}`.trim()
+      const text = `${raw ?? ""}`.trim().replace(",", ".")
       if(text === "") return ""
       const number = Number(text)
-      if(!Number.isFinite(number) || number < 0 || number > 65535){
+      const min = field.min ?? 0
+      const max = field.max ?? 1000000000
+      if(!Number.isFinite(number)){
         throw new IntegrationSaveError(`${field.label}: phải là số`)
       }
+      if(field.integer && !Number.isInteger(number)){
+        throw new IntegrationSaveError(`${field.label}: phải là số nguyên`)
+      }
+      if(number < min || number > max){
+        throw new IntegrationSaveError(`${field.label}: phải từ ${min} đến ${max}`)
+      }
       return number
+    }
+    case "textarea": {
+      const text = `${raw ?? ""}`.trim()
+      if(text === "") return ""
+      if(text.length > 5000){
+        throw new IntegrationSaveError(`${field.label}: quá dài`)
+      }
+      if(!field.parse) return text
+      try {
+        return field.parse(text)
+      } catch (error) {
+        throw new IntegrationSaveError(`${field.label}: ${(error as Error).message}`)
+      }
     }
     default: {
       const value = `${raw ?? ""}`.trim()
@@ -338,7 +392,9 @@ export const saveIntegration = async (key: string, body: any, accountName: strin
     throw new IntegrationSaveError("Kết nối không tồn tại!")
   }
 
-  const record: any = await ApiIntegration.findOne({ key: key }).lean()
+  const isSetting = isShopSettingKey(key)
+  const Model = getStoreModel(key)
+  const record: any = await Model.findOne({ key: key }).lean()
   const oldValues: { [field: string]: any } = { ...(record?.values || {}) }
   const oldSecrets: { [field: string]: string } = { ...(record?.secrets || {}) }
 
@@ -388,22 +444,14 @@ export const saveIntegration = async (key: string, body: any, accountName: strin
   if(mode !== `${record?.mode || ""}`) changed.push("Chế độ")
 
   const enabled = body?.enabled === undefined ? record?.enabled !== false : body.enabled === true || body.enabled === "true"
-  if(enabled !== (record ? record.enabled !== false : true)) changed.push(enabled ? "Bật" : "Tắt")
+  if(!isSetting && enabled !== (record ? record.enabled !== false : true)) changed.push(enabled ? "Bật" : "Tắt")
 
-  await ApiIntegration.updateOne(
-    { key: key },
-    {
-      $set: {
-        key: key,
-        enabled: enabled,
-        mode: mode,
-        values: values,
-        secrets: secrets,
-        updatedBy: accountName
-      }
-    },
-    { upsert: true }
-  )
+  // Cài đặt cửa hàng chỉ có values (không có bật / tắt, chế độ, khoá bí mật)
+  const update: any = isSetting
+    ? { key: key, values: values, updatedBy: accountName }
+    : { key: key, enabled: enabled, mode: mode, values: values, secrets: secrets, updatedBy: accountName }
+
+  await Model.updateOne({ key: key }, { $set: update }, { upsert: true })
 
   await loadIntegrations()
   return changed

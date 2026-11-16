@@ -22,6 +22,9 @@ Trang admin mới **Kết nối API** (`/admin/integration/list`) để quản l
 - Xem **Nhật ký gọi API**: mỗi lần website gọi Т-Банк / ApiShip / gửi email đều được ghi lại (thành công hay lỗi, lời báo lỗi, thời gian chờ). Không lưu khoá API hay thông tin khách. Lưu 30 ngày.
 - Mọi thay đổi được ghi vào **Nhật ký hoạt động** (ai sửa gì, lúc nào — không ghi giá trị khoá).
 
+Ngoài ra có trang **Cài đặt cửa hàng** (`/admin/setting/list`) cho các cài đặt khác của website — xem phần
+[Cài đặt cửa hàng](#cài-đặt-cửa-hàng) bên dưới.
+
 Website đang chạy bằng file `.env` vẫn chạy như cũ: ô nào chưa nhập ở trang admin thì vẫn lấy từ `.env`.
 Ô nào đã nhập ở trang admin thì giá trị ở trang admin được ưu tiên.
 
@@ -124,6 +127,46 @@ Trong lúc chờ Т-Банк, cứ dùng chế độ **Thanh toán giả** để
 3. Trang admin **Kết nối API → ApiShip**: chọn **Tài khoản thật**, nhập login + mật khẩu ApiShip → **Lưu & kiểm tra kết nối**.
    Kết quả liệt kê hãng nào có giá (✓) và hãng nào chưa kết nối (✗).
 
+## Cài đặt cửa hàng
+
+Menu **Cài đặt cửa hàng** (quyền *Cài đặt cửa hàng* trong Nhóm quyền). Sửa là có hiệu lực ngay. Ô để trống = dùng giá trị mặc định
+(hiện bằng chữ mờ trong ô).
+
+| Mục | Gồm |
+| --- | --- |
+| **Thông tin cửa hàng** | Điện thoại, email, địa chỉ, giờ làm việc, Telegram / WhatsApp / VK (đầu trang, chân trang); **thông tin người bán**: tên ИП, ИНН, ОГРНИП, địa chỉ đăng ký (hiện ở cuối chân trang — Т-Банк kiểm tra khi duyệt website); giao diện sáng / tối mặc định |
+| **Đặt hàng** | Giá trị đơn tối thiểu, miễn phí giao hàng từ bao nhiêu tiền, cộng thêm vào phí giao hàng, số phút giữ hàng chờ thanh toán |
+| **Sản phẩm** | Ngưỡng báo «Sắp hết hàng» |
+| **Đánh giá sản phẩm** | Duyệt đánh giá trước khi hiện, số ảnh tối đa, số ngày khách được sửa, email nhắc khách đánh giá (bật / tắt, gửi sau bao nhiêu giờ) |
+
+Ở trang **Kết nối API** còn có thêm:
+
+- **ApiShip** → *Cách gửi hàng* (hãng tới kho lấy hàng / cửa hàng tự mang tới điểm của hãng, id điểm theo từng hãng),
+  *Đóng gói* (các cỡ thùng, khối lượng bao bì, khối lượng / kích thước mặc định của sản phẩm), *Vận đơn* (tự tạo vận đơn khi khách
+  thanh toán, số phút tự cập nhật trạng thái giao hàng).
+- **Т-Банк** → *Hoá đơn điện tử (54-ФЗ)*: hệ thống thuế, **thuế VAT trên чек**, VAT phí giao hàng, hình thức thanh toán trên чек, phiên bản ФФД.
+
+### Thuế АУСН «Доходы» 8%
+
+Cửa hàng dùng АУСН «Доходы» 8% nên **không nộp VAT**. Đã cài sẵn:
+
+- **Thuế VAT trên чек = Không chịu VAT**: mọi dòng trên чек (sản phẩm và phí giao hàng) là «без НДС». Ô *Thuế VAT* ở trang sản phẩm
+  không được dùng (trang sửa sản phẩm có ghi chú).
+- **Hệ thống thuế = УСН «Доходы» · АУСН «Доходы» 8%**: chọn sẵn УСН «Доходы» vì АУСН không có mã riêng trên чек.
+
+Khi kết nối облачная касса của Т-Банк: Т-Бизнес → Интернет-эквайринг → kết nối касса (không cần khoá API riêng cho касса),
+rồi ở **Kết nối API → Т-Банк** bật *Gửi hoá đơn điện tử* → **Lưu & kiểm tra kết nối**.
+**Hỏi kế toán** ô *Hình thức thanh toán trên чек* (mặc định «Предоплата 100%»): bán trả trước 100% rồi giao sau thì thường phải
+xuất thêm чек «Полный расчёт» lúc giao hàng — website **chưa** tự gửi чек thứ hai này.
+
+### Những gì vẫn nằm trong code / file `.env` (cố ý)
+
+- File `.env` trên server (đặt 1 lần): `MONGO_URL`, `JWT_SECRET`, `INTEGRATION_SECRET_KEY`, `SITE_URL` (tên miền https).
+- `server/config/variable.config.ts`: danh sách cố định mà dữ liệu đã lưu đang dùng (quyền, trạng thái đơn hàng, xuất xứ, đơn vị,
+  bảo quản, dị ứng...: đổi id là hỏng dữ liệu cũ), các con số kỹ thuật (số sản phẩm mỗi trang, tìm kiếm, số ngày lưu nhật ký,
+  dung lượng ảnh / file tải lên), địa chỉ server quản lý file, bản đồ, bảng mã VAT (chỉ dùng khi chọn VAT theo sản phẩm).
+  Các giá trị đánh dấu `[admin]` trong file này chỉ là **giá trị mặc định**, giá trị ở trang admin được ưu tiên.
+
 ## Khi có lỗi
 
 - **Kết nối API → Nhật ký gọi API**: lọc theo dịch vụ, chọn *Lỗi* để xem lời báo lỗi của Т-Банк / ApiShip / máy chủ email.
@@ -144,6 +187,7 @@ Nhớ thêm `INTEGRATION_SECRET_KEY` vào file `.env` trên server thật.
 | Mã hoá khoá API | `server/helpers/secret.helper.ts` |
 | Nhật ký gọi API | `server/helpers/api-call-log.helper.ts`, `server/models/api-call-log.model.ts` |
 | Trang admin | `server/controller/admin/integration.controller.ts`, `server/routes/admin/integration.route.ts`, `server/views/admin/pages/integration-*.pug` |
+| Cài đặt cửa hàng | `server/config/shop-setting.config.ts`, `server/helpers/shop-setting.helper.ts`, `server/controller/admin/setting.controller.ts`, `server/views/admin/pages/setting-list.pug` |
 | Т-Банк / ApiShip / Email | `server/helpers/payment.helper.ts`, `apiship.helper.ts`, `mail.helper.ts` |
 
 Muốn thêm dịch vụ mới sau này (ví dụ Telegram báo đơn, DaData gợi ý địa chỉ): thêm 1 phần tử vào `integrationList`

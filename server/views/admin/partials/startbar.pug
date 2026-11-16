@@ -192,6 +192,14 @@
                 i.iconoir-data-transfer-both.menu-icon
                 span Kết nối API
           // end nav-item
+          if permissions.includes("setting-edit")
+            li.nav-item
+              a.nav-link(
+                href=`/${pathAdmin}/setting/list`
+                )
+                i.iconoir-settings.menu-icon
+                span Cài đặt cửa hàng
+          // end nav-item
           //- Nhật ký hoạt động: chỉ Super Admin xem được
           if account.isSuperAdmin
             li.nav-item

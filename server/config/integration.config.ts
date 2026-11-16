@@ -1,12 +1,24 @@
 import {
+  apishipAutoCreateShipment,
+  apishipBoxList,
   apishipColdProviderKeys,
+  apishipDefaultItemSize,
+  apishipDefaultItemWeight,
+  apishipPackagingWeight,
+  apishipPickupType,
+  apishipPointInIds,
   apishipProviderKeys,
   apishipProviderList,
   apishipSender,
+  apishipStatusSyncMinutes,
+  tbankDeliveryTax,
   tbankFfdVersion,
+  tbankReceiptPaymentMethod,
   tbankSendReceipt,
-  tbankTaxation
+  tbankTaxation,
+  tbankVatMode
 } from "./variable.config"
+import { shopSettingList } from "./shop-setting.config"
 
 // ===== Kết nối API bên thứ 3 (trang admin: Kết nối API) =====
 // Mỗi phần tử là 1 dịch vụ bên ngoài mà website gọi tới (thanh toán, vận chuyển, email...)
@@ -29,6 +41,7 @@ export type IntegrationFieldType =
   | "select" // chọn 1 trong options
   | "switch" // bật / tắt
   | "checkbox-list" // chọn nhiều trong options
+  | "textarea" // nhiều dòng, đổi sang dữ liệu bằng parse / format (ví dụ danh sách cỡ thùng)
 
 export type IntegrationField = {
   key: string,
@@ -41,7 +54,17 @@ export type IntegrationField = {
   placeholder?: string,
   help?: string, // dòng giải thích dưới ô (được dùng HTML)
   modes?: string[], // chỉ dùng ở các chế độ này (ẩn ô ở chế độ khác), không có là dùng ở mọi chế độ
-  required?: boolean // bắt buộc có giá trị thì dịch vụ mới coi là "đã cấu hình" (ở các chế độ của ô)
+  required?: boolean, // bắt buộc có giá trị thì dịch vụ mới coi là "đã cấu hình" (ở các chế độ của ô)
+  // Ô số: giới hạn (mặc định 0 đến 1 000 000 000), integer: chỉ nhận số nguyên, unit: đơn vị hiện sau ô (₽, g, cm, phút...)
+  min?: number,
+  max?: number,
+  integer?: boolean,
+  unit?: string,
+  // Ô nhiều dòng (textarea): parse đổi chữ nhập vào => dữ liệu lưu (sai thì throw Error có lời báo, trống trả về ""),
+  // format đổi dữ liệu => chữ hiện trong ô
+  parse?: (text: string) => any,
+  format?: (value: any) => string,
+  rows?: number
 }
 
 export type IntegrationMode = {
@@ -143,13 +166,56 @@ export const integrationList: IntegrationDefinition[] = [
         group: "Hoá đơn điện tử (54-ФЗ)",
         default: tbankTaxation,
         options: [
+          { id: "usn_income", name: "УСН «Доходы» · АУСН «Доходы» 8%" },
+          { id: "usn_income_outcome", name: "УСН «Доходы минус расходы» · АУСН «Доходы минус расходы» 20%" },
           { id: "osn", name: "ОСН (общая)" },
-          { id: "usn_income", name: "УСН доходы" },
-          { id: "usn_income_outcome", name: "УСН доходы минус расходы" },
           { id: "esn", name: "ЕСХН" },
           { id: "patent", name: "Патент" }
         ],
-        help: "Hỏi kế toán. Thuế VAT từng sản phẩm lấy theo ô Thuế VAT ở trang sửa sản phẩm.",
+        help: "АУСН không có mã riêng trên чек: chọn УСН cùng đối tượng thuế (АУСН «Доходы» 8% → <b>УСН «Доходы»</b>). Hỏi kế toán nếu chưa chắc.",
+        modes: ["tbank"]
+      },
+      {
+        key: "vatMode",
+        label: "Thuế VAT (НДС) trên чек",
+        type: "select",
+        group: "Hoá đơn điện tử (54-ФЗ)",
+        default: tbankVatMode,
+        options: [
+          { id: "none", name: "Không chịu VAT — mọi dòng «без НДС» (АУСН, УСН không nộp VAT...)" },
+          { id: "product", name: "Theo ô Thuế VAT của từng sản phẩm" }
+        ],
+        help: "АУСН không nộp VAT: chọn <b>Không chịu VAT</b>, khi đó ô Thuế VAT ở trang sản phẩm và ô VAT phí giao hàng bên dưới không được dùng.",
+        modes: ["tbank"]
+      },
+      {
+        key: "deliveryTax",
+        label: "Thuế VAT của dòng «Доставка»",
+        type: "select",
+        group: "Hoá đơn điện tử (54-ФЗ)",
+        default: tbankDeliveryTax,
+        options: [
+          { id: "none", name: "без НДС" },
+          { id: "vat0", name: "0%" },
+          { id: "vat5", name: "5%" },
+          { id: "vat7", name: "7%" },
+          { id: "vat10", name: "10%" },
+          { id: "vat22", name: "22%" }
+        ],
+        help: "Chỉ dùng khi chọn «Theo ô Thuế VAT của từng sản phẩm».",
+        modes: ["tbank"]
+      },
+      {
+        key: "receiptPaymentMethod",
+        label: "Hình thức thanh toán trên чек (признак способа расчёта)",
+        type: "select",
+        group: "Hoá đơn điện tử (54-ФЗ)",
+        default: tbankReceiptPaymentMethod,
+        options: [
+          { id: "full_prepayment", name: "Предоплата 100% (khách trả trước, giao hàng sau)" },
+          { id: "full_payment", name: "Полный расчёт (giao hàng ngay khi trả tiền)" }
+        ],
+        help: "Hỏi kế toán. Bán online trả trước rồi mới giao thường dùng «Предоплата 100%».",
         modes: ["tbank"]
       },
       {
@@ -196,7 +262,7 @@ export const integrationList: IntegrationDefinition[] = [
         steps: [
           "Trong cài đặt terminal (Настройки терминала) → Уведомления: chọn gửi <b>по протоколу HTTP</b> tới địa chỉ thông báo ở khung bên dưới (cần SITE_URL là https).",
           "Thay Terminal key + mật khẩu bằng của terminal <b>thật</b> (không có chữ DEMO), bấm Lưu &amp; kiểm tra kết nối.",
-          "Hoá đơn điện tử 54-ФЗ: kết nối онлайн-касса trong Интернет-эквайринг, sau đó bật <b>Gửi hoá đơn điện tử</b> và chọn hệ thống thuế ở trên (hỏi kế toán)."
+          "Hoá đơn điện tử 54-ФЗ: kết nối облачная касса trong Интернет-эквайринг, sau đó bật <b>Gửi hoá đơn điện tử</b>. Cửa hàng dùng <b>АУСН «Доходы» 8%</b>: hệ thống thuế chọn <b>УСН «Доходы» · АУСН «Доходы» 8%</b>, thuế VAT chọn <b>Không chịu VAT</b> (đã chọn sẵn). Hỏi kế toán về hình thức thanh toán trên чек."
         ]
       }
     ]
@@ -263,6 +329,78 @@ export const integrationList: IntegrationDefinition[] = [
         options: apishipProviderList,
         help: "Giỏ hàng có sản phẩm bảo quản mát / đông lạnh thì chỉ cho chọn các hãng này. Không chọn = không giới hạn."
       },
+      {
+        key: "pickupType",
+        label: "Cách giao hàng cho hãng vận chuyển",
+        type: "select",
+        group: "Cách gửi hàng",
+        default: `${apishipPickupType}`,
+        options: [
+          { id: "1", name: "Hãng cử người tới kho lấy hàng (địa chỉ Kho gửi hàng bên dưới)" },
+          { id: "2", name: "Cửa hàng tự mang hàng tới điểm nhận của hãng" }
+        ]
+      },
+      {
+        key: "pointInIds",
+        label: "Điểm cửa hàng tự mang hàng tới (theo từng hãng)",
+        type: "textarea",
+        group: "Cách gửi hàng",
+        default: apishipPointInIds,
+        rows: 3,
+        placeholder: "cdek: 12345",
+        help: "Chỉ dùng khi chọn «Cửa hàng tự mang hàng tới điểm nhận của hãng». Mỗi dòng 1 hãng: <code>key của hãng: id điểm</code>, ví dụ <code>cdek: 12345</code> (id điểm lấy trong tài khoản ApiShip).",
+        parse: (text: string) => {
+          const result: { [providerKey: string]: number } = {}
+          for (const line of text.split("\n").map(item => item.trim()).filter(Boolean)) {
+            const match = line.match(/^([a-z0-9_-]+)\s*[:=]\s*(\d+)$/i)
+            if(!match) throw new Error(`dòng "${line}" không đúng dạng "cdek: 12345"`)
+            const providerKey = match[1].toLowerCase()
+            if(!apishipProviderList.some(item => item.id === providerKey)) throw new Error(`không có hãng "${providerKey}"`)
+            result[providerKey] = Number(match[2])
+          }
+          return Object.keys(result).length > 0 ? result : ""
+        },
+        format: (value: any) => Object.entries(value && typeof value === "object" ? value : {})
+          .map(([providerKey, pointId]) => `${providerKey}: ${pointId}`)
+          .join("\n")
+      },
+      {
+        key: "boxList",
+        label: "Các cỡ thùng đóng hàng (cm)",
+        type: "textarea",
+        group: "Đóng gói (tính phí giao hàng)",
+        default: apishipBoxList,
+        rows: 5,
+        help: "Mỗi dòng 1 cỡ thùng: <code>dài x rộng x cao</code>. Website chọn thùng nhỏ nhất vừa với tất cả sản phẩm trong đơn để tính phí và in trên vận đơn.",
+        parse: (text: string) => {
+          const boxes = text.split("\n").map(item => item.trim()).filter(Boolean).map(line => {
+            const numbers = line.split(/\s*[x×*,]\s*|\s+/i).filter(Boolean).map(Number)
+            if(numbers.length !== 3 || numbers.some(number => !Number.isFinite(number) || number <= 0 || number > 300)){
+              throw new Error(`dòng "${line}" không đúng dạng "30 x 20 x 15" (cm, tối đa 300)`)
+            }
+            return { length: numbers[0], width: numbers[1], height: numbers[2] }
+          })
+          if(boxes.length > 30) throw new Error("tối đa 30 cỡ thùng")
+          return boxes.length > 0 ? boxes : ""
+        },
+        format: (value: any) => (Array.isArray(value) ? value : [])
+          .map((box: any) => `${box.length} x ${box.width} x ${box.height}`)
+          .join("\n")
+      },
+      { key: "packagingWeight", label: "Khối lượng bao bì cộng thêm mỗi đơn", type: "number", group: "Đóng gói (tính phí giao hàng)", default: apishipPackagingWeight, unit: "g", integer: true, max: 50000, help: "Thùng carton, túi giữ lạnh, đá khô..." },
+      { key: "defaultItemWeight", label: "Khối lượng mặc định 1 sản phẩm", type: "number", group: "Đóng gói (tính phí giao hàng)", default: apishipDefaultItemWeight, unit: "g", integer: true, min: 1, max: 100000, help: "Dùng cho sản phẩm chưa nhập khối lượng ở trang sửa sản phẩm." },
+      { key: "defaultItemLength", label: "Kích thước mặc định 1 sản phẩm: dài", type: "number", group: "Đóng gói (tính phí giao hàng)", default: apishipDefaultItemSize.length, unit: "cm", min: 1, max: 300 },
+      { key: "defaultItemWidth", label: "Rộng", type: "number", group: "Đóng gói (tính phí giao hàng)", default: apishipDefaultItemSize.width, unit: "cm", min: 1, max: 300 },
+      { key: "defaultItemHeight", label: "Cao", type: "number", group: "Đóng gói (tính phí giao hàng)", default: apishipDefaultItemSize.height, unit: "cm", min: 1, max: 300 },
+      {
+        key: "autoCreateShipment",
+        label: "Tự tạo vận đơn ngay khi khách thanh toán",
+        type: "switch",
+        group: "Vận đơn",
+        default: apishipAutoCreateShipment,
+        help: "Tắt: nhân viên kiểm tra, đóng hàng rồi bấm «Tạo vận đơn» ở trang đơn hàng. Bật: tạo ngay, ngày gửi hàng là ngày làm việc tiếp theo."
+      },
+      { key: "statusSyncMinutes", label: "Tự cập nhật trạng thái giao hàng mỗi", type: "number", group: "Vận đơn", default: apishipStatusSyncMinutes, unit: "phút", integer: true, min: 5, max: 1440 },
       { key: "senderCompanyName", label: "Tên cửa hàng / ИП", type: "text", group: "Kho gửi hàng (in trên vận đơn)", default: apishipSender.companyName, placeholder: "ИП Иванов И.И." },
       { key: "senderContactName", label: "Người liên hệ (họ tên)", type: "text", group: "Kho gửi hàng (in trên vận đơn)", default: apishipSender.contactName },
       { key: "senderPhone", label: "Số điện thoại", type: "text", group: "Kho gửi hàng (in trên vận đơn)", default: apishipSender.phone, placeholder: "+79991234567" },
@@ -323,6 +461,9 @@ export const integrationList: IntegrationDefinition[] = [
         group: "Máy chủ gửi email",
         env: "SMTP_PORT",
         default: 465,
+        integer: true,
+        min: 1,
+        max: 65535,
         help: "465 (SSL) hoặc 587 (STARTTLS)."
       },
       {
@@ -384,6 +525,12 @@ export const integrationList: IntegrationDefinition[] = [
   }
 ]
 
+// Tìm theo key trong cả danh sách kết nối API và danh sách cài đặt cửa hàng (config/shop-setting.config.ts)
 export const getIntegrationDefinition = (key: string): IntegrationDefinition | undefined => {
-  return integrationList.find(item => item.key === key)
+  return integrationList.find(item => item.key === key) || shopSettingList.find(item => item.key === key)
+}
+
+// Là mục của trang "Cài đặt cửa hàng" (không phải kết nối API)
+export const isShopSettingKey = (key: string): boolean => {
+  return shopSettingList.some(item => item.key === key)
 }

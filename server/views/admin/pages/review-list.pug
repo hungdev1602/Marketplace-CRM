@@ -31,7 +31,9 @@ block main
             p.text-muted.small.mb-3
               i.fa-solid.fa-circle-info.me-1
               | Đánh giá có chữ / ảnh chỉ hiện trên trang sản phẩm sau khi được duyệt. Chỉ chấm sao (không viết gì) thì được đăng ngay.
-              |  Đổi cách duyệt ở reviewModeration (config/variable.config.ts).
+              |  Đổi cách duyệt ở 
+              a(href=`/${pathAdmin}/setting/edit/review`) Cài đặt cửa hàng → Đánh giá sản phẩm
+              | .
           //- Bộ lọc
           form.row.g-2.align-items-end.mb-3(form-filter)
             if filter.productId

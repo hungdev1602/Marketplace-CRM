@@ -4,14 +4,11 @@ import { Coupon } from "../../models/coupon.model"
 import { Order } from "../../models/order.model"
 import { DeliveryQuote } from "../../models/delivery-quote.model"
 import {
-  checkoutDeliveryMarkup,
-  checkoutFreeDeliveryFrom,
   checkoutMapAttribution,
   checkoutMapTileUrl,
-  checkoutMinOrderValue,
-  orderDeliveryTypeList,
-  orderPaymentTimeoutMinutes
+  orderDeliveryTypeList
 } from "../../config/variable.config"
+import { getCheckoutSettings } from "../../helpers/shop-setting.helper"
 import { buildCartView, getCart } from "../../helpers/cart.helper"
 import { roundMoney } from "../../helpers/client-token.helper"
 import {
@@ -76,10 +73,11 @@ const getCartParcel = (cartView: any) => {
   })))
 }
 
-// Giao hàng miễn phí: mã giảm giá "Miễn phí giao hàng" hoặc đơn đủ checkoutFreeDeliveryFrom
+// Giao hàng miễn phí: mã giảm giá "Miễn phí giao hàng" hoặc đơn đủ mức miễn phí giao hàng (Cài đặt cửa hàng => Đặt hàng)
 const isFreeDelivery = (cartView: any): boolean => {
   const couponFreeShipping = !!(cartView.coupon && !cartView.coupon.errorKey && cartView.coupon.freeShipping)
-  const reachThreshold = checkoutFreeDeliveryFrom > 0 && cartView.total >= checkoutFreeDeliveryFrom
+  const { freeDeliveryFrom } = getCheckoutSettings()
+  const reachThreshold = freeDeliveryFrom > 0 && cartView.total >= freeDeliveryFrom
   return couponFreeShipping || reachThreshold
 }
 
@@ -138,6 +136,7 @@ export const index = async (req: Request, res: Response) => {
   }
 
   const paymentProvider = getPaymentProvider()
+  const checkoutSettings = getCheckoutSettings()
 
   res.render("client/pages/checkout", {
     pageTitle: `${res.locals.t("checkoutTitle")} — SFoodie`,
@@ -145,12 +144,12 @@ export const index = async (req: Request, res: Response) => {
     prefill: prefill,
     deliveryTypeList: orderDeliveryTypeList,
     freeDelivery: isFreeDelivery(cartView),
-    freeDeliveryFrom: checkoutFreeDeliveryFrom,
-    minOrderValue: checkoutMinOrderValue,
-    belowMinOrder: checkoutMinOrderValue > 0 && cartView.total < checkoutMinOrderValue,
+    freeDeliveryFrom: checkoutSettings.freeDeliveryFrom,
+    minOrderValue: checkoutSettings.minOrderValue,
+    belowMinOrder: checkoutSettings.minOrderValue > 0 && cartView.total < checkoutSettings.minOrderValue,
     paymentProvider: paymentProvider,
     canOrder: !!paymentProvider && isApishipConfigured(),
-    paymentTimeoutMinutes: orderPaymentTimeoutMinutes,
+    paymentTimeoutMinutes: checkoutSettings.paymentTimeoutMinutes,
     mapTileUrl: checkoutMapTileUrl,
     mapAttribution: checkoutMapAttribution
   })
@@ -212,12 +211,13 @@ export const deliveryPost = async (req: Request, res: Response) => {
     }
 
     const providerNames = await getProviderNames()
+    const { deliveryMarkup } = getCheckoutSettings()
     const options = tariffList.map(tariff => ({
       providerKey: tariff.providerKey,
       providerName: getProviderName(providerNames, tariff.providerKey),
       tariffId: tariff.tariffId,
       tariffName: tariff.tariffName,
-      cost: Math.ceil(tariff.deliveryCost + checkoutDeliveryMarkup),
+      cost: Math.ceil(tariff.deliveryCost + deliveryMarkup),
       costOriginal: tariff.deliveryCost,
       daysMin: tariff.daysMin,
       daysMax: tariff.daysMax,
@@ -314,7 +314,7 @@ export const points = async (req: Request, res: Response) => {
 
 // Đặt hàng: POST /checkout
 // Tạo đơn "Chờ thanh toán", giữ hàng trong kho, tạo thanh toán Т-Банк rồi trả về link trang thanh toán (redirect)
-// Đơn không được thanh toán trong orderPaymentTimeoutMinutes phút thì tự huỷ (helpers/order.helper.ts)
+// Đơn không được thanh toán trong thời gian giữ hàng (Cài đặt cửa hàng => Đặt hàng) thì tự huỷ (helpers/order.helper.ts)
 export const orderPost = async (req: Request, res: Response) => {
   try {
     const paymentProvider = getPaymentProvider()
@@ -332,7 +332,8 @@ export const orderPost = async (req: Request, res: Response) => {
       return
     }
 
-    if(checkoutMinOrderValue > 0 && cartView.total < checkoutMinOrderValue){
+    const checkoutSettings = getCheckoutSettings()
+    if(checkoutSettings.minOrderValue > 0 && cartView.total < checkoutSettings.minOrderValue){
       sendError(res, "minOrderNotReached", "", { reload: true })
       return
     }
@@ -520,7 +521,7 @@ export const orderPost = async (req: Request, res: Response) => {
         provider: paymentProvider,
         status: "pending"
       },
-      paymentExpireAt: new Date(Date.now() + orderPaymentTimeoutMinutes * 60 * 1000),
+      paymentExpireAt: new Date(Date.now() + checkoutSettings.paymentTimeoutMinutes * 60 * 1000),
       status: "pending",
       statusHistory: [{
         status: "pending",

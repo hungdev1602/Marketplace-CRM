@@ -3,7 +3,8 @@ import mongoose from "mongoose"
 import slugify from "slugify"
 import { Review } from "../../models/review.model"
 import { Product } from "../../models/product.model"
-import { reviewModeration, reviewStatusList } from "../../config/variable.config"
+import { reviewStatusList } from "../../config/variable.config"
+import { getReviewSettings } from "../../helpers/shop-setting.helper"
 import { formatShopDateTime } from "../../helpers/coupon.helper"
 import { writeLog } from "../../helpers/activity-log.helper"
 import { cleanReviewText, deleteReview, updateProductRating } from "../../helpers/review.helper"
@@ -128,7 +129,7 @@ export const list = async (req: Request, res: Response) => {
     reviewList: reviewList,
     statusList: reviewStatusList,
     pendingCount: await Review.countDocuments({ status: "pending" }),
-    moderation: reviewModeration,
+    moderation: getReviewSettings().moderation,
     filter: {
       keyword: keyword,
       status: find.status || "",

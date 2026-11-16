@@ -6,8 +6,6 @@ import { Order } from "../models/order.model"
 import { Product } from "../models/product.model"
 import { Coupon } from "../models/coupon.model"
 import {
-  apishipAutoCreateShipment,
-  apishipStatusSyncMinutes,
   orderStatusList,
   pathAdmin,
   shopUtcOffset
@@ -20,6 +18,8 @@ import {
   getShipmentStatus,
   getOrderProviderName,
   getShipmentStatuses,
+  getApishipStatusSyncMinutes,
+  isApishipAutoCreateShipment,
   isApishipConfigured
 } from "./apiship.helper"
 import { formatNumber, formatPrice } from "./format.helper"
@@ -280,7 +280,7 @@ export const markOrderPaid = async (order: any, info: PaymentInfo) => {
 
   sendOrderPaidEmails(paidOrder).catch(error => console.log("Gửi email đơn hàng đã thanh toán thất bại:", error))
 
-  if(apishipAutoCreateShipment && isApishipConfigured()){
+  if(isApishipAutoCreateShipment() && isApishipConfigured()){
     try {
       await createOrderShipment(paidOrder, getNextPickupDate(), orderBySystem)
     } catch (error) {
@@ -564,7 +564,7 @@ export const markOrderDelivered = async (order: any, by: string) => {
 // Mỗi phút:
 // - hỏi Т-Банк trạng thái các thanh toán đang chờ (phòng khi Т-Банк không gửi được thông báo về webhook,
 //   ví dụ chạy trên máy cá nhân không có địa chỉ công khai)
-// - huỷ đơn quá hạn thanh toán (orderPaymentTimeoutMinutes), trả hàng vào kho
+// - huỷ đơn quá hạn thanh toán (Cài đặt cửa hàng => Đặt hàng), trả hàng vào kho
 export const checkPendingPayments = async () => {
   try {
     // Thanh toán đang chờ trong 2 ngày gần đây (kể cả đơn đã tự huỷ: khách có thể thanh toán chậm)
@@ -603,7 +603,7 @@ export const checkPendingPayments = async () => {
   }
 }
 
-// Cập nhật trạng thái các vận đơn đang giao từ ApiShip (mỗi apishipStatusSyncMinutes phút)
+// Cập nhật trạng thái các vận đơn đang giao từ ApiShip (số phút giữa 2 lần: Kết nối API => ApiShip => Vận đơn)
 export const syncShipmentStatuses = async () => {
   if(!isApishipConfigured()) return
 
@@ -631,8 +631,14 @@ export const scheduleOrderJobs = () => {
   checkPendingPayments()
   setInterval(checkPendingPayments, 60 * 1000)
 
+  // Mỗi phút kiểm tra đã tới lúc cập nhật trạng thái giao hàng chưa (số phút sửa ở trang admin, có hiệu lực ngay)
+  let lastShipmentSyncAt = Date.now()
   syncShipmentStatuses()
-  setInterval(syncShipmentStatuses, Math.max(5, apishipStatusSyncMinutes) * 60 * 1000)
+  setInterval(() => {
+    if(Date.now() - lastShipmentSyncAt < getApishipStatusSyncMinutes() * 60 * 1000 - 5000) return
+    lastShipmentSyncAt = Date.now()
+    syncShipmentStatuses()
+  }, 60 * 1000)
 }
 
 // ===== Email =====

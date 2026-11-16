@@ -2620,14 +2620,16 @@ if(integrationForm) {
   // Gom dữ liệu form: { enabled, mode, values, secrets, clearSecrets }
   const getIntegrationFormBody = () => {
     const checkedMode = integrationForm.querySelector("input[name='mode']:checked")
+    const enabledInput = integrationForm.querySelector("#integrationEnabled") // trang Cài đặt cửa hàng không có
     const body = {
-      enabled: integrationForm.querySelector("#integrationEnabled").checked,
       values: {},
       secrets: {},
       clearSecrets: []
     }
+    if(enabledInput) body.enabled = enabledInput.checked
     if(checkedMode) body.mode = checkedMode.value
 
+    // Ô thường, ô chọn, ô nhiều dòng (textarea)
     integrationForm.querySelectorAll("[data-field]").forEach(input => {
       body.values[input.getAttribute("data-field")] = input.value.trim()
     })

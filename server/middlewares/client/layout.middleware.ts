@@ -6,16 +6,15 @@ import { getCart, getCartQuantity } from "../../helpers/cart.helper"
 import { getWishlist } from "../../helpers/wishlist.helper"
 import {
   clientCartMaxQuantity,
-  clientDefaultTheme,
   domainFileManager,
   productAllergenList,
   productDietTagList,
   productNetWeightUnitList,
   productOriginList,
   productStorageList,
-  productUnitList,
-  shopInfo
+  productUnitList
 } from "../../config/variable.config"
+import { getClientDefaultTheme, getShopInfo } from "../../helpers/shop-setting.helper"
 
 // Các danh sách lựa chọn của sản phẩm, để hiện tên (xuất xứ, đơn vị, bảo quản,...) theo ngôn ngữ bằng tOption
 const productOptions = {
@@ -43,12 +42,12 @@ export const loadLayoutData = async (req: Request, res: Response, next: NextFunc
 
   res.locals.allCategory = allCategory // controller dùng lại, không cần truy vấn lần nữa
   res.locals.categoryTree = buildCategoryTree(allCategory)
-  res.locals.shopInfo = shopInfo
+  res.locals.shopInfo = getShopInfo() // Cài đặt cửa hàng => Thông tin cửa hàng
   res.locals.productOptions = productOptions
   res.locals.currentPath = req.path // để tô đậm mục menu đang xem
   res.locals.query = req.query // để điền lại từ khoá, danh mục vào ô tìm kiếm
   res.locals.currentYear = new Date().getFullYear()
-  res.locals.defaultTheme = clientDefaultTheme
+  res.locals.defaultTheme = getClientDefaultTheme()
 
   // Giỏ hàng, yêu thích của khách: số trên biểu tượng ở đầu trang, trạng thái nút trên thẻ sản phẩm
   // - cartQuantityMap: { id sản phẩm: số lượng trong giỏ }, wishlistMap: { id sản phẩm: true }

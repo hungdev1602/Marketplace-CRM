@@ -1178,6 +1178,12 @@ a.sf-chip:hover {
     color: #8EA2A8;
 }
 
+/* Thông tin người bán (ИП, ИНН, ОГРНИП) */
+.sf-footer-bottom .sf-footer-legal {
+    margin-top: 6px;
+    font-size: 12px;
+}
+
 /*===========================
     TIÊU ĐỀ TRANG CON
 ===========================*/

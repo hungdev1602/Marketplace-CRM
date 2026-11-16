@@ -1,12 +1,7 @@
 import axios, { AxiosError } from "axios"
 import crypto from "crypto"
 import moment from "moment"
-import {
-  shopUtcOffset,
-  tbankDeliveryTax,
-  tbankReceiptPaymentMethod,
-  tbankTaxMap
-} from "../config/variable.config"
+import { shopUtcOffset, tbankTaxMap } from "../config/variable.config"
 import { getSiteUrl } from "./site-url.helper"
 import {
   getIntegrationMode,
@@ -60,6 +55,18 @@ const getPassword = (): string => getIntegrationString("tbank", "password")
 const getSendReceipt = (): boolean => getIntegrationSetting("tbank", "sendReceipt") === true
 const getTaxation = (): string => getIntegrationString("tbank", "taxation") || "usn_income"
 const getFfdVersion = (): string => getIntegrationString("tbank", "ffdVersion") || "1.2"
+const getReceiptPaymentMethod = (): string => getIntegrationString("tbank", "receiptPaymentMethod") || "full_prepayment"
+
+// Thuế VAT trên чек: "none" (không chịu VAT, ví dụ АУСН) => mọi dòng "без НДС"; "product" => theo ô Thuế VAT của sản phẩm
+export const getReceiptVatMode = (): string => getIntegrationString("tbank", "vatMode") === "product" ? "product" : "none"
+const getItemTax = (vat: string): string => {
+  if(getReceiptVatMode() === "none") return "none"
+  return tbankTaxMap[vat] || tbankTaxMap["none"] || "none"
+}
+const getDeliveryTax = (): string => {
+  if(getReceiptVatMode() === "none") return "none"
+  return getIntegrationString("tbank", "deliveryTax") || "none"
+}
 
 // Chữ ký Token của Т-Банк (https://developer.tbank.ru/eacq/intro/developer/token):
 // lấy các trường ở cấp ngoài cùng (bỏ Token và các trường là object / mảng như Receipt, DATA),
@@ -170,7 +177,7 @@ export const buildReceipt = (order: any) => {
       Quantity: quantity,
       Amount: unitPrice * quantity,
       Tax: tax,
-      PaymentMethod: tbankReceiptPaymentMethod,
+      PaymentMethod: getReceiptPaymentMethod(),
       PaymentObject: paymentObject
     }
     if(isFfd12) line.MeasurementUnit = paymentObject === "service" ? "усл" : "шт"
@@ -186,7 +193,7 @@ export const buildReceipt = (order: any) => {
     restTotal -= lineAfterDiscount
 
     const name = `${item.nameRu || item.name}`
-    const tax = tbankTaxMap[item.vat] || tbankTaxMap["none"] || "none"
+    const tax = getItemTax(item.vat)
     const unitPrice = Math.floor(lineAfterDiscount / item.quantity)
     const remainder = lineAfterDiscount - unitPrice * item.quantity
 
@@ -201,7 +208,7 @@ export const buildReceipt = (order: any) => {
   })
 
   if(order.deliveryCost > 0){
-    addLine("Доставка", 1, toKopecks(order.deliveryCost), tbankDeliveryTax, "service")
+    addLine("Доставка", 1, toKopecks(order.deliveryCost), getDeliveryTax(), "service")
   }
 
   const receipt: any = {
@@ -367,13 +374,13 @@ export const testTbankConnection = async (): Promise<{ ok: boolean, message: str
         Price: 100,
         Quantity: 1,
         Amount: 100,
-        Tax: tbankTaxMap["none"] || "none",
-        PaymentMethod: tbankReceiptPaymentMethod,
+        Tax: "none",
+        PaymentMethod: getReceiptPaymentMethod(),
         PaymentObject: "service",
         ...(getFfdVersion() === "1.2" ? { MeasurementUnit: "усл" } : {})
       }]
     }
-    details.push(`Gửi kèm hoá đơn điện tử: bật (${getTaxation()}, ФФД ${getFfdVersion()})`)
+    details.push(`Gửi kèm hoá đơn điện tử: bật (${getTaxation()}, ФФД ${getFfdVersion()}, ${getReceiptVatMode() === "none" ? "без НДС" : "VAT theo sản phẩm"}, ${getReceiptPaymentMethod()})`)
   }
 
   let paymentId = ""

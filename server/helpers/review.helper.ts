@@ -10,20 +10,17 @@ import { Order } from "../models/order.model"
 import { Media } from "../models/media.model"
 import {
   domainFileManager,
-  reviewEditDays,
   reviewImageFolder,
   reviewPerPage,
   reviewPreviewLength,
-  reviewReplyPreviewLength,
-  reviewRequestDelayHours,
-  reviewRequestEmail,
-  reviewRequestMaxDays
+  reviewReplyPreviewLength
 } from "../config/variable.config"
 import { detectImageType } from "./remote-image.helper"
 import { isValidProductId } from "./client-token.helper"
 import { localizedName, translate } from "./language.helper"
 import { sendMail } from "./mail.helper"
 import { getSiteUrl } from "./site-url.helper"
+import { getReviewSettings } from "./shop-setting.helper"
 import { getOrderUrl } from "./order.helper"
 
 const pug = require("pug") // dùng require vì thư viện pug không có sẵn khai báo kiểu cho TypeScript
@@ -31,9 +28,9 @@ const pug = require("pug") // dùng require vì thư viện pug không có sẵn
 // ===== Đánh giá sản phẩm =====
 // Quy trình (giống Wildberries):
 // 1. Đơn hàng chuyển sang "Đã giao hàng" => ở trang đơn hàng, trang "Мои отзывы" hiện nút chấm sao cho từng sản phẩm,
-//    sau reviewRequestDelayHours giờ khách nhận email "Как вам покупка?" có link chấm sao
+//    sau số giờ cài ở Cài đặt cửa hàng => Đánh giá, khách nhận email "Как вам покупка?" có link chấm sao
 // 2. Khách chấm sao, viết ưu điểm / nhược điểm / nhận xét, thêm ảnh (trang /review/write/:mã đơn/:id sản phẩm)
-// 3. Đánh giá có chữ / ảnh chờ nhân viên duyệt (reviewModeration), duyệt xong thì hiện ở trang sản phẩm
+// 3. Đánh giá có chữ / ảnh chờ nhân viên duyệt (nếu bật Duyệt đánh giá ở Cài đặt cửa hàng), duyệt xong thì hiện ở trang sản phẩm
 //    và được tính vào điểm trung bình của sản phẩm
 
 // Nhận diện khách viết đánh giá: tài khoản (nếu đặt hàng khi đã đăng nhập), không thì theo email đặt hàng
@@ -57,10 +54,10 @@ export const isOrderReviewable = (order: any): boolean => {
   return order?.status === "delivered"
 }
 
-// Khách còn được sửa / xoá đánh giá (trong reviewEditDays ngày kể từ lúc viết)
+// Khách còn được sửa / xoá đánh giá (trong số ngày cài ở Cài đặt cửa hàng => Đánh giá, kể từ lúc viết)
 export const canEditReview = (review: any): boolean => {
   if(!review?.createdAt) return true
-  return Date.now() - new Date(review.createdAt).getTime() < reviewEditDays * 24 * 60 * 60 * 1000
+  return Date.now() - new Date(review.createdAt).getTime() < getReviewSettings().editDays * 24 * 60 * 60 * 1000
 }
 
 // Link trang viết đánh giá (có mã bí mật của đơn hàng, khách chưa đăng nhập cũng mở được)
@@ -446,7 +443,7 @@ export const deleteReview = async (review: any) => {
 }
 
 // ===== Email nhắc đánh giá sau khi nhận hàng =====
-// Mỗi giờ tìm các đơn đã giao được reviewRequestDelayHours giờ (trong vòng reviewRequestMaxDays ngày), chưa gửi email,
+// Mỗi giờ tìm các đơn đã giao được số giờ đã cài (trong vòng số ngày đã cài, Cài đặt cửa hàng => Đánh giá), chưa gửi email,
 // gửi email "Как вам покупка?" có 5 ngôi sao cho từng sản phẩm chưa được đánh giá (bấm sao là mở trang viết đánh giá)
 const renderReviewRequestEmail = (order: any, itemList: any[]) => {
   const lang = order.lang || "ru"
@@ -477,7 +474,8 @@ const renderReviewRequestEmail = (order: any, itemList: any[]) => {
 }
 
 export const sendReviewRequests = async () => {
-  if(!reviewRequestEmail) return
+  const { requestEmail, requestDelayHours, requestMaxDays } = getReviewSettings() // Cài đặt cửa hàng => Đánh giá
+  if(!requestEmail) return
 
   try {
     const now = Date.now()
@@ -489,8 +487,8 @@ export const sendReviewRequests = async () => {
         $elemMatch: {
           status: "delivered",
           at: {
-            $lte: new Date(now - reviewRequestDelayHours * 60 * 60 * 1000),
-            $gte: new Date(now - reviewRequestMaxDays * 24 * 60 * 60 * 1000)
+            $lte: new Date(now - requestDelayHours * 60 * 60 * 1000),
+            $gte: new Date(now - requestMaxDays * 24 * 60 * 60 * 1000)
           }
         }
       }
