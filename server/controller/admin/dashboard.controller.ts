@@ -9,10 +9,10 @@ import { getDescendantIds } from "../../helpers/category.helper"
 import { formatNumber, formatPrice } from "../../helpers/format.helper"
 import { buildCouponStatusFind, couponStatusList, formatCouponDiscount, formatShopDateTime } from "../../helpers/coupon.helper"
 import { buildMissingInfoFind, productMissingInfoList } from "./product.controller"
+import { getLowStockThreshold } from "../../helpers/shop-setting.helper"
 import {
   activityLogActionList,
   activityLogModuleList,
-  productLowStockThreshold,
   productOriginList,
   productStorageList,
   productUnitList
@@ -46,6 +46,7 @@ const roundMoney = (value: number) => Math.round(value * 100) / 100
 
 // ===== Sản phẩm =====
 const getProductStats = async () => {
+  const lowStockThreshold = getLowStockThreshold() // Cài đặt cửa hàng => Sản phẩm
   const allCategory = await CategoryProduct
     .find({
       deleted: false
@@ -64,7 +65,7 @@ const getProductStats = async () => {
   // Tồn kho (chỉ tính sản phẩm đang bán, giống bộ lọc tồn kho ở danh sách sản phẩm)
   const activeList = productList.filter(product => product.status === "active")
   const outOfStockCount = activeList.filter(product => !((product.stock || 0) > 0)).length
-  const lowStockCount = activeList.filter(product => (product.stock || 0) > 0 && (product.stock || 0) <= productLowStockThreshold).length
+  const lowStockCount = activeList.filter(product => (product.stock || 0) > 0 && (product.stock || 0) <= lowStockThreshold).length
 
   // Giá trị hàng tồn kho (gồm cả sản phẩm ngừng bán vì hàng vẫn nằm trong kho)
   let stockCostValue = 0
@@ -121,7 +122,7 @@ const getProductStats = async () => {
     .find({
       deleted: false,
       status: "active",
-      stock: { $not: { $gt: productLowStockThreshold } } // gồm cả sản phẩm chưa nhập tồn kho
+      stock: { $not: { $gt: lowStockThreshold } } // gồm cả sản phẩm chưa nhập tồn kho
     })
     .sort({
       stock: "asc",
@@ -243,6 +244,7 @@ const getRecentActivityList = async () => {
 // Trang tổng quan: mỗi phần chỉ hiện khi tài khoản có quyền xem chức năng đó
 export const dashboard = async (req: Request, res: Response) => {
   const permissions: string[] = res.locals.permissions
+  const lowStockThreshold = getLowStockThreshold()
 
   const [productStats, couponStats, articleStats, activityList] = await Promise.all([
     permissions.includes("product-list") ? getProductStats() : null,
@@ -254,7 +256,7 @@ export const dashboard = async (req: Request, res: Response) => {
   res.render("admin/pages/dashboard", {
     pageTitle: "Trang tổng quan",
     updatedAt: formatShopDateTime(new Date()),
-    lowStockThreshold: productLowStockThreshold,
+    lowStockThreshold: lowStockThreshold,
     productStats: productStats,
     couponStats: couponStats,
     articleStats: articleStats,

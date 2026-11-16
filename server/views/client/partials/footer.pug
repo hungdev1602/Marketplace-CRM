@@ -100,3 +100,8 @@ footer(class="sf-footer")
                   ) #{item.name}
     div(class="sf-footer-bottom")
       p © #{currentYear} SFoodie Asian Store. #{t("copyright")}
+      //- Thông tin người bán (Admin => Cài đặt cửa hàng => Thông tin cửa hàng), mục nào trống thì không hiện
+      - const ogrnLabel = `${shopInfo.ogrn || ""}`.replace(/\D/g, "").length == 15 ? "ОГРНИП" : "ОГРН"
+      - const legalParts = [shopInfo.legalName, shopInfo.inn ? `ИНН ${shopInfo.inn}` : "", shopInfo.ogrn ? `${ogrnLabel} ${shopInfo.ogrn}` : "", shopInfo.legalAddress].filter(Boolean)
+      if legalParts.length > 0
+        p(class="sf-footer-legal") #{legalParts.join(" · ")}

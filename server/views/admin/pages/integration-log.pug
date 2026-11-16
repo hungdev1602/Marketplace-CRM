@@ -1,0 +1,68 @@
+extends ../layouts/default.pug
+include ../mixins/pagination.pug
+
+//- Nhật ký gọi API bên thứ 3 (controller/admin/integration.controller.ts)
+//- Mỗi lần server gọi Т-Банк, ApiShip, gửi email... ghi 1 dòng. Không lưu dữ liệu gửi đi (khoá API, thông tin khách)
+block main
+  .row
+    .col-12
+      .card
+        .card-header
+          .row.align-items-center
+            .col
+              a.text-muted.small(href=`/${pathAdmin}/integration/list`)
+                i.fa-solid.fa-arrow-left.me-1
+                | Kết nối API
+              h4.card-title.mt-1 #{pageTitle}
+              p.text-muted.mb-0
+                | Mỗi lần website gọi dịch vụ bên ngoài (tạo thanh toán, tính phí giao hàng, tạo vận đơn, gửi email...).
+                |  Chỉ lưu kết quả và lời báo lỗi, không lưu khoá API hay thông tin khách. Lưu #{retentionDays} ngày.
+        .card-body.pt-0
+          form.row.g-2.align-items-end.mb-3(form-filter)
+            .col-md-6.col-lg-4
+              label.form-label(for="filterProvider") Dịch vụ
+              select.form-select(id="filterProvider" name="provider")
+                option(value="") -- Tất cả dịch vụ --
+                each item in providerList
+                  option(value=item.id selected=(item.id == filter.provider)) #{item.name}
+            .col-md-6.col-lg-3
+              label.form-label(for="filterResult") Kết quả
+              select.form-select(id="filterResult" name="result")
+                option(value="") -- Tất cả --
+                option(value="ok" selected=(filter.result == "ok")) Thành công
+                option(value="error" selected=(filter.result == "error")) Lỗi
+            .col-md-12.col-lg-5
+              button.btn.btn-primary.me-1(type="submit")
+                i.fa-solid.fa-filter.me-1
+                | Lọc
+              a.btn.btn-secondary(href=`/${pathAdmin}/integration/log`) Xoá bộ lọc
+          p.text-muted.mb-2 Tìm thấy #{pagination.totalRecord} lần gọi
+          .table-responsive
+            table.table.table-striped.mb-0.align-middle
+              thead.table-light
+                tr
+                  th Thời gian (Moscow)
+                  th Dịch vụ
+                  th Thao tác
+                  th Kết quả
+                  th.text-end.text-nowrap Thời gian chờ
+                  th Ghi chú / lỗi
+              tbody
+                each item in logList
+                  tr
+                    td.text-nowrap #{item.createdAtFormat}
+                    td.text-nowrap #{item.providerName}
+                    td.font-monospace.small #{item.action}
+                    td.text-nowrap
+                      if item.ok
+                        span.badge.bg-success Thành công
+                      else
+                        span.badge.bg-danger Lỗi
+                      if item.statusCode
+                        span.text-muted.small.ms-1 HTTP #{item.statusCode}
+                    td.text-end.text-nowrap #{item.durationMs} ms
+                    td.small(style="min-width: 260px;" class=item.ok ? "text-muted" : "text-danger") #{item.message}
+                else
+                  tr
+                    td.text-center.text-muted(colspan="6") Chưa có lần gọi API nào
+          +pagination(pagination, page)

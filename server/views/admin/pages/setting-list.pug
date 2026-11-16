@@ -1,0 +1,37 @@
+extends ../layouts/default.pug
+
+//- Cài đặt cửa hàng (controller/admin/setting.controller.ts)
+//- Khoá API của dịch vụ bên ngoài (Т-Банк, ApiShip, email) và cách gửi hàng, đóng gói, hoá đơn điện tử nằm ở trang Kết nối API
+block main
+  .row.mb-3.align-items-center
+    .col
+      h4.mb-1 #{pageTitle}
+      p.text-muted.mb-0
+        | Các cài đặt của website, sửa là có hiệu lực ngay, không cần sửa code hay khởi động lại server.
+        if permissions.includes("integration-edit") || permissions.includes("integration-view")
+          |  Khoá API, cách gửi hàng, đóng gói, hoá đơn điện tử (54-ФЗ) ở trang 
+          a(href=`/${pathAdmin}/integration/list`) Kết nối API
+          | .
+
+  .row
+    each view in views
+      - const definition = view.definition
+      .col-lg-6.col-xxl-3.mb-3
+        .card.h-100.integration-card
+          .card-body
+            .d-flex.align-items-start.gap-3
+              .integration-icon
+                i(class=definition.icon)
+              .flex-grow-1
+                h5.mb-1 #{definition.name}
+                if view.customCount > 0
+                  span.badge.bg-success-subtle.text-success #{view.customCount} mục đã sửa
+                else
+                  span.badge.bg-secondary-subtle.text-secondary Đang dùng mặc định
+            p.text-muted.small.mt-2.mb-2 #{definition.description}
+            if view.updatedAtFormat
+              div.small.text-muted Sửa lúc #{view.updatedAtFormat} · #{view.updatedBy}
+          .card-footer.bg-transparent.text-end
+            a.btn.btn-sm.btn-primary(href=`/${pathAdmin}/setting/edit/${definition.key}`)
+              i.fa-solid.fa-pen.me-1
+              | Sửa

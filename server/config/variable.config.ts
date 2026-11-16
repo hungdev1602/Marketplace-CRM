@@ -190,6 +190,18 @@ export const permissionList = [
   {
     id: "file-manager",
     name: "Quản lý file"
+  },
+  {
+    id: "integration-view",
+    name: "Xem kết nối API bên thứ 3 (trạng thái, nhật ký gọi API)"
+  },
+  {
+    id: "integration-edit",
+    name: "Sửa kết nối API bên thứ 3 (khoá API, bật / tắt, chế độ thử / thật, kiểm tra kết nối)"
+  },
+  {
+    id: "setting-edit",
+    name: "Cài đặt cửa hàng (thông tin cửa hàng, đặt hàng, sản phẩm, đánh giá)"
   }
 ]
 
@@ -245,6 +257,14 @@ export const activityLogModuleList = [
   {
     id: "file-manager",
     name: "Quản lý file"
+  },
+  {
+    id: "integration",
+    name: "Kết nối API bên thứ 3"
+  },
+  {
+    id: "setting",
+    name: "Cài đặt cửa hàng"
   }
 ]
 
@@ -360,6 +380,11 @@ export const activityLogActionList = [
     id: "reply",
     name: "Trả lời",
     color: "bg-info"
+  },
+  {
+    id: "test-connection",
+    name: "Kiểm tra kết nối",
+    color: "bg-secondary"
   }
 ]
 // ===== Sản phẩm (thực phẩm châu Á bán tại Nga) =====
@@ -369,7 +394,8 @@ export const activityLogActionList = [
 // - nameRu: tên tiếng Nga, hiển thị ở trang khách hàng khi khách chọn tiếng Nga
 // Muốn thêm lựa chọn thì thêm 1 dòng { id, name, nameRu } vào danh sách tương ứng
 
-// Tồn kho nhỏ hơn hoặc bằng số này thì báo "Sắp hết hàng" ở danh sách sản phẩm
+// [admin] Tồn kho nhỏ hơn hoặc bằng số này thì báo "Sắp hết hàng" ở danh sách sản phẩm
+// (sửa ở trang admin: Cài đặt cửa hàng => Sản phẩm)
 export const productLowStockThreshold: number = 10
 
 // Xuất xứ (id là mã quốc gia ISO)
@@ -516,13 +542,13 @@ export const clientLanguageList = [
   { id: "vi", name: "Tiếng Việt", shortName: "VI" }
 ]
 
-// Giao diện mặc định khi khách chưa bấm nút đổi sáng / tối
+// [admin] Giao diện mặc định khi khách chưa bấm nút đổi sáng / tối (sửa ở trang admin: Cài đặt cửa hàng => Thông tin cửa hàng)
 // - "system": theo cài đặt sáng / tối của máy khách
 // - "light": luôn sáng, "dark": luôn tối
 // Khách bấm đổi rồi thì trình duyệt nhớ lựa chọn của khách
 export const clientDefaultTheme: string = "system"
 
-// Thông tin cửa hàng hiển thị ở đầu trang và chân trang
+// [admin] Thông tin cửa hàng hiển thị ở đầu trang và chân trang (sửa ở trang admin: Cài đặt cửa hàng => Thông tin cửa hàng)
 // Để trống ("") thì mục đó không hiển thị
 export const shopInfo = {
   phone: "", // số điện thoại / hotline, ví dụ: +7 (999) 123-45-67
@@ -531,7 +557,12 @@ export const shopInfo = {
   workingHours: "", // giờ làm việc, ví dụ: 09:00 - 21:00
   telegram: "", // link Telegram, ví dụ: https://t.me/sfoodie
   whatsapp: "", // link WhatsApp, ví dụ: https://wa.me/79991234567
-  vk: "" // link trang VK, ví dụ: https://vk.com/sfoodie
+  vk: "", // link trang VK, ví dụ: https://vk.com/sfoodie
+  // Thông tin người bán (hiện ở cuối chân trang, Т-Банк kiểm tra khi duyệt website)
+  legalName: "", // ví dụ: ИП Иванов Иван Иванович
+  inn: "", // ИНН
+  ogrn: "", // ОГРНИП (ИП) hoặc ОГРН (ООО)
+  legalAddress: "" // địa chỉ đăng ký
 }
 
 // Số sản phẩm mỗi trang ở trang danh sách sản phẩm
@@ -600,12 +631,13 @@ export const clientSearchCacheSeconds: number = 60
 // ===== Đặt hàng, thanh toán, giao hàng (trang khách hàng: /checkout) =====
 // Quy trình: khách đặt hàng => thanh toán online trước (Т-Банк) => cửa hàng tạo vận đơn ApiShip => gửi hàng
 // Không nhận thanh toán khi nhận hàng (COD): chưa thanh toán thì không tạo được vận đơn
-// Tài khoản, mật khẩu của ApiShip, Т-Банк điền trong file .env (xem .env.example)
+// Tài khoản, mật khẩu của ApiShip, Т-Банк nhập ở trang admin "Kết nối API" (hoặc trong file .env, xem .env.example)
 
-// Giá trị đơn hàng tối thiểu (tiền hàng sau giảm giá, chưa gồm phí giao hàng), 0 là không yêu cầu
+// Các mục [admin] trong phần này sửa ở trang admin: Cài đặt cửa hàng => Đặt hàng
+// [admin] Giá trị đơn hàng tối thiểu (tiền hàng sau giảm giá, chưa gồm phí giao hàng), 0 là không yêu cầu
 export const checkoutMinOrderValue: number = 0
 
-// Miễn phí giao hàng cho đơn từ số tiền này (tiền hàng sau giảm giá), 0 là không áp dụng
+// [admin] Miễn phí giao hàng cho đơn từ số tiền này (tiền hàng sau giảm giá), 0 là không áp dụng
 // (mã giảm giá loại "Miễn phí giao hàng" vẫn dùng được như bình thường)
 export const checkoutFreeDeliveryFrom: number = 0
 
@@ -614,11 +646,11 @@ export const checkoutFreeDeliveryFrom: number = 0
 export const checkoutMapTileUrl: string = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
 export const checkoutMapAttribution: string = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
 
-// Cộng thêm vào phí giao hàng ApiShip tính ra (₽), ví dụ tiền hộp, túi giữ lạnh, 0 là không cộng
+// [admin] Cộng thêm vào phí giao hàng ApiShip tính ra (₽), ví dụ tiền hộp, túi giữ lạnh, 0 là không cộng
 // Phí giao hàng khách trả luôn được làm tròn lên số rúp chẵn
 export const checkoutDeliveryMarkup: number = 0
 
-// Số phút giữ hàng cho đơn chưa thanh toán: quá thời gian này đơn tự huỷ,
+// [admin] Số phút giữ hàng cho đơn chưa thanh toán: quá thời gian này đơn tự huỷ,
 // sản phẩm trả lại kho, mã giảm giá được trả lại lượt dùng
 export const orderPaymentTimeoutMinutes: number = 60
 
@@ -652,24 +684,47 @@ export const orderDeliveryTypeList = [
 ]
 
 // ===== ApiShip (kết nối các hãng vận chuyển: СДЭК, Boxberry, Почта России, 5Post, Яндекс Доставка,...) =====
-// Chỉ lấy giá của các hãng này (key của hãng trong ApiShip), để trống [] là lấy tất cả hãng đã kết nối trong tài khoản ApiShip
+// Từ phiên bản có trang admin "Kết nối API" (Admin => Kết nối API => ApiShip): các mục đánh dấu [admin] bên dưới
+// chỉ là GIÁ TRỊ MẶC ĐỊNH, dùng khi chưa nhập ở trang admin. Nhập ở trang admin thì giá trị ở trang admin được ưu tiên
+
+// Danh sách hãng vận chuyển (key của hãng trong ApiShip => tên hiển thị), dùng cho ô chọn hãng ở trang admin "Kết nối API"
+// và tên hãng hiển thị cho khách. Danh sách đầy đủ: https://docs.apiship.ru/docs/delivery-services/list-delivery-services/
+export const apishipProviderList = [
+  { id: "cdek", name: "СДЭК" },
+  { id: "yataxi", name: "Яндекс Доставка" },
+  { id: "rupost", name: "Почта России" },
+  { id: "boxberry", name: "Boxberry" },
+  { id: "x5", name: "5Post" },
+  { id: "dpd", name: "DPD" },
+  { id: "dalli", name: "Dalli Service" },
+  { id: "pickpoint", name: "PickPoint" },
+  { id: "pecom", name: "ПЭК" },
+  { id: "dellin", name: "Деловые Линии" },
+  { id: "magnit", name: "Магнит Пост" },
+  { id: "ozon", name: "Ozon Доставка" },
+  { id: "wb", name: "WB Track" },
+  { id: "lpost", name: "Л-Пост" },
+  { id: "dostavista", name: "Dostavista" }
+]
+
+// [admin] Chỉ lấy giá của các hãng này (key của hãng trong ApiShip), để trống [] là lấy tất cả hãng đã kết nối trong tài khoản ApiShip
 // - "cdek": СДЭК, "yataxi": Яндекс Доставка, "rupost": Почта России
 // - hãng khác, ví dụ: "boxberry": Boxberry, "x5": 5Post, "dpd": DPD (danh sách đầy đủ: https://docs.apiship.ru/docs/delivery-services/list-delivery-services/)
 export const apishipProviderKeys: string[] = ["cdek", "yataxi", "rupost"]
 
-// Giỏ hàng có hàng bảo quản mát / đông lạnh thì chỉ cho chọn các hãng này (ví dụ hãng có xe lạnh), để trống [] là không giới hạn
+// [admin] Giỏ hàng có hàng bảo quản mát / đông lạnh thì chỉ cho chọn các hãng này (ví dụ hãng có xe lạnh), để trống [] là không giới hạn
 export const apishipColdProviderKeys: string[] = []
 
-// Cách giao hàng cho hãng vận chuyển (pickupType trong API ApiShip)
+// [admin] Cách giao hàng cho hãng vận chuyển (pickupType trong API ApiShip)
 // - 1: hãng cử người tới kho lấy hàng (địa chỉ kho ở apishipSender bên dưới)
 // - 2: cửa hàng tự mang hàng tới điểm nhận của hãng (cần điền apishipPointInIds)
 export const apishipPickupType: number = 1
 
-// pickupType = 2: id điểm nhận hàng (ПВЗ) mà cửa hàng tự mang hàng tới, theo từng hãng, ví dụ { cdek: 12345 }
+// [admin] pickupType = 2: id điểm nhận hàng (ПВЗ) mà cửa hàng tự mang hàng tới, theo từng hãng, ví dụ { cdek: 12345 }
 // (id lấy trong tài khoản ApiShip hoặc API /lists/points)
 export const apishipPointInIds: { [providerKey: string]: number } = {}
 
-// Địa chỉ kho gửi hàng + người liên hệ (in trên vận đơn, hãng vận chuyển tới đây lấy hàng)
+// [admin] Địa chỉ kho gửi hàng + người liên hệ (in trên vận đơn, hãng vận chuyển tới đây lấy hàng)
 // Bắt buộc điền city (và nên điền đủ các ô) trước khi bán hàng thật
 export const apishipSender = {
   countryCode: "RU",
@@ -686,14 +741,14 @@ export const apishipSender = {
   email: "" // email
 }
 
-// Kích thước, khối lượng mặc định của 1 sản phẩm chưa nhập "Vận chuyển" ở trang sửa sản phẩm
+// [admin] Kích thước, khối lượng mặc định của 1 sản phẩm chưa nhập "Vận chuyển" ở trang sửa sản phẩm
 export const apishipDefaultItemWeight: number = 500 // gram
 export const apishipDefaultItemSize = { length: 15, width: 10, height: 10 } // cm
 
-// Khối lượng bao bì (thùng carton, túi giữ lạnh,...) cộng thêm vào mỗi đơn (gram)
+// [admin] Khối lượng bao bì (thùng carton, túi giữ lạnh,...) cộng thêm vào mỗi đơn (gram)
 export const apishipPackagingWeight: number = 200
 
-// Các cỡ thùng đóng hàng (cm), từ nhỏ đến lớn: chọn thùng nhỏ nhất vừa với tất cả sản phẩm trong đơn
+// [admin] Các cỡ thùng đóng hàng (cm), từ nhỏ đến lớn: chọn thùng nhỏ nhất vừa với tất cả sản phẩm trong đơn
 // Dùng để tính phí giao hàng và in trên vận đơn
 export const apishipBoxList = [
   { length: 20, width: 15, height: 10 },
@@ -703,31 +758,40 @@ export const apishipBoxList = [
   { length: 60, width: 40, height: 40 }
 ]
 
-// Tự động tạo vận đơn ApiShip ngay khi khách thanh toán xong
+// [admin] Tự động tạo vận đơn ApiShip ngay khi khách thanh toán xong
 // - false (mặc định): nhân viên kiểm tra, đóng hàng rồi bấm "Tạo vận đơn" ở trang chi tiết đơn hàng (admin)
 // - true: tạo ngay sau khi thanh toán, ngày gửi hàng là ngày làm việc tiếp theo
 export const apishipAutoCreateShipment: boolean = false
 
-// Số phút giữa 2 lần tự động cập nhật trạng thái giao hàng từ ApiShip
+// [admin] Số phút giữa 2 lần tự động cập nhật trạng thái giao hàng từ ApiShip
 export const apishipStatusSyncMinutes: number = 30
 
 // ===== Т-Банк: Интернет-эквайринг (thanh toán online: thẻ ngân hàng, СБП, T-Pay, SberPay, Mir Pay,...) =====
-// Mã terminal (TerminalKey) và mật khẩu terminal điền trong file .env (TBANK_TERMINAL_KEY, TBANK_PASSWORD)
+// Mã terminal (TerminalKey) và mật khẩu terminal nhập ở trang admin "Kết nối API" => Т-Банк
+// (hoặc trong file .env: TBANK_TERMINAL_KEY, TBANK_PASSWORD)
+// Các mục đánh dấu [admin] bên dưới chỉ là GIÁ TRỊ MẶC ĐỊNH, nhập ở trang admin thì giá trị ở trang admin được ưu tiên
 // Các cách thanh toán khách thấy trên trang thanh toán bật / tắt trong trang Т-Бизнес (Интернет-эквайринг => Магазины)
 
-// Gửi thông tin hoá đơn điện tử (чек 54-ФЗ) cùng với yêu cầu thanh toán
+// [admin] Gửi thông tin hoá đơn điện tử (чек 54-ФЗ) cùng với yêu cầu thanh toán
 // Chỉ bật khi cửa hàng đã kết nối máy tính tiền online (онлайн-касса) trong Интернет-эквайринг của Т-Банк,
 // nếu không Т-Банк sẽ báo lỗi và khách không thanh toán được
 export const tbankSendReceipt: boolean = false
 
-// Hệ thống thuế của ИП (in trên hoá đơn), hỏi kế toán:
+// [admin] Hệ thống thuế của ИП (in trên hoá đơn), hỏi kế toán. АУСН không có mã riêng: АУСН «Доходы» 8% => "usn_income"
 // "osn" - ОСН, "usn_income" - УСН доходы, "usn_income_outcome" - УСН доходы минус расходы, "patent" - патент
 export const tbankTaxation: string = "usn_income"
 
-// Phiên bản định dạng hoá đơn (ФФД) của máy tính tiền online: "1.2" hoặc "1.05" (xem trong cài đặt онлайн-касса)
+// [admin] Phiên bản định dạng hoá đơn (ФФД) của máy tính tiền online: "1.2" hoặc "1.05" (xem trong cài đặt онлайн-касса)
 export const tbankFfdVersion: string = "1.2"
 
-// Thuế VAT trên hoá đơn (Tax) theo thuế VAT của sản phẩm (productVatList)
+// [admin] Thuế VAT trên чек:
+// - "none": cửa hàng không nộp VAT (АУСН, УСН không phải nộp VAT...), mọi dòng trên чек là "без НДС"
+// - "product": theo ô Thuế VAT của từng sản phẩm (bảng tbankTaxMap bên dưới)
+// Cửa hàng dùng АУСН «Доходы» 8% (không nộp VAT) nên mặc định là "none"
+export const tbankVatMode: string = "none"
+
+// Mã thuế VAT trên hoá đơn (Tax) theo thuế VAT của sản phẩm (productVatList)
+// Chỉ dùng khi chọn "Theo ô Thuế VAT của từng sản phẩm" (tbankVatMode = "product")
 // Kiểm tra lại với kế toán trước khi bật tbankSendReceipt
 export const tbankTaxMap: { [vat: string]: string } = {
   "none": "none", // без НДС
@@ -738,10 +802,10 @@ export const tbankTaxMap: { [vat: string]: string } = {
   "22": "vat22" // 22%
 }
 
-// Thuế VAT của phí giao hàng trên hoá đơn (dòng "Доставка")
+// [admin] Thuế VAT của phí giao hàng trên hoá đơn (dòng "Доставка")
 export const tbankDeliveryTax: string = "none"
 
-// Hình thức thanh toán trên hoá đơn (PaymentMethod): "full_prepayment" - trả trước 100% (giao hàng sau),
+// [admin] Hình thức thanh toán trên hoá đơn (PaymentMethod): "full_prepayment" - trả trước 100% (giao hàng sau),
 // "full_payment" - thanh toán đủ. Hỏi kế toán nên dùng loại nào
 export const tbankReceiptPaymentMethod: string = "full_prepayment"
 
@@ -749,13 +813,14 @@ export const tbankReceiptPaymentMethod: string = "full_prepayment"
 // Giống Wildberries / Ozon: chỉ khách đã NHẬN HÀNG (đơn ở trạng thái "Đã giao hàng") mới đánh giá được sản phẩm trong đơn đó
 // Mỗi khách (tài khoản, hoặc email nếu đặt hàng không đăng nhập) đánh giá mỗi sản phẩm 1 lần, sửa lại được trong reviewEditDays ngày
 
-// Duyệt đánh giá trước khi hiện trên trang sản phẩm
+// Các mục [admin] trong phần này sửa ở trang admin: Cài đặt cửa hàng => Đánh giá sản phẩm
+// [admin] Duyệt đánh giá trước khi hiện trên trang sản phẩm
 // - true: đánh giá có chữ / ảnh phải được nhân viên duyệt ở trang admin (Đánh giá) mới hiện (giống Wildberries)
 // - false: hiện ngay, nhân viên vẫn ẩn (từ chối) được sau đó
 // Chỉ chấm sao, không viết gì: luôn được tính ngay vào điểm trung bình (không có nội dung cần duyệt)
 export const reviewModeration: boolean = true
 
-// Số ảnh tối đa trong 1 đánh giá
+// [admin] Số ảnh tối đa trong 1 đánh giá
 export const reviewMaxPhotos: number = 5
 
 // Dung lượng tối đa mỗi ảnh (MB). Trình duyệt tự thu nhỏ ảnh (cạnh dài nhất reviewPhotoMaxSide px) trước khi gửi,
@@ -773,7 +838,7 @@ export const reviewTextMaxLength = {
   comment: 2000 // Комментарий (nhận xét)
 }
 
-// Khách được sửa / xoá đánh giá của mình trong bao nhiêu ngày kể từ lúc viết
+// [admin] Khách được sửa / xoá đánh giá của mình trong bao nhiêu ngày kể từ lúc viết
 export const reviewEditDays: number = 30
 
 // Số đánh giá mỗi lần tải ở trang sản phẩm (slider ngang: kéo / bấm mũi tên tới cuối thì tự tải thêm)
@@ -791,10 +856,18 @@ export const reviewStatusList = [
   { id: "rejected", name: "Bị từ chối", nameRu: "Отклонён", color: "bg-danger" }
 ]
 
-// Email nhắc khách đánh giá sau khi nhận hàng ("Как вам покупка?"), có link chấm sao cho từng sản phẩm
+// [admin] Email nhắc khách đánh giá sau khi nhận hàng ("Как вам покупка?"), có link chấm sao cho từng sản phẩm
 // - reviewRequestDelayHours: gửi sau khi đơn chuyển sang "Đã giao hàng" bao nhiêu giờ (để khách kịp dùng thử)
 // - reviewRequestMaxDays: chỉ gửi cho đơn giao trong bao nhiêu ngày gần đây (đơn cũ hơn thì bỏ qua)
 // Chưa cấu hình SMTP trong .env thì nội dung email được in ra terminal (giống email đơn hàng)
 export const reviewRequestEmail: boolean = true
 export const reviewRequestDelayHours: number = 24
 export const reviewRequestMaxDays: number = 14
+
+// ===== Kết nối API bên thứ 3 (trang admin: Kết nối API) =====
+// Danh sách các API bên ngoài (Т-Банк, ApiShip, email SMTP) và các ô cấu hình nằm ở config/integration.config.ts
+// Khoá API, mật khẩu nhập ở trang admin được mã hoá (AES-256-GCM) trước khi lưu vào database,
+// khoá mã hoá là INTEGRATION_SECRET_KEY trong file .env (xem .env.example)
+
+// Số ngày lưu nhật ký gọi API (mỗi lần server gọi Т-Банк, ApiShip, gửi email), cũ hơn sẽ tự động bị xoá
+export const apiCallLogRetentionDays: number = 30

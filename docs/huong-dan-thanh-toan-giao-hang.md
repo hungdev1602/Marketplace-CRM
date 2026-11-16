@@ -2,6 +2,10 @@
 
 Tính năng này nằm trên nhánh `claude/stoic-hopper-7u2k9g` (tách ra từ `main`, nhánh `main` chưa bị thay đổi).
 
+> **Cập nhật:** khoá Т-Банк, tài khoản ApiShip, email, danh sách hãng vận chuyển và địa chỉ kho giờ nhập được ở trang
+> **Admin → Kết nối API** (không cần sửa `.env` / `variable.config.ts`), có nút kiểm tra kết nối và nhật ký gọi API.
+> Xem [huong-dan-ket-noi-api.md](huong-dan-ket-noi-api.md). Cách cấu hình bằng file `.env` bên dưới vẫn dùng được.
+
 ## Quy trình một đơn hàng
 
 1. Khách bấm **«Оформить заказ»** ở giỏ hàng → trang `/checkout`.

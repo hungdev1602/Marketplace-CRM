@@ -7,11 +7,12 @@ import { buildCategoryTree, getDescendantIds } from "../../helpers/category.help
 import { formatPrice } from "../../helpers/format.helper"
 import { writeLog } from "../../helpers/activity-log.helper"
 import { productExcelGroupList } from "../../helpers/product-excel.helper"
+import { getLowStockThreshold } from "../../helpers/shop-setting.helper"
+import { getReceiptVatMode } from "../../helpers/payment.helper"
 import {
   pathAdmin,
   productAllergenList,
   productDietTagList,
-  productLowStockThreshold,
   productNetWeightUnitList,
   productOriginList,
   productShelfLifeUnitList,
@@ -586,7 +587,8 @@ export const create = async (req: Request, res: Response) => {
   res.render("admin/pages/product-create", {
     pageTitle: "Tạo sản phẩm",
     categoryList: categoryList,
-    options: productOptions
+    options: productOptions,
+    receiptVatNone: getReceiptVatMode() === "none" // cửa hàng không chịu VAT (Kết nối API => Т-Банк)
   })
 }
 
@@ -654,10 +656,10 @@ export const productSortList = [
   { id: "position-asc", name: "Vị trí hiển thị", sort: { position: "asc" } }
 ]
 
-// Lọc theo tình trạng tồn kho
-const productStockFilterList = [
+// Lọc theo tình trạng tồn kho (ngưỡng "Sắp hết hàng" sửa ở Cài đặt cửa hàng => Sản phẩm)
+const getProductStockFilterList = () => [
   { id: "in", name: "Còn hàng" },
-  { id: "low", name: `Sắp hết hàng (từ ${productLowStockThreshold} trở xuống)` },
+  { id: "low", name: `Sắp hết hàng (từ ${getLowStockThreshold()} trở xuống)` },
   { id: "out", name: "Hết hàng" }
 ]
 
@@ -731,7 +733,7 @@ export const buildProductFind = (query: any, allCategory: any[]) => {
     find.stock = { $gt: 0 }
   }
   else if(query.stock === "low"){
-    find.stock = { $gt: 0, $lte: productLowStockThreshold }
+    find.stock = { $gt: 0, $lte: getLowStockThreshold() }
   }
   else if(query.stock === "out"){
     find.stock = { $not: { $gt: 0 } } // gồm cả sản phẩm chưa nhập tồn kho
@@ -801,9 +803,9 @@ export const list = async (req: Request, res: Response) => {
     categoryTree: buildCategoryTree(allCategory),
     options: productOptions,
     sortList: productSortList,
-    stockFilterList: productStockFilterList,
+    stockFilterList: getProductStockFilterList(),
     missingInfoList: productMissingInfoList,
-    lowStockThreshold: productLowStockThreshold,
+    lowStockThreshold: getLowStockThreshold(),
     excelGroupList: productExcelGroupList,
     filter: {
       keyword: req.query.keyword || "",
@@ -863,7 +865,8 @@ export const edit = async (req: Request, res: Response) => {
       pageTitle: "Chỉnh sửa sản phẩm",
       categoryList: categoryList,
       options: productOptions,
-      productDetail: productDetail
+      productDetail: productDetail,
+      receiptVatNone: getReceiptVatMode() === "none" // cửa hàng không chịu VAT (Kết nối API => Т-Банк)
     })
   } catch (error) {
     res.redirect(`/${pathAdmin}/product/list`)

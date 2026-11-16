@@ -1,6 +1,6 @@
 import { formatPrice } from "./format.helper"
 import { isVideoPath } from "./media.helper"
-import { productLowStockThreshold } from "../config/variable.config"
+import { getLowStockThreshold } from "./shop-setting.helper"
 
 // Điều kiện sản phẩm khách được xem: chưa xoá và đang bán
 export const productVisibleFind = {
@@ -43,6 +43,6 @@ export const addProductDisplayInfo = (productList: any[]) => {
       item.discountPercent = Math.round((1 - item.price / item.priceOld) * 100)
       item.savingFormat = formatPrice(item.priceOld - item.price)
     }
-    item.isLowStock = item.stock > 0 && item.stock <= productLowStockThreshold
+    item.isLowStock = item.stock > 0 && item.stock <= getLowStockThreshold()
   }
 }

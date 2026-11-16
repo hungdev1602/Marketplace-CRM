@@ -1,27 +1,116 @@
 import axios, { AxiosError, Method } from "axios"
+import crypto from "crypto"
+import { apishipProviderList } from "../config/variable.config"
 import {
-  apishipBoxList,
-  apishipDefaultItemSize,
-  apishipDefaultItemWeight,
-  apishipPackagingWeight,
-  apishipPickupType,
-  apishipPointInIds,
-  apishipSender
-} from "../config/variable.config"
+  getIntegrationMode,
+  getIntegrationNumber,
+  getIntegrationSetting,
+  getIntegrationString,
+  isIntegrationEnabled
+} from "./integration.helper"
+import { logApiCall } from "./api-call-log.helper"
 
 // ===== ApiShip: kết nối các hãng vận chuyển (СДЭК, Boxberry, Почта России, 5Post, Яндекс Доставка,...) =====
 // Tài liệu API: https://docs.apiship.ru (thử API trực tiếp: http://api.dev.apiship.ru/doc/)
-// Cấu hình trong file .env: APISHIP_TEST, APISHIP_LOGIN, APISHIP_PASSWORD (xem .env.example)
-// - APISHIP_TEST khác "false": máy chủ thử nghiệm của ApiShip (tài khoản test / test), không tạo vận đơn thật
-// - APISHIP_TEST=false: máy chủ thật
-// Lưu ý: đọc process.env trong hàm (không đọc lúc import file), vì file .env được nạp sau khi import (index.ts)
+// Cấu hình ở trang admin: Kết nối API => ApiShip (hoặc file .env: APISHIP_TEST, APISHIP_LOGIN, APISHIP_PASSWORD)
+// - Chế độ "Máy chủ thử nghiệm": máy chủ thử của ApiShip (tài khoản chung test / test), không tạo vận đơn thật
+// - Chế độ "Tài khoản thật": máy chủ thật, login + mật khẩu tài khoản ApiShip của cửa hàng
+// - Tắt kết nối ApiShip ở trang admin: khách không tính được phí giao hàng, không đặt hàng được
+// Lưu ý: đọc cấu hình trong hàm (không đọc lúc import file), vì file .env được nạp sau khi import (index.ts)
 
 export const isApishipTest = (): boolean => {
-  return process.env.APISHIP_TEST !== "false"
+  return getIntegrationMode("apiship") !== "live"
+}
+
+// Login, mật khẩu đang dùng: máy chủ thử nghiệm dùng tài khoản chung test / test
+const getCredentials = (): { login: string, password: string } => {
+  if(isApishipTest()) return { login: "test", password: "test" }
+  return {
+    login: getIntegrationString("apiship", "login"),
+    password: getIntegrationString("apiship", "password")
+  }
 }
 
 export const isApishipConfigured = (): boolean => {
-  return !!(process.env.APISHIP_LOGIN && process.env.APISHIP_PASSWORD)
+  if(!isIntegrationEnabled("apiship")) return false
+  const { login, password } = getCredentials()
+  return !!(login && password)
+}
+
+// Hãng vận chuyển cho khách chọn, [] là tất cả hãng đã kết nối trong tài khoản ApiShip (trang admin => variable.config.ts)
+export const getApishipProviderKeys = (): string[] => {
+  const value = getIntegrationSetting("apiship", "providerKeys")
+  return Array.isArray(value) ? value : []
+}
+
+// Hãng nhận hàng mát / đông lạnh, [] là không giới hạn
+export const getApishipColdProviderKeys = (): string[] => {
+  const value = getIntegrationSetting("apiship", "coldProviderKeys")
+  return Array.isArray(value) ? value : []
+}
+
+// Địa chỉ kho gửi hàng + người liên hệ (trang admin => apishipSender trong variable.config.ts)
+export const getApishipSender = () => {
+  const get = (field: string) => getIntegrationString("apiship", field)
+  return {
+    countryCode: "RU",
+    postIndex: get("senderPostIndex"),
+    region: get("senderRegion"),
+    city: get("senderCity"),
+    street: get("senderStreet"),
+    house: get("senderHouse"),
+    block: get("senderBlock"),
+    office: get("senderOffice"),
+    companyName: get("senderCompanyName"),
+    contactName: get("senderContactName"),
+    phone: get("senderPhone"),
+    email: get("senderEmail")
+  }
+}
+
+// ===== Cách gửi hàng, đóng gói, vận đơn (trang admin: Kết nối API => ApiShip, mặc định trong variable.config.ts) =====
+// Cách giao hàng cho hãng (pickupType): 1 - hãng tới kho lấy hàng, 2 - cửa hàng tự mang tới điểm của hãng
+export const getApishipPickupType = (): number => {
+  return getIntegrationString("apiship", "pickupType") === "2" ? 2 : 1
+}
+
+// pickupType = 2: id điểm cửa hàng tự mang hàng tới, theo từng hãng { cdek: 12345 }
+export const getApishipPointInIds = (): { [providerKey: string]: number } => {
+  const value = getIntegrationSetting("apiship", "pointInIds")
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {}
+}
+
+// Khối lượng (gram), kích thước (cm) mặc định của 1 sản phẩm chưa nhập "Vận chuyển" ở trang sửa sản phẩm
+const getDefaultItemWeight = (): number => Math.max(1, getIntegrationNumber("apiship", "defaultItemWeight"))
+const getDefaultItemSize = () => ({
+  length: Math.max(1, getIntegrationNumber("apiship", "defaultItemLength")),
+  width: Math.max(1, getIntegrationNumber("apiship", "defaultItemWidth")),
+  height: Math.max(1, getIntegrationNumber("apiship", "defaultItemHeight"))
+})
+
+// Khối lượng bao bì cộng thêm mỗi đơn (gram)
+const getPackagingWeight = (): number => Math.max(0, getIntegrationNumber("apiship", "packagingWeight"))
+
+// Các cỡ thùng đóng hàng (cm)
+const getBoxList = (): { length: number, width: number, height: number }[] => {
+  const value = getIntegrationSetting("apiship", "boxList")
+  return Array.isArray(value) ? value : []
+}
+
+// Tự tạo vận đơn ngay khi khách thanh toán
+export const isApishipAutoCreateShipment = (): boolean => {
+  return getIntegrationSetting("apiship", "autoCreateShipment") === true
+}
+
+// Số phút giữa 2 lần tự cập nhật trạng thái giao hàng (ít nhất 5 phút)
+export const getApishipStatusSyncMinutes = (): number => {
+  return Math.max(5, getIntegrationNumber("apiship", "statusSyncMinutes"))
+}
+
+// Kho gửi hàng còn thiếu thông tin bắt buộc để tạo vận đơn
+export const isApishipSenderMissing = (): boolean => {
+  const sender = getApishipSender()
+  return !sender.city || !sender.street || !sender.phone || !sender.contactName
 }
 
 const getApiUrl = (): string => {
@@ -31,9 +120,11 @@ const getApiUrl = (): string => {
 // Lỗi ApiShip trả về, message là câu báo lỗi đã ghép (hiện cho nhân viên ở trang admin)
 export class ApishipError extends Error {
   status: number
-  constructor(message: string, status: number = 0) {
+  logged: boolean // đã ghi vào nhật ký gọi API (lỗi đăng nhập), không ghi lại lần nữa
+  constructor(message: string, status: number = 0, logged: boolean = false) {
     super(message)
     this.status = status
+    this.logged = logged
   }
 }
 
@@ -65,18 +156,21 @@ const getErrorMessage = (error: any): string => {
 let tokenCache: { token: string, expireAt: number, key: string } | null = null
 
 const getToken = async (forceNew: boolean = false): Promise<string> => {
-  const login = `${process.env.APISHIP_LOGIN || ""}`.trim()
-  const password = `${process.env.APISHIP_PASSWORD || ""}`.trim()
+  if(!isIntegrationEnabled("apiship")){
+    throw new ApishipError("Kết nối ApiShip đang tắt (Admin => Kết nối API)", 0, true)
+  }
+  const { login, password } = getCredentials()
   if(!login || !password){
-    throw new ApishipError("Chưa điền APISHIP_LOGIN, APISHIP_PASSWORD trong file .env")
+    throw new ApishipError("Chưa nhập login, mật khẩu ApiShip (Admin => Kết nối API => ApiShip)", 0, true)
   }
 
-  // Đổi tài khoản / đổi máy chủ thử nghiệm - thật thì đăng nhập lại
-  const key = `${getApiUrl()}|${login}`
+  // Đổi tài khoản / mật khẩu / máy chủ thử nghiệm - thật (ở trang admin) thì đăng nhập lại
+  const key = `${getApiUrl()}|${login}|${crypto.createHash("sha256").update(password).digest("hex")}`
   if(!forceNew && tokenCache && tokenCache.key === key && tokenCache.expireAt > Date.now()){
     return tokenCache.token
   }
 
+  const startAt = Date.now()
   try {
     const response = await axios.post(`${getApiUrl()}/login`, { login, password }, { timeout: 20000 })
     const token = response.data?.accessToken
@@ -89,15 +183,46 @@ const getToken = async (forceNew: boolean = false): Promise<string> => {
     const expireAt = Number.isFinite(expires) ? expires - 10 * 60 * 1000 : Date.now() + 12 * 60 * 60 * 1000
 
     tokenCache = { token, expireAt, key }
+    logApiCall({ provider: "apiship", action: "POST /login", ok: true, statusCode: response.status, durationMs: Date.now() - startAt })
     return token
   } catch (error: any) {
     tokenCache = null
-    throw new ApishipError(`Đăng nhập ApiShip thất bại: ${getErrorMessage(error)}`, error?.response?.status || 0)
+    const message = `Đăng nhập ApiShip thất bại: ${getErrorMessage(error)}`
+    logApiCall({ provider: "apiship", action: "POST /login", ok: false, statusCode: error?.response?.status || 0, durationMs: Date.now() - startAt, message })
+    throw new ApishipError(message, error?.response?.status || 0, true)
   }
 }
 
+// Tên thao tác ghi vào nhật ký gọi API: bỏ id trong đường dẫn để dễ lọc, ví dụ "/orders/123/status" => "/orders/{id}/status"
+const getLogAction = (method: Method, path: string): string => {
+  return `${`${method}`.toUpperCase()} ${path.replace(/\/\d+(?=\/|$)/g, "/{id}")}`
+}
+
 // Gọi 1 API của ApiShip, token hết hạn (401) thì đăng nhập lại và gọi lại 1 lần
+// Mỗi lần gọi được ghi vào nhật ký gọi API (trang admin: Kết nối API => Nhật ký gọi API)
 const request = async (method: Method, path: string, options: { params?: any, data?: any, timeout?: number } = {}): Promise<any> => {
+  const startAt = Date.now()
+  try {
+    const result = await requestWithoutLog(method, path, options)
+    logApiCall({ provider: "apiship", action: getLogAction(method, path), ok: true, statusCode: 200, durationMs: Date.now() - startAt })
+    return result
+  } catch (error: any) {
+    // Lỗi đăng nhập đã được ghi ở getToken
+    if(!error?.logged){
+      logApiCall({
+        provider: "apiship",
+        action: getLogAction(method, path),
+        ok: false,
+        statusCode: error?.status || 0,
+        durationMs: Date.now() - startAt,
+        message: error?.message
+      })
+    }
+    throw error
+  }
+}
+
+const requestWithoutLog = async (method: Method, path: string, options: { params?: any, data?: any, timeout?: number } = {}): Promise<any> => {
   const send = async (forceNewToken: boolean) => {
     const token = await getToken(forceNewToken)
     return axios.request({
@@ -126,30 +251,17 @@ const request = async (method: Method, path: string, options: { params?: any, da
       throw error
     }
   } catch (error: any) {
+    if(error instanceof ApishipError) throw error
     throw new ApishipError(getErrorMessage(error), error?.response?.status || error?.status || 0)
   }
 }
 
 // ===== Tên hãng vận chuyển =====
 // Lấy danh sách hãng từ ApiShip (GET /lists/providers), lưu trong bộ nhớ 1 ngày
-// Lấy không được thì dùng tên có sẵn bên dưới
-const defaultProviderNames: { [key: string]: string } = {
-  cdek: "СДЭК",
-  boxberry: "Boxberry",
-  rupost: "Почта России",
-  dpd: "DPD",
-  x5: "5Post",
-  yataxi: "Яндекс Доставка",
-  dalli: "Dalli Service",
-  pickpoint: "PickPoint",
-  pecom: "ПЭК",
-  dellin: "Деловые Линии",
-  magnit: "Магнит Пост",
-  ozon: "Ozon Доставка",
-  wb: "WB Track",
-  lpost: "Л-Пост",
-  dostavista: "Dostavista"
-}
+// Lấy không được thì dùng tên có sẵn trong apishipProviderList (config/variable.config.ts)
+const defaultProviderNames: { [key: string]: string } = Object.fromEntries(
+  apishipProviderList.map(item => [item.id, item.name])
+)
 let providerCache: { names: { [key: string]: string }, expireAt: number } | null = null
 
 export const getProviderNames = async (): Promise<{ [key: string]: string }> => {
@@ -186,8 +298,8 @@ export const getOrderProviderName = (delivery: any): string => {
 
 // ===== Kiện hàng: khối lượng, kích thước =====
 // items: [{ weight (gram / 1 sản phẩm), length, width, height (cm), quantity }]
-// - Khối lượng: tổng khối lượng sản phẩm + bao bì (apishipPackagingWeight)
-// - Kích thước: thùng nhỏ nhất trong apishipBoxList vừa với tổng thể tích (cộng 15% khoảng trống)
+// - Khối lượng: tổng khối lượng sản phẩm + bao bì (Khối lượng bao bì ở trang admin)
+// - Kích thước: thùng nhỏ nhất trong các cỡ thùng (trang admin) vừa với tổng thể tích (cộng 15% khoảng trống)
 //   và vừa với sản phẩm to nhất; không thùng nào vừa thì tính theo khối lập phương
 export type ParcelItem = { weight?: number, length?: number, width?: number, height?: number, quantity: number }
 
@@ -200,7 +312,7 @@ export const getItemWeight = (product: any): number => {
     if(product.netWeightUnit === "g" || product.netWeightUnit === "ml") return Math.round(netWeight * 1.1)
     if(product.netWeightUnit === "kg" || product.netWeightUnit === "l") return Math.round(netWeight * 1000 * 1.1)
   }
-  return apishipDefaultItemWeight
+  return getDefaultItemWeight()
 }
 
 export const getItemSize = (product: any) => {
@@ -211,11 +323,13 @@ export const getItemSize = (product: any) => {
       height: Number(product.packageHeight)
     }
   }
-  return { ...apishipDefaultItemSize }
+  return getDefaultItemSize()
 }
 
 export const buildParcel = (items: ParcelItem[]) => {
-  let weight = apishipPackagingWeight
+  const apishipDefaultItemSize = getDefaultItemSize()
+  const apishipDefaultItemWeight = getDefaultItemWeight()
+  let weight = getPackagingWeight()
   let volume = 0
   let maxSides = [0, 0, 0]
 
@@ -233,7 +347,7 @@ export const buildParcel = (items: ParcelItem[]) => {
   }
 
   const needVolume = volume * 1.15
-  const box = apishipBoxList
+  const box = getBoxList()
     .map(box => ({ ...box, sides: [box.length, box.width, box.height].sort((a, b) => b - a) }))
     .sort((a, b) => a.length * a.width * a.height - b.length * b.width * b.height)
     .find(box => box.length * box.width * box.height >= needVolume && box.sides.every((side, index) => side >= maxSides[index]))
@@ -272,6 +386,7 @@ export const calculateDelivery = async (params: {
   assessedCost: number,
   providerKeys?: string[]
 }): Promise<CalculatorTariff[]> => {
+  const apishipSender = getApishipSender()
   const body: any = {
     from: {
       countryCode: apishipSender.countryCode || "RU",
@@ -288,7 +403,7 @@ export const calculateDelivery = async (params: {
       addressString: params.to.addressString || undefined
     },
     places: [params.parcel],
-    pickupTypes: [apishipPickupType],
+    pickupTypes: [getApishipPickupType()],
     deliveryTypes: [params.deliveryType],
     assessedCost: params.assessedCost,
     codCost: 0, // khách đã trả trước, không thu tiền khi giao
@@ -424,7 +539,7 @@ export const createShipment = async (order: any, pickupDate: string): Promise<{ 
     clientNumber: order.code,
     description: `Заказ ${order.code}: продукты питания`,
     providerKey: delivery.providerKey,
-    pickupType: apishipPickupType,
+    pickupType: getApishipPickupType(),
     deliveryType: isPoint ? 2 : 1,
     tariffId: delivery.tariffId,
     pickupDate: pickupDate,
@@ -436,8 +551,9 @@ export const createShipment = async (order: any, pickupDate: string): Promise<{ 
   if(isPoint){
     orderPart.pointOutId = delivery.point.id
   }
-  if(apishipPickupType === 2 && apishipPointInIds[delivery.providerKey]){
-    orderPart.pointInId = apishipPointInIds[delivery.providerKey]
+  const pointInIds = getApishipPointInIds()
+  if(getApishipPickupType() === 2 && pointInIds[delivery.providerKey]){
+    orderPart.pointInId = pointInIds[delivery.providerKey]
   }
 
   const recipient: any = {
@@ -457,6 +573,7 @@ export const createShipment = async (order: any, pickupDate: string): Promise<{ 
     recipient.addressString = delivery.address || undefined
   }
 
+  const apishipSender = getApishipSender()
   const sender: any = {
     countryCode: apishipSender.countryCode || "RU",
     postIndex: apishipSender.postIndex || undefined,
@@ -534,4 +651,85 @@ export const getWaybills = async (apishipOrderIds: number[]): Promise<any> => {
 // Huỷ vận đơn (chỉ huỷ được khi hãng vận chuyển chưa nhận hàng): GET /orders/{orderId}/cancel
 export const cancelShipment = async (apishipOrderId: number): Promise<any> => {
   return await request("GET", `/orders/${apishipOrderId}/cancel`, { timeout: 30000 })
+}
+
+// ===== Kiểm tra kết nối (nút "Kiểm tra kết nối" ở trang admin) =====
+// 1. Đăng nhập lấy token
+// 2. Tính thử phí giao 1 kiện 1 kg trong thành phố của kho (giao tận cửa + tới điểm nhận hàng):
+//    hãng nào có giá = hãng đó đã kết nối và dùng được
+export const testApishipConnection = async (): Promise<{ ok: boolean, message: string, details: string[] }> => {
+  const details: string[] = []
+  if(!isIntegrationEnabled("apiship")){
+    return { ok: false, message: "Kết nối ApiShip đang tắt", details }
+  }
+  if(!isApishipConfigured()){
+    return { ok: false, message: "Chưa nhập login, mật khẩu ApiShip", details }
+  }
+
+  details.push(isApishipTest() ? "Máy chủ thử nghiệm (tài khoản test / test)" : `Tài khoản thật: ${getCredentials().login}`)
+
+  try {
+    await getToken(true)
+    details.push("Đăng nhập: thành công")
+  } catch (error) {
+    return { ok: false, message: (error as Error).message, details }
+  }
+
+  const sender = getApishipSender()
+  if(isApishipSenderMissing()){
+    details.push("⚠ Kho gửi hàng còn thiếu thông tin (cần ít nhất thành phố, đường, người liên hệ, số điện thoại) — chưa tạo được vận đơn")
+  }
+
+  const city = sender.city || "Москва"
+  const selectedKeys = getApishipProviderKeys()
+  const names = await getProviderNames()
+
+  try {
+    const data = await request("POST", "/calculator", {
+      data: {
+        from: { countryCode: "RU", city: city, region: sender.region || undefined, index: sender.postIndex || undefined },
+        to: { countryCode: "RU", city: city },
+        places: [{ weight: 1000, length: 20, width: 15, height: 10 }],
+        pickupTypes: [getApishipPickupType()],
+        deliveryTypes: [1, 2],
+        assessedCost: 1000,
+        codCost: 0,
+        includeFees: true,
+        timeout: 15000,
+        ...(selectedKeys.length > 0 ? { providerKeys: selectedKeys } : {})
+      },
+      timeout: 40000
+    })
+
+    // Giá thấp nhất của từng hãng
+    const minCost: { [providerKey: string]: number } = {}
+    for (const group of [...(data?.deliveryToDoor || []), ...(data?.deliveryToPoint || [])]) {
+      for (const tariff of group.tariffs || []) {
+        const cost = Number(tariff.deliveryCost)
+        if(!group.providerKey || !Number.isFinite(cost)) continue
+        minCost[group.providerKey] = Math.min(minCost[group.providerKey] ?? Infinity, cost)
+      }
+    }
+
+    details.push(`Tính thử phí giao 1 kg trong thành phố ${city}:`)
+    const keys = selectedKeys.length > 0 ? selectedKeys : Object.keys(minCost)
+    if(keys.length === 0){
+      details.push("— Không hãng nào có giá. Tài khoản thật: kiểm tra đã kết nối hãng vận chuyển trong tài khoản ApiShip chưa")
+    }
+    for (const key of keys) {
+      const name = getProviderName(names, key)
+      details.push(minCost[key] !== undefined
+        ? `✓ ${name}: có giá (từ ${Math.round(minCost[key])} ₽)`
+        : `✗ ${name}: không có giá — hãng chưa được kết nối trong tài khoản ApiShip, hoặc không giao trong thành phố này`)
+    }
+
+    const pricedCount = keys.filter(key => minCost[key] !== undefined).length
+    if(pricedCount === 0){
+      return { ok: false, message: "Đăng nhập được nhưng không hãng nào trả về giá giao hàng", details }
+    }
+    return { ok: true, message: `Kết nối ApiShip thành công: ${pricedCount}/${keys.length} hãng có giá`, details }
+  } catch (error) {
+    details.push(`Tính thử phí giao hàng: ${(error as Error).message}`)
+    return { ok: false, message: "Đăng nhập được nhưng tính phí giao hàng bị lỗi", details }
+  }
 }

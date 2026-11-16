@@ -4,15 +4,13 @@ import { Review } from "../../models/review.model"
 import { ReviewVote } from "../../models/review-vote.model"
 import { Product } from "../../models/product.model"
 import {
-  reviewEditDays,
-  reviewMaxPhotos,
-  reviewModeration,
   reviewPhotoMaxSide,
   reviewPhotoMaxSize,
   reviewStatusList,
   reviewTextMaxLength
 } from "../../config/variable.config"
 import { addProductDisplayInfo } from "../../helpers/client-product.helper"
+import { getReviewSettings } from "../../helpers/shop-setting.helper"
 import { isValidProductId } from "../../helpers/client-token.helper"
 import { findCustomerOrder, getOrderUrl } from "../../helpers/order.helper"
 import {
@@ -114,6 +112,7 @@ export const write = async (req: Request, res: Response) => {
 
     const presetRating = Number(req.query.rating)
     const statusInfo = review ? reviewStatusList.find(status => status.id === review.status) : null
+    const reviewSettings = getReviewSettings() // Cài đặt cửa hàng => Đánh giá
 
     res.render("client/pages/review-write", {
       pageTitle: `${res.locals.t(review ? "reviewEditTitle" : "reviewWriteTitle")} — SFoodie`,
@@ -133,11 +132,11 @@ export const write = async (req: Request, res: Response) => {
       formAction: `/review/write/${order.code}/${item.productId}`,
       statusName: statusInfo ? res.locals.tName(statusInfo) : "",
       editUntilText: review
-        ? formatReviewDate(new Date(new Date(review.createdAt).getTime() + reviewEditDays * 24 * 60 * 60 * 1000), res.locals.lang)
+        ? formatReviewDate(new Date(new Date(review.createdAt).getTime() + reviewSettings.editDays * 24 * 60 * 60 * 1000), res.locals.lang)
         : "",
-      moderation: reviewModeration,
+      moderation: reviewSettings.moderation,
       limits: {
-        maxPhotos: reviewMaxPhotos,
+        maxPhotos: reviewSettings.maxPhotos,
         photoMaxSide: reviewPhotoMaxSide,
         photoMaxSize: reviewPhotoMaxSize,
         text: reviewTextMaxLength
@@ -178,8 +177,9 @@ export const writePost = async (req: Request, res: Response) => {
     } catch (error) {}
     const keepPhotos: string[] = (review?.photos || []).filter((photo: string) => keepRequest.includes(photo))
 
-    if(keepPhotos.length + files.length > reviewMaxPhotos){
-      res.json({ code: "error", message: res.locals.t("reviewPhotoTooMany").replace("{count}", `${reviewMaxPhotos}`) })
+    const { maxPhotos, moderation } = getReviewSettings()
+    if(keepPhotos.length + files.length > maxPhotos){
+      res.json({ code: "error", message: res.locals.t("reviewPhotoTooMany").replace("{count}", `${maxPhotos}`) })
       return
     }
     if(files.some(file => !getReviewPhotoType(file.buffer))){
@@ -212,7 +212,7 @@ export const writePost = async (req: Request, res: Response) => {
       || cons !== (review.cons || "")
       || comment !== (review.comment || "")
       || photos.join("|") !== (review.photos || []).join("|")
-    const status = reviewModeration && hasContent && contentChanged ? "pending" : "published"
+    const status = moderation && hasContent && contentChanged ? "pending" : "published"
 
     const data: any = {
       rating: req.body.rating,

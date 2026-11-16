@@ -14,6 +14,8 @@ import { scheduleDeleteOldWishlists } from './helpers/wishlist.helper';
 import { scheduleDeleteOldSearchQueries } from './helpers/client-search.helper';
 import { scheduleOrderJobs } from './helpers/order.helper';
 import { scheduleReviewJobs } from './helpers/review.helper';
+import { scheduleIntegrationReload } from './helpers/integration.helper';
+import { scheduleDeleteOldApiCallLogs } from './helpers/api-call-log.helper';
 
 // Load biến môi trường env
 dotenv.config()
@@ -27,7 +29,11 @@ const port: number = 3000
 // - bật tự động xoá giỏ hàng, danh sách yêu thích lâu không dùng
 // - bật tự động xoá từ khoá tìm kiếm lâu không ai tìm
 // - bật tự động kiểm tra thanh toán (huỷ đơn quá hạn thanh toán) và cập nhật trạng thái giao hàng từ ApiShip
-connectDB().then(() => {
+// Trước hết nạp cấu hình kết nối API bên thứ 3 (Т-Банк, ApiShip, email) đã nhập ở trang admin,
+// để các việc chạy định kỳ bên dưới dùng đúng khoá API
+connectDB().then(async () => {
+  await scheduleIntegrationReload()
+  scheduleDeleteOldApiCallLogs() // xoá nhật ký gọi API cũ
   scheduleDeleteOldLogs()
   stopInterruptedProductImports()
   deleteOldProductImports()

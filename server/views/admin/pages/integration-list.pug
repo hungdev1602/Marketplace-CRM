@@ -1,0 +1,118 @@
+extends ../layouts/default.pug
+
+//- Kết nối API bên thứ 3 (controller/admin/integration.controller.ts)
+//- - Công tắc [integration-toggle]: bật / tắt kết nối (main.js gửi data-api)
+//- - Nút [integration-test]: kiểm tra kết nối, hiện kết quả
+block main
+  - const canEdit = permissions.includes("integration-edit")
+
+  .row.mb-3.align-items-center
+    .col
+      h4.mb-1 #{pageTitle}
+      p.text-muted.mb-0
+        | Khoá API của các dịch vụ bên ngoài mà website dùng: thanh toán, vận chuyển, email.
+        |  Nhập ở đây là có hiệu lực ngay, không cần sửa file .env hay khởi động lại server.
+    .col-auto
+      a.btn.btn-outline-secondary(href=`/${pathAdmin}/integration/log`)
+        i.fa-solid.fa-list-ul.me-1
+        | Nhật ký gọi API
+
+  if !canEncrypt
+    .alert.alert-danger
+      i.fa-solid.fa-triangle-exclamation.me-1
+      | Chưa có INTEGRATION_SECRET_KEY (hoặc JWT_SECRET) trong file .env nên không lưu được khoá API. Xem hướng dẫn trong file .env.example.
+  else if !hasDedicatedSecretKey
+    .alert.alert-warning.py-2
+      i.fa-solid.fa-key.me-1
+      | Khoá API đang được mã hoá bằng JWT_SECRET. Nên thêm INTEGRATION_SECRET_KEY riêng vào file .env (xem .env.example)
+      |  — nếu sau này đổi JWT_SECRET thì các khoá đã lưu ở đây phải nhập lại.
+
+  each category in categories
+    h5.mt-4.mb-3
+      i(class=`${category.icon} me-2 text-muted`)
+      | #{category.name}
+    .row
+      each view in category.views
+        - const definition = view.definition
+        - const stat = view.stat
+        .col-lg-6.col-xxl-4.mb-3
+          .card.h-100.integration-card
+            .card-body
+              .d-flex.align-items-start.gap-3
+                .integration-icon
+                  i(class=definition.icon)
+                .flex-grow-1
+                  h5.mb-1
+                    | #{definition.name}
+                  span(class=`badge ${view.status.color}`) #{view.status.name}
+                  if view.modeInfo
+                    span.badge.bg-light.text-dark.border.ms-1 #{view.modeInfo.name}
+                  if view.isTestMode && view.modeInfo && !view.modeInfo.isTest
+                    span.badge.bg-light.text-dark.border.ms-1 Terminal DEMO
+              p.text-muted.small.mt-2.mb-2 #{definition.description}
+
+              if view.hasBrokenSecrets
+                .alert.alert-danger.py-2.small.mb-2
+                  | Không giải mã được khoá đã lưu (INTEGRATION_SECRET_KEY / JWT_SECRET đã bị đổi). Vào Cấu hình để nhập lại.
+              if view.missingFields.length > 0 && view.enabled
+                .alert.alert-warning.py-2.small.mb-2
+                  | Còn thiếu: #{view.missingFields.join(", ")}
+
+              ul.list-unstyled.small.mb-0.integration-meta
+                li
+                  span.text-muted Cấu hình lấy từ:
+                  |  #{view.savedInAdmin ? "trang admin" : "file .env / mặc định"}
+                  if view.updatedAtFormat
+                    span.text-muted  · sửa lúc #{view.updatedAtFormat}
+                li
+                  span.text-muted 24 giờ qua:
+                  |  #{stat.total} lần gọi
+                  if stat.errors > 0
+                    span.text-danger.fw-medium  · #{stat.errors} lỗi
+                  if stat.total > 0
+                    span.text-muted  · trung bình #{stat.avgMs} ms
+                if stat.lastError
+                  li.text-truncate(title=stat.lastError.message)
+                    span.text-muted Lỗi gần nhất (#{stat.lastError.atFormat}):
+                    span.text-danger  #{stat.lastError.message}
+                li
+                  span.text-muted Kiểm tra gần nhất:
+                  if view.lastTest
+                    if view.lastTest.ok
+                      span.text-success
+                        i.fa-solid.fa-circle-check.mx-1
+                        | #{view.lastTest.message}
+                    else
+                      span.text-danger
+                        i.fa-solid.fa-circle-xmark.mx-1
+                        | #{view.lastTest.message}
+                    span.text-muted  (#{view.lastTestAtFormat})
+                  else
+                    |  chưa kiểm tra
+
+            .card-footer.bg-transparent.d-flex.align-items-center.gap-2.flex-wrap
+              if canEdit
+                .form-check.form-switch.mb-0.me-auto
+                  input.form-check-input(
+                    type="checkbox"
+                    role="switch"
+                    id=`toggle-${definition.key}`
+                    checked=view.enabled
+                    integration-toggle
+                    data-api=`/${pathAdmin}/integration/toggle/${definition.key}`
+                    data-name=definition.name
+                    )
+                  label.form-check-label(for=`toggle-${definition.key}`) #{view.enabled ? "Đang bật" : "Đang tắt"}
+                .d-flex.gap-2
+                  button.btn.btn-sm.btn-outline-primary(
+                    type="button"
+                    integration-test
+                    data-api=`/${pathAdmin}/integration/test/${definition.key}`
+                    )
+                    i.fa-solid.fa-plug-circle-check.me-1
+                    | Kiểm tra
+                  a.btn.btn-sm.btn-primary(href=`/${pathAdmin}/integration/edit/${definition.key}`)
+                    i.fa-solid.fa-gear.me-1
+                    | Cấu hình
+              else
+                span.text-muted.small Bạn chỉ có quyền xem.

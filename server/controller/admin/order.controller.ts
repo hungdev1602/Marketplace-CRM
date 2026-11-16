@@ -2,7 +2,6 @@ import { Request, Response } from "express"
 import mongoose from "mongoose"
 import { Order } from "../../models/order.model"
 import {
-  apishipSender,
   orderDeliveryTypeList,
   orderPaymentStatusList,
   orderStatusList,
@@ -12,7 +11,14 @@ import {
 import { formatPrice } from "../../helpers/format.helper"
 import { formatShopDateTime } from "../../helpers/coupon.helper"
 import { writeLog } from "../../helpers/activity-log.helper"
-import { getNextPickupDate, getOrderProviderName, getWaybills, isApishipConfigured, isApishipTest } from "../../helpers/apiship.helper"
+import {
+  getNextPickupDate,
+  getOrderProviderName,
+  getWaybills,
+  isApishipConfigured,
+  isApishipSenderMissing,
+  isApishipTest
+} from "../../helpers/apiship.helper"
 import { getPaymentProvider } from "../../helpers/payment.helper"
 import {
   buildOrderKeywordFind,
@@ -155,7 +161,7 @@ export const detail = async (req: Request, res: Response) => {
     canCreateShipment: canCreateShipment(order),
     apishipConfigured: isApishipConfigured(),
     apishipTest: isApishipTest(),
-    senderMissing: !apishipSender.city || !apishipSender.street || !apishipSender.phone || !apishipSender.contactName,
+    senderMissing: isApishipSenderMissing(),
     defaultPickupDate: getNextPickupDate(),
     paymentProvider: getPaymentProvider(),
     paidAtFormat: formatShopDateTime(order.payment?.paidAt),
@@ -176,7 +182,7 @@ export const shipmentPost = async (req: Request, res: Response) => {
     }
 
     if(!isApishipConfigured()){
-      sendError(res, "Chưa điền APISHIP_LOGIN, APISHIP_PASSWORD trong file .env")
+      sendError(res, "Chưa cấu hình ApiShip hoặc kết nối ApiShip đang tắt (Admin => Kết nối API => ApiShip)")
       return
     }
 
