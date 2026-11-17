@@ -38,7 +38,11 @@ export const jsonViewHiddenFieldsClient: string[] = [
 export const jsonViewHiddenFieldsClientByModel: { [modelName: string]: string[] } = {
   Product: ["sold", "view", "vat", "position"],
   CategoryProduct: ["view", "position"],
-  Review: ["userId", "orderId", "orderCode"],
+  // authorName: tên thật của khách (đánh giá ẩn danh vẫn lưu tên), trang khách dùng tên đã xử lý ẩn danh (view.authorName)
+  // by: nhân viên trả lời đánh giá
+  Review: ["userId", "orderId", "orderCode", "authorName", "by"],
+  Blog: ["view"],
+  CategoryBlog: ["view"],
   Order: [
     "by", // tên nhân viên trong lịch sử trạng thái, người trả lời
     "stockReleased",
