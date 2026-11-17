@@ -1,6 +1,6 @@
 "use client"
 
-import { adminUrl } from "@/lib/admin"
+import { adminApiUrl } from "@/lib/admin"
 import { notifyError } from "./notify"
 
 // ===== Gọi API admin của server Express từ trình duyệt =====
@@ -9,8 +9,7 @@ import { notifyError } from "./notify"
 
 export type AdminResult = { code: string, message?: string, [key: string]: any }
 
-// Đường dẫn gọi API admin qua Next.js
-export const adminApiUrl = (path: string): string => `/api${adminUrl(path)}`
+export { adminApiUrl }
 
 // body: FormData (form có nhiều ô), object (gửi dạng JSON) hoặc để trống
 export const adminRequest = async (path: string, method: string = "GET", body?: FormData | object): Promise<AdminResult> => {
