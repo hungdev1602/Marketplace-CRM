@@ -21,6 +21,14 @@ const eslintConfig = defineConfig([
       "react-hooks/preserve-manual-memoization": "off",
     },
   },
+  {
+    // Trang admin dùng thẻ <a> thường (không dùng <Link>): mỗi lần chuyển trang là tải lại toàn bộ trang,
+    // giống giao diện admin cũ, để form và JS của Bootstrap luôn ở trạng thái mới
+    files: ["src/app/(admin)/**", "src/components/admin/**"],
+    rules: {
+      "@next/next/no-html-link-for-pages": "off",
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
