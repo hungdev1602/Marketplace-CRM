@@ -16,6 +16,7 @@ import { scheduleOrderJobs } from './helpers/order.helper';
 import { scheduleReviewJobs } from './helpers/review.helper';
 import { scheduleIntegrationReload } from './helpers/integration.helper';
 import { scheduleDeleteOldApiCallLogs } from './helpers/api-call-log.helper';
+import { jsonView } from './middlewares/json-view.middleware';
 
 // Load biến môi trường env
 dotenv.config()
@@ -44,6 +45,12 @@ connectDB().then(async () => {
   scheduleReviewJobs() // email nhắc khách đánh giá sản phẩm sau khi nhận hàng
 })
 
+// Giao diện Next.js (thư mục frontend) đứng trước server này và chuyển tiếp request của khách sang,
+// nên địa chỉ IP của khách (req.ip, ghi trong nhật ký hoạt động) nằm ở header X-Forwarded-For.
+// Chỉ tin header này khi request đến từ chính máy này (loopback), người ngoài không giả mạo IP được.
+// Next.js chạy ở máy khác thì đặt TRUST_PROXY trong file .env là địa chỉ IP của máy đó
+app.set("trust proxy", process.env.TRUST_PROXY || "loopback")
+
 // Cho phép gửi data lên dạng json
 app.use(express.json())
 
@@ -59,6 +66,10 @@ app.use(express.static(path.join(__dirname, "public"), {
     res.setHeader("Cache-Control", "no-cache")
   }
 }))
+
+// Chế độ JSON cho giao diện Next.js (thư mục frontend): request có header "X-Response-Format: json"
+// thì res.render / res.redirect trả về JSON thay cho trang PUG. Không có header thì chạy y như cũ
+app.use(jsonView)
 
 // Middleware tắt cache (áp dụng cho tất cả GET request, trừ file tĩnh ở trên)
 app.use((req, res, next) => {
