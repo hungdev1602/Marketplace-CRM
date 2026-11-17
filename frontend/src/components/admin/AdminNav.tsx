@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { adminUrl } from "@/lib/admin"
 import { cx } from "@/lib/format"
-import { adminApiUrl } from "./api"
 import { useAdmin } from "./AdminProvider"
 
 // ===== Thanh trên cùng và menu bên trái của trang admin =====
@@ -151,7 +150,7 @@ export function Topbar() {
                 </div>
                 <div className="dropdown-divider mt-0 mb-0"></div>
                 {/* Đăng xuất: server xoá cookie đăng nhập rồi chuyển về trang đăng nhập */}
-                <a className="dropdown-item text-danger" href={adminApiUrl("/account/logout")}>
+                <a className="dropdown-item text-danger" href={adminUrl("/account/logout")}>
                   <i className="las la-power-off fs-18 me-1 align-text-bottom"></i>
                   Logout
                 </a>
