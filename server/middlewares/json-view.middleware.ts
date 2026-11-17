@@ -134,14 +134,29 @@ export const jsonView = (req: Request, res: Response, next: NextFunction) => {
   res.locals.isJsonView = true
 
   // res.render(view, data) => JSON
-  res.render = ((view: string, data?: any) => {
+  const renderPug = res.render.bind(res)
+  res.render = ((view: string, data?: any, callback?: any) => {
+    // res.render có hàm callback: chỉ tạo HTML chứ không gửi cho trình duyệt (nội dung email đặt lại mật khẩu,...)
+    // => vẫn dựng file PUG như cũ
+    if(typeof data === "function" || typeof callback === "function"){
+      renderPug(view, data, callback)
+      return
+    }
+
     const viewData: any = {}
 
     // Thứ tự ưu tiên giống Express: app.locals < res.locals < data truyền vào res.render
-    for (const source of [req.app.locals, res.locals, typeof data === "object" && data ? data : {}]) {
+    // Các biến dùng chung không cần gửi (jsonViewSkipLocals) chỉ bỏ ở app.locals / res.locals,
+    // dữ liệu controller truyền thẳng vào res.render thì luôn gửi (ví dụ trang blog truyền allCategory của blog)
+    for (const source of [req.app.locals, res.locals]) {
       for (const key of Object.keys(source)) {
         if(key === "settings" || key === "isJsonView" || jsonViewSkipLocals.includes(key)) continue
         viewData[key] = source[key]
+      }
+    }
+    if(typeof data === "object" && data){
+      for (const key of Object.keys(data)) {
+        viewData[key] = data[key]
       }
     }
 

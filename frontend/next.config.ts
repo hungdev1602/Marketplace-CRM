@@ -19,6 +19,17 @@ const nextConfig: NextConfig = {
   // - /api/...      => mọi thao tác thêm / sửa / xoá, đăng nhập, tải file... (JS trên trang gọi bằng fetch)
   //                    ví dụ: /api/cart/add => http://localhost:3000/cart/add
   // - /payment/...  => Т-Банк báo kết quả thanh toán (webhook)
+  // Trang có mã bí mật trên đường dẫn (?key=..., ?token=...): khi tải ảnh, bấm link ngoài,... trình duyệt chỉ gửi
+  // tên miền (header Referer), không gửi đường dẫn có mã. Không tắt hẳn Referer ở trang đơn hàng, vì server quản lý file
+  // chỉ trả ảnh khi Referer là tên miền của website
+  async headers() {
+    return [
+      { source: "/order/:path*", headers: [{ key: "Referrer-Policy", value: "strict-origin" }] },
+      { source: "/review/write/:path*", headers: [{ key: "Referrer-Policy", value: "strict-origin" }] },
+      { source: "/account/reset-password", headers: [{ key: "Referrer-Policy", value: "no-referrer" }] }
+    ]
+  },
+
   async rewrites() {
     return [
       { source: "/api/:path*", destination: `${apiUrl}/:path*` },
