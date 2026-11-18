@@ -146,16 +146,22 @@ cp .env.example .env.local
 
 (Windows PowerShell: `copy .env.example .env.local`.) File này chỉ có 1 dòng `API_URL=http://localhost:3000` — địa chỉ server Express, thường không cần sửa.
 
-Cài thư viện (lần đầu, hoặc khi `package.json` thay đổi):
+> Thư mục `frontend` dùng **npm** (file khoá phiên bản là `package-lock.json`), không dùng yarn như `server` và `file-manager-microservice`.
+
+Cài thư viện (lần đầu, hoặc khi `package.json` / `package-lock.json` thay đổi). Lần đầu mất vài phút:
 
 ```bash
-yarn install
+npm install --fetch-retries=5 --fetch-retry-maxtimeout=120000
 ```
+
+Thấy dòng `added ... packages` là cài xong. Dòng `npm warn deprecated` và `... vulnerabilities` không phải lỗi:
+các lỗ hổng npm báo nằm trong công cụ kiểm tra code (ESLint), không có trong website. **Không chạy `npm audit fix --force`**
+(lệnh này đổi phiên bản thư viện, dễ làm hỏng giao diện).
 
 Chạy chế độ phát triển (sửa code là trang tự cập nhật):
 
 ```bash
-yarn dev
+npm run dev
 ```
 
 Mở trình duyệt:
@@ -188,21 +194,21 @@ Trang admin:
 - [ ] Kết nối API (bật / tắt, "Lưu & kiểm tra kết nối"), Cài đặt cửa hàng
 - [ ] Quản lý file: tạo / xoá folder, upload, đổi tên, xoá, copy đường dẫn
 
-Gặp lỗi: chụp màn hình trang, chép dòng báo lỗi đỏ trong cửa sổ Terminal đang chạy `yarn dev` (và Terminal của server) gửi lại để sửa.
+Gặp lỗi: chụp màn hình trang, chép dòng báo lỗi đỏ trong cửa sổ Terminal đang chạy `npm run dev` (và Terminal của server) gửi lại để sửa.
 
 ### Bước 6: Thử bản build như trên server thật (không bắt buộc)
 
 Trong thư mục `frontend`:
 
 ```bash
-yarn build
+npm run build
 ```
 
 ```bash
-yarn start
+npm start
 ```
 
-Vẫn mở http://localhost:3001. Bản này chạy nhanh hơn `yarn dev` nhưng sửa code xong phải `yarn build` lại.
+Vẫn mở http://localhost:3001. Bản này chạy nhanh hơn `npm run dev` nhưng sửa code xong phải `npm run build` lại.
 
 ### Quay lại nhánh cũ
 
@@ -267,7 +273,7 @@ Vẫn sửa ở `server/locales/ru.ts` và `server/locales/vi.ts` — giao diệ
 5. Build giao diện:
 
    ```bash
-   cd frontend && yarn install && yarn build
+   cd frontend && npm ci && npm run build
    ```
 
 6. Chạy giao diện Next.js như 1 tiến trình mới, server Express và server quản lý file giữ cách đang chạy hiện tại.
@@ -282,7 +288,7 @@ Vẫn sửa ở `server/locales/ru.ts` và `server/locales/vi.ts` — giao diệ
    ```
 
    ```bash
-   cd frontend && pm2 start yarn --name frontend -- start
+   cd frontend && pm2 start npm --name frontend -- start
    ```
 
    ```bash
