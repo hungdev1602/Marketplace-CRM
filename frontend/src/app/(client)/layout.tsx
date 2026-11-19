@@ -29,7 +29,9 @@ export default async function ClientLayout({ children }: { children: React.React
 
   return (
     // suppressHydrationWarning: thuộc tính data-theme (sáng / tối) được đoạn script đầu trang gắn vào trước khi React chạy
-    <html lang={lang} suppressHydrationWarning>
+    // data-scroll-behavior="smooth": CSS giao diện bật cuộn mượt (scroll-behavior: smooth), chuyển trang thì
+    // Next.js tạm tắt cuộn mượt để nhảy ngay lên đầu trang mới
+    <html lang={lang} data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <link href="/client/assets/images/favicon.ico" rel="icon" />
         <link href="/client/assets/images/apple-touch-icon.png" rel="apple-touch-icon" />

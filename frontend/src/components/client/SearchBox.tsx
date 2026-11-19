@@ -647,7 +647,7 @@ export function SearchBox({ lang, categoryTree, initialKeyword, initialCategory 
           <Section title={t("searchPopular")}>
             <div className="sf-sd-chips">
               {view.popularList.map((item, index) => (
-                <OptionLink {...linkOption()} key={item} href={searchUrl(item)} className="sf-sd-chip">
+                <OptionLink key={item} {...linkOption()} href={searchUrl(item)} className="sf-sd-chip">
                   <i className={index < 3 ? "fas fa-fire" : "fas fa-search"} aria-hidden="true"></i>
                   <span>{item}</span>
                 </OptionLink>
@@ -681,7 +681,7 @@ export function SearchBox({ lang, categoryTree, initialKeyword, initialCategory 
           <Section title={t("searchQueries")}>
             <div className="sf-sd-list">
               {queries.map(item => (
-                <OptionLink {...linkOption()} key={item} href={searchUrl(item)} className="sf-sd-query">
+                <OptionLink key={item} {...linkOption()} href={searchUrl(item)} className="sf-sd-query">
                   <i className="fas fa-search" aria-hidden="true"></i>
                   <span><Highlight text={item} keyword={usedKeyword} /></span>
                 </OptionLink>
@@ -694,7 +694,7 @@ export function SearchBox({ lang, categoryTree, initialKeyword, initialCategory 
           <Section title={categories.length > 0 ? t("categories") : t("searchBrands")}>
             <div className="sf-sd-chips">
               {categories.map(item => (
-                <OptionLink {...linkOption()} key={`category-${item.url}`} href={item.url} className="sf-sd-chip">
+                <OptionLink key={`category-${item.url}`} {...linkOption()} href={item.url} className="sf-sd-chip">
                   {item.image
                     ? <img src={item.image} alt="" loading="lazy" />
                     : <i className="fas fa-th-large" aria-hidden="true"></i>}
@@ -702,7 +702,7 @@ export function SearchBox({ lang, categoryTree, initialKeyword, initialCategory 
                 </OptionLink>
               ))}
               {brands.map(item => (
-                <OptionLink {...linkOption()} key={`brand-${item.url}`} href={item.url} className="sf-sd-chip">
+                <OptionLink key={`brand-${item.url}`} {...linkOption()} href={item.url} className="sf-sd-chip">
                   <i className="fas fa-tag" aria-hidden="true"></i>
                   <span><Highlight text={item.name} keyword={usedKeyword} /></span>
                 </OptionLink>
@@ -715,7 +715,7 @@ export function SearchBox({ lang, categoryTree, initialKeyword, initialCategory 
           <Section title={t("products")}>
             <div className="sf-sd-list">
               {products.map(product => (
-                <OptionLink {...linkOption()} key={product.url} href={product.url} className={cx("sf-sd-product", !product.inStock && "is-out")}>
+                <OptionLink key={product.url} {...linkOption()} href={product.url} className={cx("sf-sd-product", !product.inStock && "is-out")}>
                   <img src={product.image} alt="" loading="lazy" />
                   <span className="sf-sd-product-info">
                     <span className="sf-sd-product-name"><Highlight text={product.name} keyword={usedKeyword} /></span>

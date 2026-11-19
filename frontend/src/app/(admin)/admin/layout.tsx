@@ -14,7 +14,8 @@ const cssList = ["bootstrap.min.css", "icons.min.css", "app.min.css", "main.css"
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     // suppressHydrationWarning: nút đổi sáng / tối và menu trái đổi thuộc tính của html, body bằng JS
-    <html data-bs-theme="dark" data-startbar="dark" dir="ltr" lang="vi" suppressHydrationWarning>
+    // data-scroll-behavior="smooth": CSS Bootstrap bật cuộn mượt, chuyển trang thì Next.js tạm tắt để nhảy ngay lên đầu trang
+    <html data-bs-theme="dark" data-startbar="dark" data-scroll-behavior="smooth" dir="ltr" lang="vi" suppressHydrationWarning>
       <head>
         {/* ?v=2 để trình duyệt tải favicon mới thay cho favicon cũ đã lưu */}
         <link rel="icon" href="/admin/assets/images/favicon.ico?v=2" />
