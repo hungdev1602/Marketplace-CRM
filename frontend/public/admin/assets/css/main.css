@@ -1,0 +1,180 @@
+.just-validate-error-label{
+  width: 100%;
+}
+
+[button-pagination].active{
+  background-color: #000;
+  color: #fff;
+}
+
+.bg-dark{
+  background-color: #202221 !important;
+}
+
+.preview-file {
+  display: none;
+  width: 150px;
+  height: 150px;
+  border: 1px solid #ddd;
+  margin-top: 10px;
+  border-radius: 5px
+}
+
+.preview-file img,
+.preview-file video{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 5px
+}
+
+.preview-file video{
+  display: none;
+  background: #000;
+  padding: 0;
+  border-radius: 5px;
+}
+
+/* checkbox-list */
+.checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #f0f0f0;
+  padding: 10px;
+  border-radius: 6.4px;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.checkbox-item input {
+  width: 15px;
+  height: 15px;
+}
+
+.checkbox-item label {
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Danh sách không phân cấp, nhiều lựa chọn (ví dụ chất gây dị ứng): xếp thành nhiều cột */
+.checkbox-list.checkbox-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  max-height: none;
+}
+/* End checkbox-list */
+
+/* form-group-file-multiple (album ảnh) */
+.file-multiple-item {
+  margin-bottom: 10px;
+}
+
+.file-multiple-item .preview-file {
+  width: 100px;
+  height: 100px;
+  margin-top: 6px;
+}
+/* End form-group-file-multiple */
+
+/* Logo admin */
+/* Logo ngang: hiện khi menu trái mở rộng */
+.startbar .brand .logo .logo-lg {
+  max-width: 210px;
+  height: auto;
+  margin-left: 0;
+}
+
+/* Icon vuông: chỉ hiện khi menu trái thu gọn (màn hình 1200px - 1440px) */
+.startbar .brand .logo .logo-sm {
+  display: none;
+  width: 48px;
+  height: 48px;
+}
+
+@media (min-width: 1200px) {
+  body[data-sidebar-size=collapsed] .startbar:not(:hover) .brand .logo .logo-lg {
+    display: none;
+  }
+
+  body[data-sidebar-size=collapsed] .startbar:not(:hover) .brand .logo .logo-sm {
+    display: block;
+  }
+}
+
+/* Logo trên thanh trên (màn hình < 1200px) */
+.topbar-logo img {
+  height: 40px;
+  width: auto;
+}
+/* End Logo admin */
+
+/* Trình soạn thảo Quill */
+.ql-container .ql-editor {
+  min-height: 250px;
+}
+/* End Trình soạn thảo Quill */
+
+/* Chọn sản phẩm áp dụng mã giảm giá (kết quả tìm kiếm, sản phẩm đã chọn) */
+.coupon-product-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+/* End Chọn sản phẩm áp dụng mã giảm giá */
+
+/* Trang tổng quan: ô số liệu bấm được thì nổi viền khi rê chuột */
+.dashboard-stat-card {
+  transition: border-color 0.15s;
+}
+
+.dashboard-stat-card:has(.stretched-link):hover {
+  border-color: var(--bs-primary);
+}
+/* End Trang tổng quan */
+
+/* Kết nối API bên thứ 3 (integration-list.pug, integration-edit.pug) */
+.integration-icon {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background: rgba(var(--bs-primary-rgb), 0.12);
+  color: var(--bs-primary);
+}
+
+.integration-meta li {
+  padding: 3px 0;
+}
+
+.integration-mode {
+  cursor: pointer;
+  border: 1px solid var(--bs-border-color);
+}
+
+.integration-mode:has(input:checked) {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 1px var(--bs-primary);
+}
+
+.integration-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 6px 16px;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 6.4px;
+  padding: 10px 12px;
+}
+
+.integration-guide ol li a {
+  word-break: break-word;
+}

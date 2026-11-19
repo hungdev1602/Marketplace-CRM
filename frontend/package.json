@@ -1,0 +1,33 @@
+{
+  "name": "marketplace-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@uppy/core": "^6.3.1",
+    "@uppy/dashboard": "^6.0.3",
+    "@uppy/xhr-upload": "^6.0.1",
+    "apexcharts": "^8.8.2",
+    "next": "16.4.6",
+    "notyf": "^3.10.0",
+    "quill": "2.0.2",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
+    "sweetalert2": "^11.26.25"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.6",
+    "typescript": "^5"
+  }
+}
