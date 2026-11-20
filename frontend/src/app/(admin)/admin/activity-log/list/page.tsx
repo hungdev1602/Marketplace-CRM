@@ -1,6 +1,7 @@
 import { AdminPagination, FilterForm } from "@/components/admin/ui"
 import { adminUrl } from "@/lib/admin"
 import { adminMetadata, adminPage, type AdminPageProps } from "@/lib/admin-page"
+import { AdminLink } from "@/components/admin/AdminLink"
 
 // Nhật ký hoạt động: /admin/activity-log/list (chỉ Super Admin xem được)
 // Dữ liệu: server/controller/admin/activity-log.controller.ts
@@ -61,7 +62,7 @@ export default async function ActivityLogPage(props: AdminPageProps) {
                     <i className="fa-solid fa-filter me-1"></i>
                     Lọc
                   </button>
-                  <a className="btn btn-secondary" href={adminUrl("/activity-log/list")}>Xoá bộ lọc</a>
+                  <AdminLink className="btn btn-secondary" href={adminUrl("/activity-log/list")}>Xoá bộ lọc</AdminLink>
                 </div>
               </FilterForm>
               <p className="text-muted mb-2">Tìm thấy {data.pagination.totalRecord} bản ghi</p>

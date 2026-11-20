@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { cx } from "@/lib/format"
 import { localizedName } from "@/lib/i18n"
 import { useShop } from "./ShopProvider"

@@ -2,6 +2,7 @@ import { DeleteButton, EditLink, HeaderLink, StatusBadge } from "@/components/ad
 import { AdminPagination, CardHeader, EmptyRow, SearchForm } from "@/components/admin/ui"
 import { adminUrl } from "@/lib/admin"
 import { adminMetadata, adminPage, type AdminPageProps } from "@/lib/admin-page"
+import { AdminLink } from "@/components/admin/AdminLink"
 
 // Danh sách tài khoản quản trị: /admin/account-admin/list
 
@@ -64,9 +65,9 @@ export default async function AccountAdminListPage(props: AdminPageProps) {
                           {/* Tài khoản Super Admin chỉ Super Admin khác sửa được, không xoá được */}
                           {can("account-admin-edit") && (!item.isSuperAdmin || isSuperAdmin) && <EditLink href={`/account-admin/edit/${item.id}`} />}
                           {can("account-admin-change-password") && (!item.isSuperAdmin || isSuperAdmin) && (
-                            <a href={adminUrl(`/account-admin/change-password/${item.id}`)} style={{ margin: "5px" }} title="Đổi mật khẩu">
+                            <AdminLink href={adminUrl(`/account-admin/change-password/${item.id}`)} style={{ margin: "5px" }} title="Đổi mật khẩu">
                               <i className="fa-solid fa-key text-secondary" style={{ fontSize: "1.2rem" }}></i>
-                            </a>
+                            </AdminLink>
                           )}
                           {can("account-admin-delete") && !item.isSuperAdmin && <DeleteButton api={`/account-admin/delete/${item.id}`} />}
                         </td>

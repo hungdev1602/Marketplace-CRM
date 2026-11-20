@@ -126,6 +126,8 @@ export function ProductImportForm({ modeList, processingImportId }: { modeList: 
   const [isImporting, setIsImporting] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
   const [progress, setProgress] = useState<Progress | null>(null)
+  // Lượt theo dõi tiến độ đang chạy: rời trang (chuyển trang không tải lại) thì dừng hỏi server
+  const trackIdRef = useRef(0)
 
   // Dữ liệu gửi lên: file và chế độ nhập
   const getImportFormData = (): FormData | null => {
@@ -139,13 +141,16 @@ export function ProductImportForm({ modeList, processingImportId }: { modeList: 
     return formData
   }
 
-  // Theo dõi tiến độ nhập file, xong thì tải lại trang để xem kết quả ở lịch sử nhập file
+  // Theo dõi tiến độ nhập file, xong thì lấy lại dữ liệu trang để xem kết quả ở lịch sử nhập file
   const trackImportProgress = (importId: string) => {
     setIsImporting(true)
     setProgress({ percent: 0, text: "" })
+    const trackId = ++trackIdRef.current
 
     const checkStatus = async () => {
+      if(trackId !== trackIdRef.current) return
       const data = await adminRequest(`/product/import/status/${importId}`)
+      if(trackId !== trackIdRef.current) return
       if(data.code === "error") {
         // mất kết nối thì thử lại
         if(/kết nối/i.test(data.message || "")) {
@@ -178,6 +183,10 @@ export function ProductImportForm({ modeList, processingImportId }: { modeList: 
 
   useEffect(() => {
     if(processingImportId) trackImportProgress(processingImportId)
+    const trackId = trackIdRef // bộ đếm (không phải thẻ HTML), đọc giá trị mới nhất lúc rời trang là đúng ý
+    return () => {
+      trackId.current++ // rời trang: dừng theo dõi
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

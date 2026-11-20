@@ -4,6 +4,7 @@ import { ProductExportModal } from "@/components/admin/views/ProductExcel"
 import { TreeOptions } from "@/components/admin/form"
 import { adminUrl } from "@/lib/admin"
 import { adminMetadata, adminPage, type AdminPageProps } from "@/lib/admin-page"
+import { AdminLink } from "@/components/admin/AdminLink"
 
 // Danh sách sản phẩm: /admin/product/list (lọc, sắp xếp, xuất Excel)
 // Dữ liệu: hàm list ở server/controller/admin/product.controller.ts
@@ -67,7 +68,7 @@ export default async function ProductListPage(props: AdminPageProps) {
                     <i className="fa-solid fa-filter me-1"></i>
                     Lọc
                   </button>
-                  <a className="btn btn-secondary" href={adminUrl("/product/list")}>Xoá lọc</a>
+                  <AdminLink className="btn btn-secondary" href={adminUrl("/product/list")}>Xoá lọc</AdminLink>
                 </div>
               </FilterForm>
               <p className="text-muted mb-2">Tìm thấy {data.pagination.totalRecord} sản phẩm</p>

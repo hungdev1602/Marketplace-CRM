@@ -7,6 +7,7 @@ import { adminRequest } from "../api"
 import { useAdmin } from "../AdminProvider"
 import { drawNotify, notifyError, notifySuccess } from "../notify"
 import { AdminPagination } from "../ui"
+import { AdminLink } from "../AdminLink"
 
 // ===== Trang Quản lý file (/admin/file-manager) =====
 // File lưu ở server quản lý file (repo file-manager-microservice), server Express chuyển tiếp các thao tác sang đó
@@ -219,11 +220,11 @@ export function FileManager({ listFile, listFolder, pagination, page, folderPath
     <>
       <ul className="list-group list-group-horizontal-md mb-3">
         <li className="list-group-item bg-dark">
-          <a href={folderUrl("")}><i className="la la-angle-double-right text-info me-2"></i>Quản lý file</a>
+          <AdminLink href={folderUrl("")}><i className="la la-angle-double-right text-info me-2"></i>Quản lý file</AdminLink>
         </li>
         {pathList.map((item, index) => (
           <li className="list-group-item bg-dark" key={index}>
-            <a href={folderUrl(pathList.slice(0, index + 1).join("/"))}><i className="la la-angle-double-right text-info me-2"></i>{item}</a>
+            <AdminLink href={folderUrl(pathList.slice(0, index + 1).join("/"))}><i className="la la-angle-double-right text-info me-2"></i>{item}</AdminLink>
           </li>
         ))}
       </ul>
@@ -256,12 +257,12 @@ export function FileManager({ listFile, listFolder, pagination, page, folderPath
                 {listFolder.length > 0 ? listFolder.map(folder => (
                   <tr key={folder.name}>
                     <td>
-                      <a href={folderUrl(folderPath ? `${folderPath}/${folder.name}` : folder.name)}>
+                      <AdminLink href={folderUrl(folderPath ? `${folderPath}/${folder.name}` : folder.name)}>
                         <div className="d-inline-flex justify-content-center align-items-center thumb-md bg-secondary-subtle rounded mx-auto me-1">
                           <i className="fa-solid fa-folder fs-18 align-self-center mb-0 text-secondary"></i>
                         </div>
                         <span>{folder.name}</span>
-                      </a>
+                      </AdminLink>
                     </td>
                     <td>{folder.createdAtFormat}</td>
                     <td className="text-end">
@@ -308,7 +309,7 @@ export function FileManager({ listFile, listFolder, pagination, page, folderPath
                     <tr key={file.id}>
                       <td>
                         {file.mimetype.includes("image") ? (
-                          <img src={src} className="rounded thumb-md me-1 d-inline" alt="" />
+                          <img src={fileSrc(path, 160)} className="rounded thumb-md me-1 d-inline" alt="" loading="lazy" />
                         ) : typeIcon ? (
                           <div className="d-inline-flex justify-content-center align-items-center thumb-md bg-blue-subtle rounded mx-auto me-1">
                             <i className={`fa-solid ${typeIcon} fs-18 align-self-center mb-0 text-blue`}></i>

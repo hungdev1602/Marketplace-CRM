@@ -1,6 +1,7 @@
 import { AdminPagination, CardHeader, EmptyRow, FilterForm } from "@/components/admin/ui"
 import { adminUrl } from "@/lib/admin"
 import { adminMetadata, adminPage, type AdminPageProps } from "@/lib/admin-page"
+import { AdminLink } from "@/components/admin/AdminLink"
 
 // Danh sách đơn hàng: /admin/order/list
 // Dữ liệu: hàm list ở server/controller/admin/order.controller.ts
@@ -30,10 +31,10 @@ export default async function OrderListPage(props: AdminPageProps) {
           <div className="card">
             <CardHeader title={data.pageTitle}>
               {data.waitingShipmentCount > 0 && (
-                <a className="btn btn-info" href={adminUrl("/order/list?status=paid")}>
+                <AdminLink className="btn btn-info" href={adminUrl("/order/list?status=paid")}>
                   <i className="fa-solid fa-box me-1"></i>
                   {data.waitingShipmentCount} đơn chờ gửi hàng
-                </a>
+                </AdminLink>
               )}
             </CardHeader>
             <div className="card-body pt-0">
@@ -50,7 +51,7 @@ export default async function OrderListPage(props: AdminPageProps) {
                     <i className="fa-solid fa-filter me-1"></i>
                     Lọc
                   </button>
-                  <a className="btn btn-secondary" href={adminUrl("/order/list")}>Xoá lọc</a>
+                  <AdminLink className="btn btn-secondary" href={adminUrl("/order/list")}>Xoá lọc</AdminLink>
                 </div>
               </FilterForm>
               <p className="text-muted mb-2">Tìm thấy {data.pagination.totalRecord} đơn hàng</p>
@@ -74,7 +75,7 @@ export default async function OrderListPage(props: AdminPageProps) {
                     return (
                       <tr key={order.id}>
                         <td className="text-nowrap">
-                          <a className="fw-bold font-monospace" href={adminUrl(`/order/detail/${order.id}`)}>{order.code}</a>
+                          <AdminLink className="fw-bold font-monospace" href={adminUrl(`/order/detail/${order.id}`)}>{order.code}</AdminLink>
                           <div className="small text-muted">{order.createdAtFormat}</div>
                         </td>
                         <td style={{ minWidth: "180px" }}>
@@ -112,9 +113,9 @@ export default async function OrderListPage(props: AdminPageProps) {
                           )}
                         </td>
                         <td className="text-end">
-                          <a href={adminUrl(`/order/detail/${order.id}`)} title="Xem chi tiết">
+                          <AdminLink href={adminUrl(`/order/detail/${order.id}`)} title="Xem chi tiết">
                             <i className="fa-solid fa-eye text-secondary" style={{ fontSize: "1.2rem" }}></i>
-                          </a>
+                          </AdminLink>
                         </td>
                       </tr>
                     )

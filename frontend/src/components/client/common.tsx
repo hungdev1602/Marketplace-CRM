@@ -1,8 +1,8 @@
 // Các khối giao diện nhỏ dùng lại ở nhiều trang khách hàng (giống các mixin trong server/views/client/mixins)
 // Không có "use client": dùng được ở cả server component và client component
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { cx, formatNumber, htmlToText } from "@/lib/format"
-import { mediaUrl, translator, type ViewCtx } from "@/lib/view-ctx"
+import { mediaSrcSet, mediaUrl, translator, type ViewCtx } from "@/lib/view-ctx"
 import { CartControl } from "./CartControl"
 import { WishlistButton } from "./WishlistButton"
 
@@ -23,7 +23,7 @@ export function ProductCard({ product, ctx }: { product: any, ctx: Ctx }) {
   return (
     <div className={cx("sf-product-card", !inStock && "is-out")}>
       <Link href={productUrl} className="sf-product-img">
-        <img src={mediaUrl(ctx, product.cardImage)} alt={productName} loading="lazy" />
+        <img src={mediaUrl(ctx, product.cardImage, 320)} srcSet={mediaSrcSet(ctx, product.cardImage, 320)} alt={productName} loading="lazy" decoding="async" />
         <ul className="sf-badges">
           {product.discountPercent ? <li className="sf-badge sf-badge-sale">−{product.discountPercent}%</li> : null}
           {product.newArrival && <li className="sf-badge sf-badge-new">{t("badgeNew")}</li>}
@@ -216,7 +216,7 @@ export function ArticleCard({ article, ctx }: { article: any, ctx: Ctx }) {
   return (
     <article className="sf-article-card">
       <Link href={articleUrl} className="sf-article-img">
-        <img src={mediaUrl(ctx, article.avatar)} alt={article.name} loading="lazy" />
+        <img src={mediaUrl(ctx, article.avatar, 480)} srcSet={mediaSrcSet(ctx, article.avatar, 480)} alt={article.name} loading="lazy" decoding="async" />
       </Link>
       <div className="sf-article-body">
         <p className="sf-article-meta">

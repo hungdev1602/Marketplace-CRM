@@ -1,6 +1,7 @@
 import { IntegrationTestButton, IntegrationToggle } from "@/components/admin/views/Integration"
 import { adminUrl } from "@/lib/admin"
 import { adminMetadata, adminPage, type AdminPageProps } from "@/lib/admin-page"
+import { AdminLink } from "@/components/admin/AdminLink"
 
 // Kết nối API bên thứ 3: /admin/integration/list (Т-Банк, ApiShip, email)
 // Dữ liệu: hàm list ở server/controller/admin/integration.controller.ts
@@ -25,10 +26,10 @@ export default async function IntegrationListPage(props: AdminPageProps) {
             </p>
           </div>
           <div className="col-auto">
-            <a className="btn btn-outline-secondary" href={adminUrl("/integration/log")}>
+            <AdminLink className="btn btn-outline-secondary" href={adminUrl("/integration/log")}>
               <i className="fa-solid fa-list-ul me-1"></i>
               Nhật ký gọi API
-            </a>
+            </AdminLink>
           </div>
         </div>
 
@@ -113,10 +114,10 @@ export default async function IntegrationListPage(props: AdminPageProps) {
                             <IntegrationToggle integrationKey={definition.key} name={definition.name} enabled={Boolean(view.enabled)} />
                             <div className="d-flex gap-2">
                               <IntegrationTestButton integrationKey={definition.key} />
-                              <a className="btn btn-sm btn-primary" href={adminUrl(`/integration/edit/${definition.key}`)}>
+                              <AdminLink className="btn btn-sm btn-primary" href={adminUrl(`/integration/edit/${definition.key}`)}>
                                 <i className="fa-solid fa-gear me-1"></i>
                                 Cấu hình
-                              </a>
+                              </AdminLink>
                             </div>
                           </>
                         ) : (

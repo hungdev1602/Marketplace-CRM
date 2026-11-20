@@ -2,6 +2,8 @@ import { DashboardChart } from "@/components/admin/DashboardChart"
 import { adminUrl } from "@/lib/admin"
 import { adminMetadata, adminPage, type AdminPageProps } from "@/lib/admin-page"
 import { formatNumber } from "@/lib/format"
+import { sizedUrl } from "@/lib/media"
+import { AdminLink } from "@/components/admin/AdminLink"
 
 // Trang tổng quan: /admin/dashboard
 // Dữ liệu: server/controller/admin/dashboard.controller.ts (chỉ có số liệu của các chức năng tài khoản được xem)
@@ -31,7 +33,7 @@ function StatCard({ label, value, note, icon, iconColor, link }: {
             <i className={`${icon} fs-4 ${iconColor}`}></i>
           </div>
         </div>
-        {link && <a className="stretched-link" href={link} aria-label={label}></a>}
+        {link && <AdminLink className="stretched-link" href={link} aria-label={label}></AdminLink>}
       </div>
     </div>
   )
@@ -52,28 +54,28 @@ function Dashboard({ data }: { data: any }) {
         </div>
         <div className="col-auto mt-2 mt-md-0">
           {can("product-create") && (
-            <a className="btn btn-primary btn-sm me-1 mb-1" href={adminUrl("/product/create")}>
+            <AdminLink className="btn btn-primary btn-sm me-1 mb-1" href={adminUrl("/product/create")}>
               <i className="fa-solid fa-plus me-1"></i>
               Tạo sản phẩm
-            </a>
+            </AdminLink>
           )}
           {can("product-import") && (
-            <a className="btn btn-outline-success btn-sm me-1 mb-1" href={adminUrl("/product/import")}>
+            <AdminLink className="btn btn-outline-success btn-sm me-1 mb-1" href={adminUrl("/product/import")}>
               <i className="fa-solid fa-file-import me-1"></i>
               Nhập Excel
-            </a>
+            </AdminLink>
           )}
           {can("coupon-create") && (
-            <a className="btn btn-outline-primary btn-sm me-1 mb-1" href={adminUrl("/coupon/create")}>
+            <AdminLink className="btn btn-outline-primary btn-sm me-1 mb-1" href={adminUrl("/coupon/create")}>
               <i className="fa-solid fa-ticket me-1"></i>
               Tạo mã giảm giá
-            </a>
+            </AdminLink>
           )}
           {can("article-create") && (
-            <a className="btn btn-outline-secondary btn-sm mb-1" href={adminUrl("/article/create")}>
+            <AdminLink className="btn btn-outline-secondary btn-sm mb-1" href={adminUrl("/article/create")}>
               <i className="fa-solid fa-pen me-1"></i>
               Viết bài
-            </a>
+            </AdminLink>
           )}
         </div>
       </div>
@@ -163,7 +165,7 @@ function Dashboard({ data }: { data: any }) {
                     {productStats.storageList.map((item: any) => (
                       <li className="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0" key={item.id}>
                         <span className={`badge ${item.color} text-wrap text-start`}>{item.name}</span>
-                        <a className="fw-semibold" href={adminUrl(`/product/list?storageType=${item.id}`)}>{formatNumber(item.count)}</a>
+                        <AdminLink className="fw-semibold" href={adminUrl(`/product/list?storageType=${item.id}`)}>{formatNumber(item.count)}</AdminLink>
                       </li>
                     ))}
                     {productStats.noStorageCount > 0 && (
@@ -188,7 +190,7 @@ function Dashboard({ data }: { data: any }) {
                       <p className="small text-muted mb-0">Sản phẩm đang bán có tồn kho từ {lowStockThreshold} trở xuống, ít nhất trước</p>
                     </div>
                     <div className="col-auto">
-                      <a className="btn btn-sm btn-light" href={adminUrl("/product/list?status=active&sort=stock-asc")}>Xem tất cả</a>
+                      <AdminLink className="btn btn-sm btn-light" href={adminUrl("/product/list?status=active&sort=stock-asc")}>Xem tất cả</AdminLink>
                     </div>
                   </div>
                 </div>
@@ -209,7 +211,7 @@ function Dashboard({ data }: { data: any }) {
                               <td>
                                 <div className="d-flex align-items-center">
                                   {item.avatar && (
-                                    <img className="thumb-md rounded me-2" src={`${fileUrl}${item.avatar}`} alt="" style={{ objectFit: "contain" }} />
+                                    <img className="thumb-md rounded me-2" src={sizedUrl(`${fileUrl}${item.avatar}`, 160)} alt="" style={{ objectFit: "contain" }} />
                                   )}
                                   <div>
                                     <div className="fw-medium">{item.name}</div>
@@ -229,9 +231,9 @@ function Dashboard({ data }: { data: any }) {
                               </td>
                               <td className="text-end">
                                 {can("product-edit") && (
-                                  <a href={adminUrl(`/product/edit/${item.id}`)} title="Chỉnh sửa">
+                                  <AdminLink href={adminUrl(`/product/edit/${item.id}`)} title="Chỉnh sửa">
                                     <i className="fa-solid fa-pen-to-square text-secondary fs-5"></i>
-                                  </a>
+                                  </AdminLink>
                                 )}
                               </td>
                             </tr>
@@ -262,9 +264,9 @@ function Dashboard({ data }: { data: any }) {
                       <li className="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0" key={item.id}>
                         <span>{item.name}</span>
                         {item.count > 0 ? (
-                          <a className="badge bg-warning-subtle text-warning fs-6" href={adminUrl(`/product/list?missing=${item.id}`)} title="Xem các sản phẩm còn thiếu">
+                          <AdminLink className="badge bg-warning-subtle text-warning fs-6" href={adminUrl(`/product/list?missing=${item.id}`)} title="Xem các sản phẩm còn thiếu">
                             Thiếu {formatNumber(item.count)}
-                          </a>
+                          </AdminLink>
                         ) : (
                           <span className="text-success" title="Đã đủ"><i className="fa-solid fa-circle-check"></i></span>
                         )}
@@ -289,7 +291,7 @@ function Dashboard({ data }: { data: any }) {
                       <h4 className="card-title">Mã giảm giá</h4>
                     </div>
                     <div className="col-auto">
-                      <a className="btn btn-sm btn-light" href={adminUrl("/coupon/list")}>Xem tất cả</a>
+                      <AdminLink className="btn btn-sm btn-light" href={adminUrl("/coupon/list")}>Xem tất cả</AdminLink>
                     </div>
                   </div>
                 </div>
@@ -297,10 +299,10 @@ function Dashboard({ data }: { data: any }) {
                   <div className="row g-2 mb-3">
                     {couponStats.statusList.map((item: any) => (
                       <div className="col" key={item.id}>
-                        <a className="d-block border rounded text-center p-2 h-100" href={adminUrl(`/coupon/list?status=${item.id}`)}>
+                        <AdminLink className="d-block border rounded text-center p-2 h-100" href={adminUrl(`/coupon/list?status=${item.id}`)}>
                           <div className="fs-4 fw-bold text-body">{formatNumber(item.count)}</div>
                           <span className={`badge ${item.color}`}>{item.name}</span>
-                        </a>
+                        </AdminLink>
                       </div>
                     ))}
                   </div>
@@ -341,7 +343,7 @@ function Dashboard({ data }: { data: any }) {
                       <h4 className="card-title">Bài viết</h4>
                     </div>
                     <div className="col-auto">
-                      <a className="btn btn-sm btn-light" href={adminUrl("/article/list")}>Xem tất cả</a>
+                      <AdminLink className="btn btn-sm btn-light" href={adminUrl("/article/list")}>Xem tất cả</AdminLink>
                     </div>
                   </div>
                 </div>
@@ -379,7 +381,7 @@ function Dashboard({ data }: { data: any }) {
                 <h4 className="card-title">Hoạt động gần đây</h4>
               </div>
               <div className="col-auto">
-                <a className="btn btn-sm btn-light" href={adminUrl("/activity-log/list")}>Xem nhật ký</a>
+                <AdminLink className="btn btn-sm btn-light" href={adminUrl("/activity-log/list")}>Xem nhật ký</AdminLink>
               </div>
             </div>
           </div>

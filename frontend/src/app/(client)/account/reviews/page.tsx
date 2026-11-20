@@ -1,9 +1,9 @@
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { ClampText } from "@/components/client/ClampText"
 import { ClientShell } from "@/components/client/Shell"
 import { PageBanner, RatingStars, StarLinks } from "@/components/client/common"
 import { clientMetadata, loadClientPage, type PageProps } from "@/lib/client-page"
-import { makeCtx, mediaUrl, translator } from "@/lib/view-ctx"
+import { makeCtx, mediaSrcSet, mediaUrl, translator } from "@/lib/view-ctx"
 
 // Đánh giá của tôi: /account/reviews
 // - Sản phẩm đã nhận hàng, chờ đánh giá
@@ -41,7 +41,7 @@ export default async function AccountReviewsPage({ searchParams }: PageProps) {
                   {waitingViewList.map((waiting, index) => (
                     <li key={index}>
                       <Link href={`/product/${waiting.product.slug}`} className="sf-order-item-img">
-                        <img src={mediaUrl(ctx, waiting.product.cardImage || waiting.item.image)} alt="" loading="lazy" />
+                        <img src={mediaUrl(ctx, waiting.product.cardImage || waiting.item.image, 160)} srcSet={mediaSrcSet(ctx, waiting.product.cardImage || waiting.item.image, 160)} alt="" loading="lazy" />
                       </Link>
                       <div className="sf-review-waiting-info">
                         <Link href={`/product/${waiting.product.slug}`}>{tName(waiting.product)}</Link>
@@ -71,7 +71,7 @@ export default async function AccountReviewsPage({ searchParams }: PageProps) {
                         <div className="sf-my-review-head">
                           {view.product && (
                             <Link href={`/product/${view.product.slug}`} className="sf-order-item-img">
-                              <img src={mediaUrl(ctx, view.product.cardImage)} alt="" loading="lazy" />
+                              <img src={mediaUrl(ctx, view.product.cardImage, 160)} srcSet={mediaSrcSet(ctx, view.product.cardImage, 160)} alt="" loading="lazy" />
                             </Link>
                           )}
                           <div className="sf-my-review-title">
@@ -121,7 +121,7 @@ export default async function AccountReviewsPage({ searchParams }: PageProps) {
                             {review.photos.map((photo: string) => (
                               <li key={photo}>
                                 <span>
-                                  <img src={mediaUrl(ctx, photo)} alt="" loading="lazy" />
+                                  <img src={mediaUrl(ctx, photo, 160)} srcSet={mediaSrcSet(ctx, photo, 160)} alt="" loading="lazy" />
                                 </span>
                               </li>
                             ))}

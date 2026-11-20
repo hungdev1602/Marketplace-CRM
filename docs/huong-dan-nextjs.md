@@ -237,12 +237,16 @@ frontend/
     │   ├── client-page.tsx     Lấy dữ liệu trang khách, trang 404
     │   ├── admin.ts            Đường dẫn trang admin ("/admin")
     │   ├── admin-page.tsx      Lấy dữ liệu trang admin, trang "Không có quyền"
+    │   ├── media.ts            sizedUrl(): link ảnh thu nhỏ ?w=... của server quản lý file
     │   └── top-loader.ts       goTo(), reloadPage(), startTopLoader(): chuyển trang bằng JS có thanh loading
     ├── components/
     │   ├── TopLoader.tsx       Thanh loading mỏng trên cùng trang khi chuyển trang (dùng cho cả trang khách và admin)
     │   ├── top-loader.css      Giao diện của thanh loading
     │   ├── client/             Đầu trang, menu, ô tìm kiếm, thẻ sản phẩm, giỏ hàng, đánh giá...
+    │   │   └── ShopLink.tsx    Link của trang khách (tắt tải trước trang)
     │   └── admin/              Menu trái, thanh trên, form, bảng, nút thao tác, trình soạn thảo...
+    │       ├── AdminLink.tsx   Link của trang admin (chuyển trang không tải lại cả trang)
+    │       └── navigation.ts   adminGo(), adminReload(): chuyển trang / lấy lại dữ liệu trang admin bằng JS
     └── app/
         ├── (client)/           Các trang khách hàng: page.tsx = trang chủ, products/, product/[slug]/, cart/...
         └── (admin)/admin/      Các trang admin: dashboard/, product/list/, order/detail/[id]/...
@@ -268,20 +272,62 @@ màu xanh lá (màu chính) ở trang admin. Thanh nằm ở `src/components/Top
 2 layout `app/(client)/layout.tsx` và `app/(admin)/admin/layout.tsx`.
 
 - Bấm `<Link>`, thẻ `<a>` thường, gửi form thường: thanh **tự chạy**, không cần viết thêm gì.
-  Trang tải lại cả trang (phần lớn link ở trang admin) thì thanh chạy trong lúc chờ server, trang mới mở ra thì chạy nốt tới hết.
+  Trang tải lại cả trang (đăng nhập, đăng xuất, đổi ngôn ngữ) thì thanh chạy trong lúc chờ server, trang mới mở ra thì chạy nốt tới hết.
 - Trang mở xong trong 0,1 giây thì không hiện thanh (tránh nháy).
 - Không chạy khi: mở tab mới (Ctrl / ⌘ + bấm, `target="_blank"`), link tải file (`download`, đường dẫn `/api/...`),
   link sang website khác, link `#mục` trong cùng trang. Link nào không muốn có thanh thì thêm thuộc tính `data-no-loader`.
 - Code JS tự chuyển trang thì dùng hàm trong `src/lib/top-loader.ts` thay cho `window.location`:
 
-  | Thay vì | Dùng |
-  |---|---|
-  | `window.location.href = url` | `goTo(url)` |
-  | `window.location.reload()` | `reloadPage()` |
-  | `router.push(url)` | `startTopLoader(url)` rồi `router.push(url)` |
+  | Thay vì | Trang khách | Trang admin |
+  |---|---|---|
+  | `window.location.href = url` | `goTo(url)` | `adminGo(url)` (không tải lại cả trang) |
+  | `window.location.reload()` | `reloadPage()` | `adminReload()` hoặc `drawNotify(...)` |
+  | `router.push(url)` | `startTopLoader(url)` rồi `router.push(url)` | `adminGo(url)` |
 
   Riêng link tải file (ví dụ xuất Excel) vẫn dùng `window.location.href` để thanh không chạy.
 - Đổi màu / độ dày: sửa `color` ở 2 file layout, `height` trong `src/components/top-loader.css`.
+
+### Link và chuyển trang
+
+- **Trang khách:** dùng `import Link from "@/components/client/ShopLink"` thay cho `next/link`. ShopLink tắt việc
+  tải trước trang (prefetch): Next.js mặc định tải trước **mọi link đang hiện trên màn hình**, mà trang nào của website cũng
+  lấy dữ liệu mới từ server Express, nên mở trang chủ là server phải dựng thêm ~20-30 trang vô ích cùng lúc (chỉ xảy ra ở
+  bản build chạy thật, `npm run dev` không tải trước).
+- **Trang admin:** dùng `<AdminLink href={adminUrl("/...")}>` (components/admin/AdminLink.tsx) thay cho thẻ `<a>`:
+  chuyển trang không tải lại cả trang (không tải lại CSS, JS, font, menu). Phân trang, lọc, tìm kiếm, sau khi lưu / xoá cũng vậy:
+  - `drawNotify(code, message)`: hiện thông báo ngay, lấy lại dữ liệu trang đang xem, dựng lại nội dung trang (ô nhập, nút về như mới)
+  - `notifyAndGo(code, message, url)`: hiện thông báo ngay rồi mở trang `url`
+  - Chuyển sang cùng trang nhưng khác tham số (`?page=2`, lọc khác, sửa sản phẩm khác): nội dung trang được dựng lại từ đầu
+    (`lib/admin-page.tsx`), nên ô lọc dùng `defaultValue` vẫn hiện đúng giá trị mới.
+  - Vẫn dùng thẻ `<a>` thường cho: đăng xuất, tải file (`/api/...`), link sang trang khách hàng (`target="_blank"`).
+  - Component tự hẹn giờ / gắn sự kiện vào `window`, `document` thì nhớ gỡ ra khi rời trang (`return () => ...` trong `useEffect`),
+    vì trang không còn được tải lại cả trang để tự dọn như trước.
+
+### Ảnh thu nhỏ
+
+Ảnh gốc admin tải lên thường nặng 1-2 MB. Server quản lý file (repo `file-manager-microservice`) thu nhỏ ảnh khi link có `?w=`:
+`http://localhost:4000/media/abc.png?w=320` => ảnh WebP rộng 320px (vài chục KB), lưu ở thư mục `cache/` của repo đó để lần sau
+trả ngay. Trong code giao diện:
+
+- Trang khách: `mediaUrl(ctx, path, 320)` (link ảnh) và `mediaSrcSet(ctx, path, 320)` (thuộc tính `srcSet`: màn hình nét
+  của điện thoại lấy ảnh 640px)
+- Trang admin: `fileSrc(path, 160)` (`useAdmin()`), hoặc `sizedUrl(link, 160)` (`lib/media.ts`)
+- Không truyền chiều rộng = file gốc (video, link copy / tải xuống, ảnh xem lớn)
+- Cỡ có sẵn: 160, 320, 480, 640, 960, 1280, 1920 (số khác được làm tròn lên). Video, GIF, SVG luôn trả file gốc.
+
+### Trang chậm: xem chậm ở đâu
+
+Cửa sổ Terminal đang chạy Next.js in thời gian server Express trả dữ liệu cho mỗi trang, ví dụ:
+
+```
+[Express] GET /admin/product/list?page=2 200 - 412 ms
+```
+
+- Số này lớn (vài trăm ms trở lên): chậm ở server Express / database. MongoDB Atlas ở xa (khác nước) thì mỗi lần hỏi database mất
+  vài chục - vài trăm ms, trên laptop sẽ chậm hơn hẳn trên VPS đặt gần database.
+- Số này nhỏ mà trình duyệt vẫn chậm: do mạng / ảnh, hoặc do đang chạy `npm run dev`.
+- `npm run dev` **luôn chậm hơn** bản thật: lần đầu mở mỗi trang phải biên dịch code (vài giây), code chưa được tối ưu.
+  Muốn biết tốc độ thật thì chạy `npm run build` rồi `npm start`. Bản build chỉ in trang chậm hơn 1,5 giây.
 
 ### Thêm / sửa từ ngữ tiếng Nga, tiếng Việt
 

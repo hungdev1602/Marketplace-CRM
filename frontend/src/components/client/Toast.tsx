@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react"
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { usePathname } from "next/navigation"
 
 // ===== Thông báo nhỏ ở cuối màn hình (đã thêm vào giỏ hàng,...), tự ẩn sau vài giây =====

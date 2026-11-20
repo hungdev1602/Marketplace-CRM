@@ -1,12 +1,12 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { getJson, sendJson } from "@/lib/api-client"
 import { cx, formatNumber, formatPrice } from "@/lib/format"
 import { createTranslator } from "@/lib/i18n"
 import { goTo, reloadPage } from "@/lib/top-loader"
-import { mediaUrl } from "@/lib/view-ctx"
+import { mediaSrcSet, mediaUrl } from "@/lib/view-ctx"
 import { FormField } from "../AccountForm"
 import { useShop } from "../ShopProvider"
 
@@ -755,7 +755,7 @@ export function CheckoutView({ data }: { data: any }) {
                 {view.itemList.map((item: any) => (
                   <li key={item.product.id}>
                     <span className="sf-checkout-item-img">
-                      <img src={mediaUrl(ctx, item.product.cardImage)} alt="" loading="lazy" />
+                      <img src={mediaUrl(ctx, item.product.cardImage, 160)} srcSet={mediaSrcSet(ctx, item.product.cardImage, 160)} alt="" loading="lazy" />
                       <span className="sf-checkout-item-qty">{item.quantity}</span>
                     </span>
                     <span className="sf-checkout-item-name">{tName(item.product)}</span>

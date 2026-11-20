@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { AccountForm, FormField } from "@/components/client/AccountForm"
 import { LogoutButton } from "@/components/client/HeaderParts"
 import { ClientShell } from "@/components/client/Shell"

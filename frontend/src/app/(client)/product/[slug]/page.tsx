@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { CartControl } from "@/components/client/CartControl"
 import { LightboxProvider } from "@/components/client/Lightbox"
 import { ProductGallery, ProductTabs } from "@/components/client/ProductDetailParts"
@@ -197,8 +197,11 @@ export default async function ProductDetailPage(props: Props) {
             <div className="row g-4 g-xl-5">
               <div className="col-lg-6">
                 <ProductGallery
-                  mediaList={mediaList.map(media => ({ url: mediaUrl(ctx, media.path), isVideo: Boolean(media.isVideo) }))}
-                  posterUrl={product.cardImage ? mediaUrl(ctx, product.cardImage) : ""}
+                  // Ảnh lớn rộng 960px, ảnh nhỏ bên dưới 160px (server quản lý file thu nhỏ sẵn), video giữ file gốc
+                  mediaList={mediaList.map(media => media.isVideo
+                    ? { url: mediaUrl(ctx, media.path), isVideo: true }
+                    : { url: mediaUrl(ctx, media.path, 960), thumbUrl: mediaUrl(ctx, media.path, 160), isVideo: false })}
+                  posterUrl={product.cardImage ? mediaUrl(ctx, product.cardImage, 960) : ""}
                   fallbackUrl={mediaUrl(ctx, "")}
                   productName={productName}
                 >

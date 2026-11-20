@@ -1,12 +1,12 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { getJson } from "@/lib/api-client"
 import { cx, formatNumber, formatPrice } from "@/lib/format"
 import { createTranslator } from "@/lib/i18n"
 import { reloadPage } from "@/lib/top-loader"
-import { mediaUrl } from "@/lib/view-ctx"
+import { mediaSrcSet, mediaUrl } from "@/lib/view-ctx"
 import { CartControl } from "../CartControl"
 import { useShop } from "../ShopProvider"
 import { useToast } from "../Toast"
@@ -181,7 +181,7 @@ export function CartView({ initialCartView }: { initialCartView: any }) {
                 return (
                   <li key={product.id} className={cx("sf-cart-item", removingId === product.id && "is-removing")}>
                     <Link href={productUrl} className="sf-cart-img" tabIndex={-1} aria-hidden="true">
-                      <img src={mediaUrl(ctx, product.cardImage)} alt="" loading="lazy" />
+                      <img src={mediaUrl(ctx, product.cardImage, 160)} srcSet={mediaSrcSet(ctx, product.cardImage, 160)} alt="" loading="lazy" />
                     </Link>
                     <div className="sf-cart-info">
                       {product.brand && <p className="sf-product-brand">{product.brand}</p>}
@@ -234,7 +234,7 @@ export function CartView({ initialCartView }: { initialCartView: any }) {
                   return (
                     <li key={product.id} className={cx("sf-cart-item is-unavailable", removingId === product.id && "is-removing")}>
                       <span className="sf-cart-img">
-                        <img src={mediaUrl(ctx, product.cardImage)} alt="" loading="lazy" />
+                        <img src={mediaUrl(ctx, product.cardImage, 160)} srcSet={mediaSrcSet(ctx, product.cardImage, 160)} alt="" loading="lazy" />
                       </span>
                       <div className="sf-cart-info">
                         {item.isVisible

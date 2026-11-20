@@ -1,11 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { useRouter } from "next/navigation"
 import { createTranslator } from "@/lib/i18n"
 import { reloadPage } from "@/lib/top-loader"
-import { mediaUrl } from "@/lib/view-ctx"
+import { mediaSrcSet, mediaUrl } from "@/lib/view-ctx"
 import { useShop } from "../ShopProvider"
 import { useToast } from "../Toast"
 import { GuestNote, ProductCard } from "../common"
@@ -112,7 +112,7 @@ export function WishlistView({ wishlistView, canAddAllToCart }: { wishlistView: 
             {unavailableList.map(product => (
               <li key={product.id}>
                 <span className="sf-cart-img">
-                  <img src={mediaUrl(ctx, product.cardImage)} alt="" loading="lazy" />
+                  <img src={mediaUrl(ctx, product.cardImage, 160)} srcSet={mediaSrcSet(ctx, product.cardImage, 160)} alt="" loading="lazy" />
                 </span>
                 <span className="sf-cart-name">{tName(product)}</span>
                 <button type="button" className="sf-link-btn" onClick={() => toggleWishlist(product.id)}>

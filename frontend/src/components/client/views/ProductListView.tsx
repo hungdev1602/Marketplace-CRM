@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { ClientShell } from "@/components/client/Shell"
 import { PageBanner, Pagination, ProductCard } from "@/components/client/common"
 import { ProductFilter, SortSelect } from "@/components/client/ProductFilter"

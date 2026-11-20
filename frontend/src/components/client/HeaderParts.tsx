@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { sendJson } from "@/lib/api-client"
 import { countText, cx } from "@/lib/format"
 import { languageList } from "@/lib/i18n"

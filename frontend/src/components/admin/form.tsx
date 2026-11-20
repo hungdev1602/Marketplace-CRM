@@ -6,6 +6,7 @@ import { isVideoPath } from "@/lib/admin"
 import { cx } from "@/lib/format"
 import { adminCall } from "./api"
 import { useAdmin } from "./AdminProvider"
+import { AdminLink } from "./AdminLink"
 
 // ===== Các ô nhập dùng lại ở các form admin =====
 
@@ -101,7 +102,7 @@ function FilePreview({ value }: { value: string }) {
     <div className="preview-file" style={{ display: "block" }}>
       {isVideoPath(path)
         ? <video src={fileSrc(path)} muted playsInline preload="metadata" controls style={{ display: "block" }}></video>
-        : <img src={fileSrc(path)} alt="" />}
+        : <img src={fileSrc(path, 640)} alt="" />}
     </div>
   )
 }
@@ -479,7 +480,7 @@ export function FormButtons({ submitLabel, cancelHref, isSending }: { submitLabe
   return (
     <>
       <button className="btn btn-primary" type="submit" disabled={isSending}>{submitLabel}</button>
-      {cancelHref && <a className="btn btn-danger ms-1" href={cancelHref}>Hủy</a>}
+      {cancelHref && <AdminLink className="btn btn-danger ms-1" href={cancelHref}>Hủy</AdminLink>}
     </>
   )
 }

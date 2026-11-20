@@ -1,6 +1,8 @@
 // Các khối dùng lại ở trang danh sách / thùng rác của admin (server component)
 import { adminUrl } from "@/lib/admin"
+import { sizedUrl } from "@/lib/media"
 import { ApiButton } from "./ui"
+import { AdminLink } from "./AdminLink"
 
 const iconStyle = { fontSize: "1.2rem" }
 const actionStyle = { margin: "5px" }
@@ -8,10 +10,10 @@ const actionStyle = { margin: "5px" }
 // Nút "Thùng rác" / "Tạo ..." ở đầu trang danh sách
 export function HeaderLink({ href, icon, className = "btn btn-primary", children }: { href: string, icon: string, className?: string, children: React.ReactNode }) {
   return (
-    <a className={className} href={adminUrl(href)}>
+    <AdminLink className={className} href={adminUrl(href)}>
       <i className={`${icon} me-1`}></i>
       {children}
-    </a>
+    </AdminLink>
   )
 }
 
@@ -23,9 +25,9 @@ export function BackLink({ href }: { href: string }) {
 // Biểu tượng sửa (mở trang chỉnh sửa)
 export function EditLink({ href }: { href: string }) {
   return (
-    <a href={adminUrl(href)} style={actionStyle} title="Chỉnh sửa">
+    <AdminLink href={adminUrl(href)} style={actionStyle} title="Chỉnh sửa">
       <i className="fa-solid fa-pen-to-square text-secondary" style={iconStyle}></i>
-    </a>
+    </AdminLink>
   )
 }
 
@@ -55,7 +57,7 @@ export function TrashActions({ undoApi, deleteApi }: { undoApi: string, deleteAp
 // Ảnh nhỏ trong bảng
 export function Thumb({ fileUrl, path }: { fileUrl: string, path?: string }) {
   if(!path) return null
-  return <img src={`${fileUrl}${path}`} className="thumb-md me-1 d-inline rounded" alt="" />
+  return <img src={sizedUrl(`${fileUrl}${path}`, 160)} className="thumb-md me-1 d-inline rounded" alt="" loading="lazy" />
 }
 
 // Nhãn trạng thái theo danh sách { giáTrị: [chữ, class màu] }

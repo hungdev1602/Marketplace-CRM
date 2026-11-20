@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { sendForm, sendJson } from "@/lib/api-client"
 import { cx } from "@/lib/format"
+import { sizedUrl } from "@/lib/media"
 import { createTranslator } from "@/lib/i18n"
 import { goTo } from "@/lib/top-loader"
 import { saveToastForNextPage } from "./Toast"
@@ -287,7 +288,7 @@ export function ReviewForm(props: Props) {
         <ul className="sf-review-upload">
           {photoList.map(photo => (
             <li className="sf-review-upload-item" key={photo.id}>
-              <img src={"keep" in photo ? `${props.fileUrl}${photo.keep}` : photo.url} alt="" />
+              <img src={"keep" in photo ? sizedUrl(`${props.fileUrl}${photo.keep}`, 320) : photo.url} alt="" />
               <button
                 type="button"
                 className="sf-review-upload-remove"

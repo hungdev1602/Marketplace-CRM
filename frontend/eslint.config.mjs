@@ -22,8 +22,8 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    // Trang admin dùng thẻ <a> thường (không dùng <Link>): mỗi lần chuyển trang là tải lại toàn bộ trang,
-    // giống giao diện admin cũ, để form và JS của Bootstrap luôn ở trạng thái mới
+    // Trang admin chuyển trang bằng AdminLink (components/admin/AdminLink.tsx), còn vài thẻ <a> thường
+    // có chủ đích: đăng xuất, tải file Excel (/api/...), link sang trang khách hàng
     files: ["src/app/(admin)/**", "src/components/admin/**"],
     rules: {
       "@next/next/no-html-link-for-pages": "off",

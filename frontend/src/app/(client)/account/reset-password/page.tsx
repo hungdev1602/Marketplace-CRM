@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { AccountForm, FormField } from "@/components/client/AccountForm"
 import { ClientShell } from "@/components/client/Shell"
 import { clientMetadata, loadClientPage, type PageProps } from "@/lib/client-page"

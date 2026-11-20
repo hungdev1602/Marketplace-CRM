@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { useRouter } from "next/navigation"
 import { cx } from "@/lib/format"
 import { createTranslator } from "@/lib/i18n"
