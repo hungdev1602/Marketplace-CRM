@@ -2,6 +2,7 @@
 
 import { Notyf } from "notyf"
 import "notyf/notyf.min.css"
+import { goTo, reloadPage } from "@/lib/top-loader"
 
 // ===== Thông báo ở góc trên bên phải trang admin (thư viện Notyf) =====
 
@@ -30,13 +31,13 @@ export const saveNotify = (type: string, message: string) => {
 // Lưu thông báo rồi tải lại trang (danh sách hiện dữ liệu mới, thông báo hiện sau khi tải lại)
 export const drawNotify = (type: string, message: string) => {
   saveNotify(type, message)
-  window.location.reload()
+  reloadPage()
 }
 
 // Lưu thông báo rồi chuyển sang trang khác
 export const notifyAndGo = (type: string, message: string, url: string) => {
   saveNotify(type, message)
-  window.location.href = url
+  goTo(url)
 }
 
 // Hiện thông báo trang trước để lại (gọi 1 lần khi trang admin mở ra)

@@ -1,6 +1,7 @@
 import type { Viewport } from "next"
 import { cookies } from "next/headers"
 import { ToastProvider } from "@/components/client/Toast"
+import { TopLoader } from "@/components/TopLoader"
 import { defaultLang, languageList } from "@/lib/i18n"
 
 // Khung HTML của mọi trang khách hàng: CSS giao diện, font chữ
@@ -42,6 +43,8 @@ export default async function ClientLayout({ children }: { children: React.React
         ))}
       </head>
       <body className="default_home sfoodie">
+        {/* Thanh loading mỏng ở trên cùng khi chuyển trang, màu cyan của logo */}
+        <TopLoader color="var(--sf-cyan)" />
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>

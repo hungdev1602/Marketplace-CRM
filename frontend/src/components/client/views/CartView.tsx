@@ -5,6 +5,7 @@ import Link from "next/link"
 import { getJson } from "@/lib/api-client"
 import { cx, formatNumber, formatPrice } from "@/lib/format"
 import { createTranslator } from "@/lib/i18n"
+import { reloadPage } from "@/lib/top-loader"
 import { mediaUrl } from "@/lib/view-ctx"
 import { CartControl } from "../CartControl"
 import { useShop } from "../ShopProvider"
@@ -57,7 +58,7 @@ export function CartView({ initialCartView }: { initialCartView: any }) {
         setView(payload.data.cartView)
         setRemovingId("")
       } catch {
-        window.location.reload()
+        reloadPage()
       }
     }, 150)
     return () => {

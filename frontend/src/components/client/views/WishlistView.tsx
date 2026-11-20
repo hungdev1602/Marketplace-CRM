@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createTranslator } from "@/lib/i18n"
+import { reloadPage } from "@/lib/top-loader"
 import { mediaUrl } from "@/lib/view-ctx"
 import { useShop } from "../ShopProvider"
 import { useToast } from "../Toast"
@@ -67,7 +68,7 @@ export function WishlistView({ wishlistView, canAddAllToCart }: { wishlistView: 
     if(!confirm(t("clearWishlistConfirm"))) return
     const data = await request("/wishlist/clear", "DELETE")
     if(data.code === "success") {
-      window.location.reload()
+      reloadPage()
     }
     else {
       showToast(data.message, "error")

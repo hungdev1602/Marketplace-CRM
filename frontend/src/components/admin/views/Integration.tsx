@@ -4,6 +4,7 @@ import { useState } from "react"
 import Swal from "sweetalert2"
 import { adminUrl } from "@/lib/admin"
 import { cx } from "@/lib/format"
+import { reloadPage } from "@/lib/top-loader"
 import { adminRequest } from "../api"
 import { drawNotify, notifyError, notifySuccess } from "../notify"
 
@@ -51,7 +52,7 @@ export function IntegrationTestButton({ integrationKey }: { integrationKey: stri
       onClick={async () => {
         setIsTesting(true)
         if(await runTest(integrationKey)) {
-          window.location.reload()
+          reloadPage()
           return
         }
         setIsTesting(false)
@@ -344,7 +345,7 @@ export function IntegrationForm({ view, groups, isSetting, siteUrl, siteUrlHttps
     }
     notifySuccess(data.message || "")
     await runTest(definition.key)
-    window.location.reload()
+    reloadPage()
   }
 
   return (

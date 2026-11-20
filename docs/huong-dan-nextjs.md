@@ -236,8 +236,11 @@ frontend/
     │   ├── view-ctx.ts         Thông tin chung của trang khách (ngôn ngữ, tài khoản, danh mục...)
     │   ├── client-page.tsx     Lấy dữ liệu trang khách, trang 404
     │   ├── admin.ts            Đường dẫn trang admin ("/admin")
-    │   └── admin-page.tsx      Lấy dữ liệu trang admin, trang "Không có quyền"
+    │   ├── admin-page.tsx      Lấy dữ liệu trang admin, trang "Không có quyền"
+    │   └── top-loader.ts       goTo(), reloadPage(), startTopLoader(): chuyển trang bằng JS có thanh loading
     ├── components/
+    │   ├── TopLoader.tsx       Thanh loading mỏng trên cùng trang khi chuyển trang (dùng cho cả trang khách và admin)
+    │   ├── top-loader.css      Giao diện của thanh loading
     │   ├── client/             Đầu trang, menu, ô tìm kiếm, thẻ sản phẩm, giỏ hàng, đánh giá...
     │   └── admin/              Menu trái, thanh trên, form, bảng, nút thao tác, trình soạn thảo...
     └── app/
@@ -257,6 +260,28 @@ là trang `/product/:slug`: nó gọi `loadClientPage("/product/<slug>")` để 
    chép một trang có sẵn làm mẫu, đổi đường dẫn trong `loadClientPage(...)` / `adminPage(...)`.
 3. Thao tác gửi dữ liệu (POST / PATCH / DELETE) thì gọi `sendJson("/duong-dan", "POST", dữLiệu)` (trang khách)
    hoặc `adminRequest("/duong-dan", "POST", dữLiệu)` (trang admin) — server trả JSON như cũ.
+
+### Thanh loading khi chuyển trang
+
+Thanh mỏng (3px) chạy ở **trên cùng màn hình** mỗi khi mở trang mới: màu cyan của logo ở trang khách,
+màu xanh lá (màu chính) ở trang admin. Thanh nằm ở `src/components/TopLoader.tsx`, được đặt sẵn trong
+2 layout `app/(client)/layout.tsx` và `app/(admin)/admin/layout.tsx`.
+
+- Bấm `<Link>`, thẻ `<a>` thường, gửi form thường: thanh **tự chạy**, không cần viết thêm gì.
+  Trang tải lại cả trang (phần lớn link ở trang admin) thì thanh chạy trong lúc chờ server, trang mới mở ra thì chạy nốt tới hết.
+- Trang mở xong trong 0,1 giây thì không hiện thanh (tránh nháy).
+- Không chạy khi: mở tab mới (Ctrl / ⌘ + bấm, `target="_blank"`), link tải file (`download`, đường dẫn `/api/...`),
+  link sang website khác, link `#mục` trong cùng trang. Link nào không muốn có thanh thì thêm thuộc tính `data-no-loader`.
+- Code JS tự chuyển trang thì dùng hàm trong `src/lib/top-loader.ts` thay cho `window.location`:
+
+  | Thay vì | Dùng |
+  |---|---|
+  | `window.location.href = url` | `goTo(url)` |
+  | `window.location.reload()` | `reloadPage()` |
+  | `router.push(url)` | `startTopLoader(url)` rồi `router.push(url)` |
+
+  Riêng link tải file (ví dụ xuất Excel) vẫn dùng `window.location.href` để thanh không chạy.
+- Đổi màu / độ dày: sửa `color` ở 2 file layout, `height` trong `src/components/top-loader.css`.
 
 ### Thêm / sửa từ ngữ tiếng Nga, tiếng Việt
 

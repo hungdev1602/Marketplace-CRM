@@ -5,6 +5,7 @@ import Link from "next/link"
 import { getJson, sendJson } from "@/lib/api-client"
 import { cx, formatNumber, formatPrice } from "@/lib/format"
 import { createTranslator } from "@/lib/i18n"
+import { goTo, reloadPage } from "@/lib/top-loader"
 import { mediaUrl } from "@/lib/view-ctx"
 import { FormField } from "../AccountForm"
 import { useShop } from "../ShopProvider"
@@ -220,7 +221,7 @@ export function CheckoutView({ data }: { data: any }) {
       resetDelivery()
       setDeliveryMessage({ text: result.message || errorText, type: "error" })
       if(result.field) markInvalid(result.field)
-      if(result.reload) setTimeout(() => window.location.reload(), 2000)
+      if(result.reload) setTimeout(reloadPage, 2000)
       return
     }
 
@@ -471,7 +472,7 @@ export function CheckoutView({ data }: { data: any }) {
 
     if(result.code === "success" && result.redirect) {
       // Giữ nút bị khoá trong lúc chuyển sang trang thanh toán để khách không bấm 2 lần
-      window.location.href = result.redirect
+      goTo(result.redirect)
       return
     }
 
@@ -479,7 +480,7 @@ export function CheckoutView({ data }: { data: any }) {
     setFormMessage({ text: result.message || errorText, type: "error" })
     if(result.field) markInvalid(result.field)
     if(result.recalc) resetDelivery(result.message)
-    if(result.reload) setTimeout(() => window.location.reload(), 2500)
+    if(result.reload) setTimeout(reloadPage, 2500)
   }
 
   const messageElement = (message: Message) => (

@@ -4,6 +4,7 @@ import { useId, useState } from "react"
 import { sendJson } from "@/lib/api-client"
 import { cx } from "@/lib/format"
 import { createTranslator } from "@/lib/i18n"
+import { goTo } from "@/lib/top-loader"
 
 // ===== Form tài khoản khách: đăng nhập, đăng ký, quên mật khẩu, sửa thông tin, đổi mật khẩu =====
 // Gửi bằng fetch (JSON) tới server Express
@@ -45,7 +46,7 @@ export function AccountForm({ lang, action, method = "POST", resetOnSuccess, sub
       if(result.redirect) {
         // Giữ nút bị khoá trong lúc chuyển trang để khách không bấm 2 lần
         // Tải lại toàn bộ trang để đầu trang, giỏ hàng hiện theo tài khoản vừa đăng nhập
-        window.location.href = result.redirect
+        goTo(result.redirect)
         return
       }
       setMessage({ text: result.message || "", type: "success" })
@@ -60,7 +61,7 @@ export function AccountForm({ lang, action, method = "POST", resetOnSuccess, sub
       }
       // Phiên đăng nhập đã hết (trang tài khoản): chuyển về trang đăng nhập
       if(result.redirect) {
-        window.location.href = result.redirect
+        goTo(result.redirect)
         return
       }
     }

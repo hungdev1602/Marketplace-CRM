@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Swal from "sweetalert2"
 import { cx } from "@/lib/format"
+import { goTo } from "@/lib/top-loader"
 import { adminCall } from "./api"
 import { drawNotify, notifySuccess } from "./notify"
 
@@ -64,7 +65,7 @@ const goWithParams = (params: { [key: string]: string }, resetPage: boolean = tr
     else url.searchParams.delete(key)
   }
   if(resetPage) url.searchParams.delete("page")
-  window.location.href = url.href
+  goTo(url.href)
 }
 
 // Ô tìm kiếm theo từ khoá (?keyword=...)

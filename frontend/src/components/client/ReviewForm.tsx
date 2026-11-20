@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { sendForm, sendJson } from "@/lib/api-client"
 import { cx } from "@/lib/format"
 import { createTranslator } from "@/lib/i18n"
+import { goTo } from "@/lib/top-loader"
 import { saveToastForNextPage } from "./Toast"
 
 // ===== Form viết / sửa đánh giá sản phẩm (trang /review/write/:code/:productId) =====
@@ -176,7 +177,7 @@ export function ReviewForm(props: Props) {
 
     if(result.code === "success") {
       if(result.message) saveToastForNextPage(result.message)
-      window.location.href = result.redirect || "/"
+      goTo(result.redirect || "/")
       return
     }
 
@@ -195,7 +196,7 @@ export function ReviewForm(props: Props) {
     const result = await sendJson(`${props.formAction}/delete`, "POST", { key: props.accessKey }, t("errorGeneral"))
     if(result.code === "success") {
       if(result.message) saveToastForNextPage(result.message)
-      window.location.href = result.redirect || "/"
+      goTo(result.redirect || "/")
       return
     }
     setMessage(result.message || "")

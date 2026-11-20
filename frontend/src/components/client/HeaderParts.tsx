@@ -5,6 +5,7 @@ import Link from "next/link"
 import { sendJson } from "@/lib/api-client"
 import { countText, cx } from "@/lib/format"
 import { languageList } from "@/lib/i18n"
+import { goTo } from "@/lib/top-loader"
 import { useShop } from "./ShopProvider"
 
 // Các nút nhỏ ở đầu trang, menu (dùng lại ở đầu trang trên điện thoại, menu máy tính, menu điện thoại)
@@ -125,7 +126,7 @@ export function LogoutButton({ className, children }: { className: string, child
     setIsLoading(true)
     const result = await sendJson("/account/logout", "POST", undefined, errorText)
     // Tải lại toàn bộ trang để đầu trang, giỏ hàng, yêu thích hiện theo khách chưa đăng nhập
-    window.location.href = result.code === "redirect" && result.url ? result.url : "/"
+    goTo(result.code === "redirect" && result.url ? result.url : "/")
   }
 
   return (
