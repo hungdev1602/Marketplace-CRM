@@ -4,11 +4,13 @@ import Link from "@/components/client/ShopLink"
 import { cx, formatNumber, htmlToText } from "@/lib/format"
 import { mediaSrcSet, mediaUrl, translator, type ViewCtx } from "@/lib/view-ctx"
 import { CartControl } from "./CartControl"
+import { CompareButton } from "./CompareButton"
 import { WishlistButton } from "./WishlistButton"
 
 type Ctx = Pick<ViewCtx, "lang" | "fileUrl" | "productOptions" | "clientAccount">
 
 // Thẻ sản phẩm (trang chủ, danh sách sản phẩm, sản phẩm tương tự, yêu thích)
+// Góc trên bên phải ảnh: nút ♡ (yêu thích), bên dưới là nút so sánh, rồi biểu tượng hàng mát / đông lạnh
 // product có thêm thông tin từ addProductDisplayInfo (server/helpers/client-product.helper.ts)
 export function ProductCard({ product, ctx }: { product: any, ctx: Ctx }) {
   const { t, tName, tOption, tCount } = translator(ctx)
@@ -41,6 +43,7 @@ export function ProductCard({ product, ctx }: { product: any, ctx: Ctx }) {
       </Link>
       {/* Nút ♡ ở góc trên bên phải ảnh (đặt ngoài link ảnh để bấm không mở trang sản phẩm) */}
       <WishlistButton product={{ id: product.id, name: product.name, nameRu: product.nameRu }} />
+      <CompareButton product={{ id: product.id, name: product.name, nameRu: product.nameRu }} />
       <div className="sf-product-body">
         {product.brand && <p className="sf-product-brand">{product.brand}</p>}
         <Link href={productUrl} className="sf-product-title">{productName}</Link>

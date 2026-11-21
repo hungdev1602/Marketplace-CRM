@@ -13,6 +13,14 @@ export const productOnSaleFind = {
   $expr: { $gt: ["$priceOld", "$price"] }
 }
 
+// Từ ngữ hạn sử dụng theo đơn vị (locales), ví dụ: 6 + month => "6 месяцев" / "6 tháng"
+// (trang chi tiết sản phẩm, trang so sánh sản phẩm)
+export const shelfLifeKeyList: { [unit: string]: string } = {
+  day: "shelfLifeDay",
+  month: "shelfLifeMonth",
+  year: "shelfLifeYear"
+}
+
 // Kiểu sắp xếp ở trang danh sách sản phẩm
 // - key: từ ngữ hiển thị trong locales (locales/ru.ts, locales/vi.ts)
 export const clientProductSortList = [

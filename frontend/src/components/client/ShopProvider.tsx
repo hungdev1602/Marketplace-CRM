@@ -7,16 +7,19 @@ import { createTranslator } from "@/lib/i18n"
 import type { ViewCtx } from "@/lib/view-ctx"
 import { useToast } from "./Toast"
 
-// ===== Giỏ hàng, yêu thích của khách trên trang đang xem =====
-// Server gửi kèm mỗi trang: số lượng từng sản phẩm trong giỏ (cartQuantityMap), sản phẩm yêu thích (wishlistMap).
-// Khách bấm "В корзину", + −, ♡ thì gửi lên server Express (/cart/add, /cart/update, /wishlist/toggle)
-// rồi cập nhật lại số trên biểu tượng giỏ hàng / yêu thích và tất cả thẻ của sản phẩm đó trên trang.
+// ===== Giỏ hàng, yêu thích, so sánh của khách trên trang đang xem =====
+// Server gửi kèm mỗi trang: số lượng từng sản phẩm trong giỏ (cartQuantityMap), sản phẩm yêu thích (wishlistMap),
+// sản phẩm đang so sánh (compareMap).
+// Khách bấm "В корзину", + −, ♡, "Сравнить" thì gửi lên server Express (/cart/add, /cart/update, /wishlist/toggle,
+// /compare/toggle) rồi cập nhật lại số trên biểu tượng ở đầu trang và tất cả thẻ của sản phẩm đó trên trang.
 
 export type ShopInitial = {
   cartQuantity: number
   cartQuantityMap: { [productId: string]: number }
   wishlistCount: number
   wishlistMap: { [productId: string]: boolean }
+  compareCount: number
+  compareMap: { [productId: string]: boolean }
 }
 
 type ShopState = ShopInitial & {
@@ -38,6 +41,8 @@ type ShopContextValue = {
   changeQuantity: (productId: string, quantity: number) => void
   toggleWishlist: (productId: string) => Promise<ApiResult>
   setWishlistCount: (count: number) => void
+  toggleCompare: (productId: string) => Promise<ApiResult>
+  setCompareCount: (count: number) => void
   request: (path: string, method?: string, data?: any) => Promise<ApiResult>
   // Menu trên điện thoại (bấm nút ☰ ở đầu trang)
   isMobileMenuOpen: boolean
@@ -57,6 +62,8 @@ const toState = (initial: ShopInitial, syncKey: string): ShopState => ({
   cartQuantityMap: initial.cartQuantityMap || {},
   wishlistCount: initial.wishlistCount || 0,
   wishlistMap: initial.wishlistMap || {},
+  compareCount: initial.compareCount || 0,
+  compareMap: initial.compareMap || {},
   maxQuantityMap: {},
   syncKey: syncKey
 })
@@ -88,6 +95,10 @@ export function ShopProvider({ ctx, initial, children }: { ctx: ViewCtx, initial
 
   const setWishlistCount = useCallback((count: number) => {
     setState(current => ({ ...current, wishlistCount: count }))
+  }, [])
+
+  const setCompareCount = useCallback((count: number) => {
+    setState(current => ({ ...current, compareCount: count }))
   }, [])
 
   const setProductQuantity = useCallback((productId: string, quantity: number, maxQuantity?: number) => {
@@ -161,6 +172,34 @@ export function ShopProvider({ ctx, initial, children }: { ctx: ViewCtx, initial
     return data
   }, [request, showToast])
 
+  // Bấm "Сравнить": thêm / bỏ sản phẩm so sánh
+  // Danh sách so sánh nằm trong cookie (server/helpers/compare.helper.ts), nên gửi lần lượt từng yêu cầu:
+  // bấm nhanh 2 sản phẩm liên tiếp thì yêu cầu sau đợi yêu cầu trước lưu cookie xong, không bị mất sản phẩm
+  const compareQueue = useRef<Promise<unknown>>(Promise.resolve())
+
+  const toggleCompare = useCallback((productId: string) => {
+    const run = async (): Promise<ApiResult> => {
+      const data = await request("/compare/toggle", "POST", { productId: productId })
+      if(data.code !== "success") {
+        // Đã đủ số sản phẩm tối đa: thông báo kèm link "Перейти к сравнению"
+        showToast(data.message, "error", data.link)
+        return data
+      }
+
+      setState(current => ({
+        ...current,
+        compareCount: data.compareCount,
+        compareMap: { ...current.compareMap, [productId]: Boolean(data.added) }
+      }))
+      showToast(data.message, "success", data.link)
+      return data
+    }
+
+    const result = compareQueue.current.then(run, run)
+    compareQueue.current = result.catch(() => undefined)
+    return result
+  }, [request, showToast])
+
   // Khách bấm "Quay lại" trên trình duyệt: trang lấy từ bộ nhớ đệm (giỏ hàng, giá có thể đã cũ) nên lấy lại dữ liệu mới
   useEffect(() => {
     const refresh = () => router.refresh()
@@ -188,6 +227,8 @@ export function ShopProvider({ ctx, initial, children }: { ctx: ViewCtx, initial
     changeQuantity,
     toggleWishlist,
     setWishlistCount,
+    toggleCompare,
+    setCompareCount,
     request,
     isMobileMenuOpen,
     setMobileMenuOpen

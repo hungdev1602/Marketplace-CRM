@@ -87,11 +87,21 @@ export function ThemeToggle() {
   )
 }
 
-// Biểu tượng ♡ (yêu thích) và giỏ hàng kèm số lượng (tự cập nhật khi khách thêm / bỏ sản phẩm)
+// Biểu tượng so sánh, ♡ (yêu thích) và giỏ hàng kèm số lượng (tự cập nhật khi khách thêm / bỏ sản phẩm)
+// Biểu tượng so sánh không có chữ (menu máy tính đủ chỗ); đầu trang điện thoại chỉ hiện khi đã có sản phẩm so sánh (is-empty)
 export function ShopIconLinks() {
   const { t, ctx, state } = useShop()
   return (
     <>
+      <Link
+        href="/compare"
+        className={cx("sf-icon-link sf-compare-link", ctx.currentPath == "/compare" && "active", !(state.compareCount > 0) && "is-empty")}
+        aria-label={t("compare")}
+        title={t("compare")}
+      >
+        <i className="fas fa-balance-scale"></i>
+        <span className="sf-count" hidden={!(state.compareCount > 0)}>{countText(state.compareCount)}</span>
+      </Link>
       <Link
         href="/wishlist"
         className={cx("sf-icon-link", ctx.currentPath == "/wishlist" && "active")}

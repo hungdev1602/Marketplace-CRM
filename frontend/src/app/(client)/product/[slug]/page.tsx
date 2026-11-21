@@ -3,6 +3,7 @@ import { CartControl } from "@/components/client/CartControl"
 import { LightboxProvider } from "@/components/client/Lightbox"
 import { ProductGallery, ProductTabs } from "@/components/client/ProductDetailParts"
 import { ReviewSection } from "@/components/client/ReviewSection"
+import { CompareButton } from "@/components/client/CompareButton"
 import { ClientShell } from "@/components/client/Shell"
 import { WishlistButton } from "@/components/client/WishlistButton"
 import { ProductCard, RatingStars } from "@/components/client/common"
@@ -273,6 +274,8 @@ export default async function ProductDetailPage(props: Props) {
                     <CartControl product={cartProduct} large />
                     <WishlistButton product={cartProduct} withText />
                   </div>
+                  {/* Thêm vào trang so sánh (/compare) */}
+                  <CompareButton product={cartProduct} withText />
                   {product.description && (
                     <div className="sf-product-short sf-content" dangerouslySetInnerHTML={{ __html: product.description }}></div>
                   )}

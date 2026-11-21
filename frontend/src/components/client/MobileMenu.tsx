@@ -217,6 +217,15 @@ export function MobileMenu() {
                 </Link>
               </li>
               <li>
+                <Link href="/compare" className={cx("sf-mnav-link", currentPath == "/compare" && "active")} onClick={close}>
+                  <span>
+                    <i className="fas fa-balance-scale"></i>
+                    {t("compare")}
+                  </span>
+                  <span className="sf-count sf-count-inline" hidden={!(state.compareCount > 0)}>{countText(state.compareCount)}</span>
+                </Link>
+              </li>
+              <li>
                 <Link href="/cart" className={cx("sf-mnav-link", currentPath == "/cart" && "active")} onClick={close}>
                   <span>
                     <i className="fas fa-shopping-basket"></i>
