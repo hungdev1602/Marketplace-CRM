@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES6",                // Biên dịch về ES6
-    "module": "CommonJS",            // Hỗ trợ module của Node.js
-    "moduleResolution": "node",      // Hỗ trợ import module từ node_modules
+    "module": "node16",              // Code chạy trên Node.js: file .ts biên dịch ra CommonJS (require) vì package.json không có "type": "module"
+    "moduleResolution": "node16",    // Tìm thư viện trong node_modules đúng cách Node.js tìm (TypeScript 6+ bỏ giá trị cũ "node")
     "esModuleInterop": true,         // Dùng import thay require
     "resolveJsonModule": true,       // Cho phép import file JSON
+    "skipLibCheck": true,            // Không kiểm tra file khai báo kiểu (.d.ts) của thư viện trong node_modules
     "strict": true                   // Bật chế độ kiểm tra chặt chẽ
   }
 }
