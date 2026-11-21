@@ -1,5 +1,5 @@
 // Tạo tài khoản Super Admin (tài khoản đầu tiên để đăng nhập trang admin)
-// Chạy trong thư mục server: yarn create-super-admin
+// Chạy trong thư mục server: npm run create-super-admin
 // - Email chưa có tài khoản: tạo tài khoản Super Admin mới
 // - Email đã có tài khoản: nâng tài khoản đó lên Super Admin, đặt lại mật khẩu và kích hoạt lại
 //   (dùng khi quên mật khẩu Super Admin)

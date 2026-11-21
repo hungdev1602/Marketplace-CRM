@@ -56,15 +56,8 @@ node -v
 
 Cần **Node.js 20.9 trở lên** (Next.js 16 yêu cầu). Nếu thấp hơn, tải bản LTS ở https://nodejs.org rồi cài lại.
 
-```bash
-yarn -v
-```
-
-Nếu báo không có lệnh `yarn`:
-
-```bash
-npm install -g yarn
-```
+Cả 3 thư mục (`server`, `frontend`, repo `file-manager-microservice`) đều dùng **npm** (có sẵn khi cài Node.js), không cần cài yarn.
+File khoá phiên bản thư viện là `package-lock.json`. File `.npmrc` trong mỗi thư mục cho npm tự tải lại khi mạng chập chờn.
 
 MongoDB: dùng như hiện tại (MongoDB cài trên máy hoặc MongoDB Atlas, link trong `server/.env`).
 
@@ -105,11 +98,11 @@ DOMAIN=http://localhost:3001/,http://localhost:3000/
 Chạy server quản lý file (giữ cửa sổ Terminal này mở):
 
 ```bash
-yarn install
+npm install
 ```
 
 ```bash
-yarn start
+npm start
 ```
 
 ### Bước 3: Chạy server Express (thư mục `server`)
@@ -125,11 +118,11 @@ SITE_URL=http://localhost:3001
 Chạy server (giữ cửa sổ này mở):
 
 ```bash
-yarn install
+npm install
 ```
 
 ```bash
-yarn start
+npm start
 ```
 
 Thấy `App listening on port 3000` và `Kết nối database thành công <3` là được.
@@ -146,12 +139,10 @@ cp .env.example .env.local
 
 (Windows PowerShell: `copy .env.example .env.local`.) File này chỉ có 1 dòng `API_URL=http://localhost:3000` — địa chỉ server Express, thường không cần sửa.
 
-> Thư mục `frontend` dùng **npm** (file khoá phiên bản là `package-lock.json`), không dùng yarn như `server` và `file-manager-microservice`.
-
 Cài thư viện (lần đầu, hoặc khi `package.json` / `package-lock.json` thay đổi). Lần đầu mất vài phút:
 
 ```bash
-npm install --fetch-retries=5 --fetch-retry-maxtimeout=120000
+npm install
 ```
 
 Thấy dòng `added ... packages` là cài xong. Dòng `npm warn deprecated` và `... vulnerabilities` không phải lỗi:
@@ -338,6 +329,18 @@ Vẫn sửa ở `server/locales/ru.ts` và `server/locales/vi.ts` — giao diệ
 ## 4. Đưa lên server thật (VPS)
 
 1. Trên VPS, lấy code nhánh mới (hoặc nhánh `main` sau khi đã gộp), cài Node.js 20.9+.
+   Cài thư viện bằng npm trong thư mục `server` và repo `file-manager-microservice` (lần đầu chuyển từ yarn sang npm,
+   `npm ci` tự xoá thư mục `node_modules` cũ của yarn rồi cài lại đúng phiên bản trong `package-lock.json`):
+
+   ```bash
+   cd server && npm ci
+   ```
+
+   ```bash
+   cd file-manager-microservice && npm ci
+   ```
+
+   Đang chạy 2 server này bằng `yarn start` thì đổi thành `npm start` (pm2: xem bước 6).
 2. `server/.env`: `SITE_URL=https://ten-mien-cua-ban.ru` (tên miền thật, **không** có `:3001`).
 3. `file-manager-microservice/.env`: `DOMAIN=https://ten-mien-cua-ban.ru/`.
 4. `frontend/.env.local`: `API_URL=http://127.0.0.1:3000` (đổi `API_URL` thì phải build lại ở bước 5).
@@ -355,7 +358,7 @@ Vẫn sửa ở `server/locales/ru.ts` và `server/locales/vi.ts` — giao diệ
    ```
 
    ```bash
-   cd server && pm2 start yarn --name server -- start
+   cd server && pm2 start npm --name server -- start
    ```
 
    ```bash
@@ -363,7 +366,7 @@ Vẫn sửa ở `server/locales/ru.ts` và `server/locales/vi.ts` — giao diệ
    ```
 
    ```bash
-   cd file-manager-microservice && pm2 start yarn --name file-manager -- start
+   cd file-manager-microservice && pm2 start npm --name file-manager -- start
    ```
 
    ```bash
