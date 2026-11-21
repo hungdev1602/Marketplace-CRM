@@ -1,5 +1,6 @@
 import { adminUrl } from "@/lib/admin"
 import { adminMetadata, adminPage, type AdminPageProps } from "@/lib/admin-page"
+import { AdminLink } from "@/components/admin/AdminLink"
 
 // Cài đặt cửa hàng: /admin/setting/list
 // Khoá API của dịch vụ bên ngoài (Т-Банк, ApiShip, email) và cách gửi hàng, đóng gói, hoá đơn điện tử nằm ở trang Kết nối API
@@ -18,7 +19,7 @@ export default async function SettingListPage(props: AdminPageProps) {
             <h4 className="mb-1">{data.pageTitle}</h4>
             <p className="text-muted mb-0">
               Các cài đặt của website, sửa là có hiệu lực ngay, không cần sửa code hay khởi động lại server.
-              {canIntegration && <> Khoá API, cách gửi hàng, đóng gói, hoá đơn điện tử (54-ФЗ) ở trang <a href={adminUrl("/integration/list")}>Kết nối API</a>.</>}
+              {canIntegration && <> Khoá API, cách gửi hàng, đóng gói, hoá đơn điện tử (54-ФЗ) ở trang <AdminLink href={adminUrl("/integration/list")}>Kết nối API</AdminLink>.</>}
             </p>
           </div>
         </div>
@@ -42,10 +43,10 @@ export default async function SettingListPage(props: AdminPageProps) {
                     {view.updatedAtFormat && <div className="small text-muted">Sửa lúc {view.updatedAtFormat} · {view.updatedBy}</div>}
                   </div>
                   <div className="card-footer bg-transparent text-end">
-                    <a className="btn btn-sm btn-primary" href={adminUrl(`/setting/edit/${definition.key}`)}>
+                    <AdminLink className="btn btn-sm btn-primary" href={adminUrl(`/setting/edit/${definition.key}`)}>
                       <i className="fa-solid fa-pen me-1"></i>
                       Sửa
-                    </a>
+                    </AdminLink>
                   </div>
                 </div>
               </div>

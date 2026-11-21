@@ -1,9 +1,9 @@
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { ReviewForm } from "@/components/client/ReviewForm"
 import { ClientShell } from "@/components/client/Shell"
 import { PageBanner } from "@/components/client/common"
 import { clientMetadata, loadClientPage, type PageProps } from "@/lib/client-page"
-import { makeCtx, mediaUrl, translator } from "@/lib/view-ctx"
+import { makeCtx, mediaSrcSet, mediaUrl, translator } from "@/lib/view-ctx"
 
 // Trang viết / sửa đánh giá sản phẩm: /review/write/:code/:productId?key=...&rating=5
 // Chỉ khách đã nhận đơn hàng có sản phẩm này mới viết được
@@ -41,7 +41,7 @@ export default async function ReviewWritePage(props: Props) {
           <div className="sf-review-layout">
             <div className="sf-account-box sf-review-product">
               <span className="sf-order-item-img">
-                <img src={mediaUrl(ctx, data.productImage)} alt="" />
+                <img src={mediaUrl(ctx, data.productImage, 320)} srcSet={mediaSrcSet(ctx, data.productImage, 320)} alt="" />
               </span>
               <div>
                 {product && product.status == "active"

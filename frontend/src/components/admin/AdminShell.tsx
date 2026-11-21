@@ -1,8 +1,9 @@
 import { adminUrl } from "@/lib/admin"
 import { cx } from "@/lib/format"
 import { Startbar, Topbar } from "./AdminNav"
-import { AdminProvider } from "./AdminProvider"
+import { AdminContent, AdminProvider } from "./AdminProvider"
 import { FileManagerModal } from "./FileManagerModal"
+import { AdminLink } from "./AdminLink"
 
 // Khung của mọi trang admin: thanh trên cùng, menu bên trái, nội dung trang, cửa sổ chọn file
 // data: dữ liệu server Express trả về cho trang (có sẵn tài khoản đang đăng nhập và danh sách quyền)
@@ -15,7 +16,7 @@ export function AdminShell({ data, blank, children }: { data: any, blank?: boole
   }
 
   if(blank) {
-    return <AdminProvider value={value}>{children}</AdminProvider>
+    return <AdminProvider value={value}><AdminContent>{children}</AdminContent></AdminProvider>
   }
 
   return (
@@ -24,7 +25,7 @@ export function AdminShell({ data, blank, children }: { data: any, blank?: boole
       <Startbar />
       <div className="page-wrapper">
         <div className="page-content">
-          <div className="container-xxl">{children}</div>
+          <div className="container-xxl"><AdminContent>{children}</AdminContent></div>
           <footer className="footer text-center text-sm-start d-print-none">
             <div className="container-xxl">
               <div className="row">
@@ -70,10 +71,10 @@ export function Forbidden({ data }: { data: any }) {
                 : "Vui lòng liên hệ Super Admin để được cấp quyền."}
             </p>
             {canDashboard && (
-              <a className="btn btn-primary" href={adminUrl("/dashboard")}>
+              <AdminLink className="btn btn-primary" href={adminUrl("/dashboard")}>
                 <i className="fa-solid fa-house me-1"></i>
                 Về trang tổng quan
-              </a>
+              </AdminLink>
             )}
           </div>
         </div>

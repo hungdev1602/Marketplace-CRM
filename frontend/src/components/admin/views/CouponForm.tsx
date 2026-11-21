@@ -39,7 +39,7 @@ function ProductPicker({ selectedList, setSelectedList, error }: {
   const productInfo = (product: PickerProduct) => (
     <div className="d-flex align-items-center gap-2 flex-grow-1">
       {product.avatar
-        ? <img src={fileSrc(product.avatar)} className="thumb-md rounded" style={{ objectFit: "contain" }} alt="" />
+        ? <img src={fileSrc(product.avatar, 160)} className="thumb-md rounded" style={{ objectFit: "contain" }} alt="" />
         : <span className="thumb-md rounded bg-light d-inline-block"></span>}
       <div>
         <div className="fw-medium">

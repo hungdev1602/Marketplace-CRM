@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { adminUrl } from "@/lib/admin"
+import { goTo } from "@/lib/top-loader"
 import { adminCall } from "../api"
 import { PasswordInput, formValues, isEmail, required, validate, type Errors, FieldError } from "../form"
 import { saveNotify, showSavedNotify } from "../notify"
@@ -38,7 +39,7 @@ export function LoginForm() {
     if(data) {
       // Lưu thông báo, sang trang tổng quan sẽ hiện thông báo
       saveNotify(data.code, data.message || "")
-      window.location.href = adminUrl("/dashboard")
+      goTo(adminUrl("/dashboard"))
       return
     }
     setIsSending(false)

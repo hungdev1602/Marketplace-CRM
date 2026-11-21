@@ -1,6 +1,7 @@
 import { ProductImportForm } from "@/components/admin/views/ProductExcel"
 import { adminApiUrl, adminUrl } from "@/lib/admin"
 import { adminMetadata, adminPage, type AdminPageProps } from "@/lib/admin-page"
+import { AdminLink } from "@/components/admin/AdminLink"
 
 // Nhập sản phẩm từ Excel: /admin/product/import
 // Dữ liệu: hàm importPage ở server/controller/admin/product-excel.controller.ts
@@ -26,10 +27,10 @@ export default async function ProductImportPage(props: AdminPageProps) {
                 </div>
                 <div className="col-auto">
                   {can("product-list") && (
-                    <a className="btn btn-secondary" href={adminUrl("/product/list")}>
+                    <AdminLink className="btn btn-secondary" href={adminUrl("/product/list")}>
                       <i className="fa-solid fa-list me-1"></i>
                       Danh sách sản phẩm
-                    </a>
+                    </AdminLink>
                   )}
                 </div>
               </div>
@@ -62,10 +63,10 @@ export default async function ProductImportPage(props: AdminPageProps) {
                       Vào Danh sách sản phẩm, lọc sản phẩm cần sửa rồi bấm &quot;Xuất Excel&quot;. Sửa giá, tồn kho... trong file đó rồi tải lên lại. Ô để trống giữ nguyên thông tin cũ.
                     </p>
                     {can("product-export") && can("product-list") && (
-                      <a className="btn btn-info btn-sm" href={adminUrl("/product/list")}>
+                      <AdminLink className="btn btn-info btn-sm" href={adminUrl("/product/list")}>
                         <i className="fa-solid fa-file-export me-1"></i>
                         Đến trang xuất Excel
-                      </a>
+                      </AdminLink>
                     )}
                   </div>
                 </div>

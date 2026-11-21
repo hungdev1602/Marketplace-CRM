@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Script from "next/script"
+import { TopLoader } from "@/components/TopLoader"
 
 // Khung HTML của mọi trang admin: CSS giao diện admin, JS của Bootstrap (menu thả xuống, cửa sổ modal)
 // (thanh trên cùng, menu trái nằm ở components/admin/AdminShell.tsx vì cần dữ liệu tài khoản của từng trang)
@@ -25,6 +26,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         ))}
       </head>
       <body suppressHydrationWarning>
+        {/* Thanh loading mỏng ở trên cùng khi chuyển trang, màu chính (xanh lá) của trang admin */}
+        <TopLoader color="var(--bs-primary)" />
         {children}
         <Script src="/admin/assets/libs/bootstrap/js/bootstrap.bundle.min.js" strategy="afterInteractive" />
       </body>

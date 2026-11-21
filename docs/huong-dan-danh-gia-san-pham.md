@@ -57,7 +57,7 @@ Không có thư viện mới, nhưng chạy lại cho chắc:
 
 ```bash
 cd server
-yarn install
+npm install
 ```
 
 ## Bước 2 — Chạy server Quản lý file (repo file-manager-microservice)
@@ -66,7 +66,7 @@ yarn install
 Mở **terminal thứ 2** trong thư mục repo `file-manager-microservice`:
 
 ```bash
-yarn start
+npm start
 ```
 
 Kiểm tra file `.env` của repo này có dòng `DOMAIN` chứa địa chỉ website (có dấu `/` ở cuối), nếu không ảnh sẽ không hiện:
@@ -80,7 +80,7 @@ DOMAIN=http://localhost:3000/
 Trong terminal đầu tiên (thư mục `Marketplace-CRM/server`):
 
 ```bash
-yarn start
+npm start
 ```
 
 ## Bước 4 — Thử tính năng trên máy

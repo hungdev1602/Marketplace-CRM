@@ -1,10 +1,10 @@
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { AccountForm } from "@/components/client/AccountForm"
 import { ClientShell } from "@/components/client/Shell"
 import { PageBanner, RatingStars, StarLinks } from "@/components/client/common"
 import { clientMetadata, loadClientPage, type PageProps } from "@/lib/client-page"
 import { cx, formatPrice } from "@/lib/format"
-import { makeCtx, mediaUrl, translator } from "@/lib/view-ctx"
+import { makeCtx, mediaSrcSet, mediaUrl, translator } from "@/lib/view-ctx"
 
 // Trang đơn hàng: /order/:code?key=...
 // Khách chưa đăng nhập xem đơn bằng mã bí mật key trong link, khách đã đăng nhập xem được đơn của tài khoản
@@ -183,7 +183,7 @@ export default async function OrderDetailPage(props: Props) {
                     return (
                       <li key={`${item.productId}-${index}`}>
                         <span className="sf-order-item-img">
-                          <img src={mediaUrl(ctx, item.image)} alt="" loading="lazy" />
+                          <img src={mediaUrl(ctx, item.image, 160)} srcSet={mediaSrcSet(ctx, item.image, 160)} alt="" loading="lazy" />
                         </span>
                         <div className="sf-order-item-info">
                           {item.slug ? <Link href={`/product/${item.slug}`}>{tName(item)}</Link> : <span>{tName(item)}</span>}

@@ -1,10 +1,11 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { getJson, sendJson } from "@/lib/api-client"
 import { cx, formatNumber } from "@/lib/format"
 import { createTranslator } from "@/lib/i18n"
+import { sizedSrcSet, sizedUrl } from "@/lib/media"
 import { RatingStars } from "./common"
 import { ReviewPhotos, useLightbox } from "./Lightbox"
 import { useToast } from "./Toast"
@@ -227,7 +228,9 @@ export function ReviewSection(props: Props) {
   const loadingMoreRef = useRef(false)
 
   const hasCustomerPhotos = (reviewSummary.photoList || []).length > 0
+  // Link ảnh gốc của khách; ảnh nhỏ trong danh sách 160px, xem lớn 1920px (server quản lý file thu nhỏ sẵn)
   const photoUrlList: string[] = (reviewSummary.photoList || []).map((photo: any) => `${fileUrl}${photo.path}`)
+  const photoLargeList = photoUrlList.map(url => sizedUrl(url, 1920))
 
   // Mũi tên ‹ ›: khoá khi đã ở đầu / cuối slider
   const updateArrows = useCallback(() => {
@@ -479,8 +482,8 @@ export function ReviewSection(props: Props) {
             <ul>
               {photoUrlList.map((url, index) => (
                 <li key={url}>
-                  <button type="button" aria-label={`${t("reviewPhoto")} ${index + 1}`} onClick={() => openLightbox(photoUrlList, index)}>
-                    <img src={url} alt="" loading="lazy" />
+                  <button type="button" aria-label={`${t("reviewPhoto")} ${index + 1}`} onClick={() => openLightbox(photoLargeList, index)}>
+                    <img src={sizedUrl(url, 160)} srcSet={sizedSrcSet(url, 160)} alt="" loading="lazy" />
                   </button>
                 </li>
               ))}

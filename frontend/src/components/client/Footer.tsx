@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { languageList } from "@/lib/i18n"
 import { telHref, translator, type ViewCtx } from "@/lib/view-ctx"
 

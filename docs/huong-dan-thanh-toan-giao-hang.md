@@ -25,7 +25,7 @@ Tính năng này nằm trên nhánh `claude/stoic-hopper-7u2k9g` (tách ra từ 
 git fetch origin
 git checkout claude/stoic-hopper-7u2k9g
 cd server
-yarn install
+npm install
 ```
 
 ## Bước 2 — Thêm cấu hình vào file `server/.env`
@@ -59,7 +59,7 @@ Cùng phần đó còn có các tuỳ chọn: miễn phí giao hàng từ bao nh
 ## Bước 4 — Chạy và thử
 
 ```bash
-yarn start
+npm start
 ```
 
 1. Mở http://localhost:3000, thêm sản phẩm vào giỏ, bấm «Оформить заказ».
@@ -100,7 +100,7 @@ Cửa hàng dùng **Интернет-эквайринг** của Т-Банк, ti�
    TBANK_PASSWORD=mật-khẩu-terminal-DEMO
    PAYMENT_TEST_MODE=false
    ```
-2. Khởi động lại server (`yarn start`), đặt hàng → bạn được chuyển sang trang thanh toán của Т-Банк.
+2. Khởi động lại server (`npm start`), đặt hàng → bạn được chuyển sang trang thanh toán của Т-Банк.
 3. Thanh toán bằng **thẻ thử của Т-Банк** (danh sách thẻ thử có trong trang terminal thử nghiệm và tài liệu Т-Банк, mục *Тестирование / Тест-кейсы*). Thẻ thật không dùng được trên terminal DEMO.
 4. Trên laptop Т-Банк không gửi được thông báo về máy bạn, nhưng server tự hỏi Т-Банк trạng thái khi khách quay lại trang đơn hàng và mỗi phút một lần, nên vẫn chạy đúng.
 5. Trong trang terminal DEMO có thể có các bài kiểm tra (*Тестировать*) — Т-Банк có thể yêu cầu làm xong trước khi mở terminal thật.

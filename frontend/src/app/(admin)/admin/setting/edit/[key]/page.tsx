@@ -1,6 +1,7 @@
 import { CopyInput, IntegrationForm } from "@/components/admin/views/Integration"
 import { adminUrl } from "@/lib/admin"
 import { adminMetadata, adminPage, type AdminPageProps } from "@/lib/admin-page"
+import { AdminLink } from "@/components/admin/AdminLink"
 
 // Sửa 1 mục cài đặt cửa hàng: /admin/setting/edit/:key (dùng chung form với trang Kết nối API)
 // Dữ liệu: hàm edit ở server/controller/admin/setting.controller.ts
@@ -22,10 +23,10 @@ export default async function SettingEditPage(props: Props) {
       <>
         <div className="row mb-3 align-items-center">
           <div className="col">
-            <a className="text-muted" href={listUrl}>
+            <AdminLink className="text-muted" href={listUrl}>
               <i className="fa-solid fa-arrow-left me-1"></i>
               {isSetting ? "Cài đặt cửa hàng" : "Kết nối API"}
-            </a>
+            </AdminLink>
             <h4 className="mt-2 mb-0">
               <i className={`${definition.icon} me-2`}></i>
               {definition.name}

@@ -2,6 +2,8 @@
 
 import { Notyf } from "notyf"
 import "notyf/notyf.min.css"
+import { goTo, reloadPage } from "@/lib/top-loader"
+import { adminGo, adminReload, getAdminNavigator } from "./navigation"
 
 // ===== Thông báo ở góc trên bên phải trang admin (thư viện Notyf) =====
 
@@ -27,16 +29,32 @@ export const saveNotify = (type: string, message: string) => {
   } catch {}
 }
 
-// Lưu thông báo rồi tải lại trang (danh sách hiện dữ liệu mới, thông báo hiện sau khi tải lại)
-export const drawNotify = (type: string, message: string) => {
-  saveNotify(type, message)
-  window.location.reload()
+const showNotify = (type: string, message: string) => {
+  if(type === "success") notifySuccess(message)
+  else if(type === "error") notifyError(message)
 }
 
-// Lưu thông báo rồi chuyển sang trang khác
-export const notifyAndGo = (type: string, message: string, url: string) => {
+// Hiện thông báo rồi lấy lại dữ liệu mới của trang (danh sách hiện dữ liệu mới)
+// Không chuyển trang được kiểu Next.js (trang đăng nhập,...) thì lưu thông báo, tải lại cả trang rồi mới hiện
+export const drawNotify = (type: string, message: string) => {
+  if(getAdminNavigator()) {
+    showNotify(type, message)
+    adminReload()
+    return
+  }
   saveNotify(type, message)
-  window.location.href = url
+  reloadPage()
+}
+
+// Hiện thông báo rồi chuyển sang trang khác (thông báo vẫn hiện ở trang mới vì không tải lại cả trang)
+export const notifyAndGo = (type: string, message: string, url: string) => {
+  if(getAdminNavigator()) {
+    showNotify(type, message)
+    adminGo(url)
+    return
+  }
+  saveNotify(type, message)
+  goTo(url)
 }
 
 // Hiện thông báo trang trước để lại (gọi 1 lần khi trang admin mở ra)

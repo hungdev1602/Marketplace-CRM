@@ -1,8 +1,8 @@
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { ClientShell } from "@/components/client/Shell"
 import { PageBanner } from "@/components/client/common"
 import { clientMetadata, loadClientPage, type PageProps } from "@/lib/client-page"
-import { makeCtx, mediaUrl, translator } from "@/lib/view-ctx"
+import { makeCtx, mediaSrcSet, mediaUrl, translator } from "@/lib/view-ctx"
 
 // Trang tất cả danh mục: /categories
 
@@ -30,7 +30,7 @@ export default async function CategoriesPage({ searchParams }: PageProps) {
                   <Link href={`/category/${item.slug}`} className="sf-category-tree-head">
                     <span className="sf-category-img">
                       {item.avatar
-                        ? <img src={mediaUrl(ctx, item.avatar)} alt={tName(item)} loading="lazy" />
+                        ? <img src={mediaUrl(ctx, item.avatar, 320)} srcSet={mediaSrcSet(ctx, item.avatar, 320)} alt={tName(item)} loading="lazy" />
                         : <i className="fas fa-utensils"></i>}
                     </span>
                     <b>{tName(item)}</b>

@@ -113,8 +113,16 @@ const getViewsVersion = (dir: string): string => {
     })
     .join("|")
 }
+// Đọc lại thư mục views tốn thời gian (hơn 100 file, đọc từng file), nên chỉ kiểm tra tối đa 1 lần / 3 giây
+// thay vì ở mọi request (mỗi lần mở trang, thêm giỏ hàng, gõ tìm kiếm...)
 let viewsVersion = getViewsVersion(viewsPath)
+let viewsCheckedAt = Date.now()
 app.use((req, res, next) => {
+  if(Date.now() - viewsCheckedAt < 3000) {
+    next()
+    return
+  }
+  viewsCheckedAt = Date.now()
   const currentVersion = getViewsVersion(viewsPath)
   if(currentVersion !== viewsVersion) {
     viewsVersion = currentVersion;

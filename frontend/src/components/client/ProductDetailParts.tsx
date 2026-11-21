@@ -5,7 +5,8 @@ import { cx } from "@/lib/format"
 
 // Các phần bấm được ở trang chi tiết sản phẩm: album ảnh / video, các tab thông tin
 
-type Media = { url: string, isVideo: boolean }
+// url: ảnh lớn / video, thumbUrl: ảnh nhỏ ở hàng bên dưới (không có thì dùng url)
+type Media = { url: string, thumbUrl?: string, isVideo: boolean }
 
 // Ảnh / video sản phẩm: bấm vào danh sách nhỏ để xem ở khung lớn
 // (giống Ozon, Wildberries: video đứng đầu danh sách, tự phát không tiếng)
@@ -79,7 +80,7 @@ export function ProductGallery({ mediaList, posterUrl, fallbackUrl, productName,
                   <span className="sf-thumb-play"><i className="fas fa-play"></i></span>
                 </>
               ) : (
-                <img src={media.url} alt="" loading="lazy" />
+                <img src={media.thumbUrl || media.url} alt="" loading="lazy" />
               )}
             </button>
           ))}

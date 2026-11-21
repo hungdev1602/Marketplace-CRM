@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { ClientShell } from "@/components/client/Shell"
 import { loadPage } from "@/lib/server-api"
 import { makeCtx, translator } from "@/lib/view-ctx"

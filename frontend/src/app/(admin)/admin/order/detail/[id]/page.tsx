@@ -1,6 +1,8 @@
 import { ActionButton, TextPatchForm } from "@/components/admin/ActionButton"
 import { adminUrl } from "@/lib/admin"
+import { sizedUrl } from "@/lib/media"
 import { adminMetadata, adminPage, type AdminPageProps } from "@/lib/admin-page"
+import { AdminLink } from "@/components/admin/AdminLink"
 
 // Chi tiết đơn hàng: /admin/order/detail/:id
 // Dữ liệu: hàm detail ở server/controller/admin/order.controller.ts
@@ -53,10 +55,10 @@ export default async function OrderDetailPage(props: Props) {
       <>
         <div className="row mb-3 align-items-center">
           <div className="col">
-            <a className="text-muted" href={adminUrl("/order/list")}>
+            <AdminLink className="text-muted" href={adminUrl("/order/list")}>
               <i className="fa-solid fa-arrow-left me-1"></i>
               Danh sách đơn hàng
-            </a>
+            </AdminLink>
             <h4 className="mt-2 mb-0">
               <span className="font-monospace">{order.code}</span>
               {order.statusInfo && <span className={`badge ${order.statusInfo.color} ms-2 align-middle`}>{order.statusInfo.name}</span>}
@@ -85,7 +87,7 @@ export default async function OrderDetailPage(props: Props) {
                 {!data.apishipConfigured ? (
                   <div className="alert alert-warning">
                     Chưa cấu hình ApiShip (hoặc kết nối ApiShip đang tắt) — chưa tạo được vận đơn.
-                    {canIntegration && <> <a href={adminUrl("/integration/edit/apiship")}>Cấu hình ApiShip</a></>}
+                    {canIntegration && <> <AdminLink href={adminUrl("/integration/edit/apiship")}>Cấu hình ApiShip</AdminLink></>}
                   </div>
                 ) : data.apishipTest ? (
                   <div className="alert alert-info py-2">
@@ -203,7 +205,7 @@ export default async function OrderDetailPage(props: Props) {
                           <div className="alert alert-warning py-2">
                             <i className="fa-solid fa-triangle-exclamation me-1"></i>
                             Chưa điền đủ địa chỉ kho / người liên hệ (Kết nối API → ApiShip → Kho gửi hàng). Hãng vận chuyển cần thông tin này để lấy hàng.
-                            {canIntegration && <> <a href={adminUrl("/integration/edit/apiship")}>Điền ngay</a></>}
+                            {canIntegration && <> <AdminLink href={adminUrl("/integration/edit/apiship")}>Điền ngay</AdminLink></>}
                           </div>
                         )}
                         {canEdit && data.apishipConfigured && (
@@ -263,7 +265,7 @@ export default async function OrderDetailPage(props: Props) {
                       <tr key={`${item.productId}-${index}`}>
                         <td>
                           <div className="d-flex align-items-center gap-2">
-                            {item.image && <img src={`${fileUrl}${item.image}`} alt="" style={{ width: "44px", height: "44px", objectFit: "contain", borderRadius: "6px" }} />}
+                            {item.image && <img src={sizedUrl(`${fileUrl}${item.image}`, 160)} alt="" style={{ width: "44px", height: "44px", objectFit: "contain", borderRadius: "6px" }} />}
                             <div>
                               <div className="fw-medium">{item.name}</div>
                               {item.nameRu && <div className="small text-muted">{item.nameRu}</div>}

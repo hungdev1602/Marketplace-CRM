@@ -2,6 +2,7 @@
 // (các biến res.locals ở server/middlewares/client: ngôn ngữ, tài khoản, giỏ hàng, danh mục,...)
 // Là dữ liệu thuần (không có hàm), nên truyền được từ server component xuống client component
 import { createTranslator } from "./i18n"
+import { sizedSrcSet, sizedUrl } from "./media"
 
 export type ViewCtx = {
   lang: string // ngôn ngữ khách đang chọn: "ru" | "vi"
@@ -32,8 +33,14 @@ export const makeCtx = (data: any): ViewCtx => ({
 })
 
 // Link ảnh lưu ở server quản lý file, chưa có ảnh thì dùng ảnh mặc định
-export const mediaUrl = (ctx: { fileUrl: string }, path: string | null | undefined): string => {
-  return path ? `${ctx.fileUrl}${path}` : "/client/assets/images/no-image.svg"
+// - width: chiều rộng ảnh trên trang (px) => server trả ảnh đã thu nhỏ (lib/media.ts). Bỏ trống = file gốc (video, ảnh xem lớn)
+export const mediaUrl = (ctx: { fileUrl: string }, path: string | null | undefined, width?: number): string => {
+  return path ? sizedUrl(`${ctx.fileUrl}${path}`, width) : "/client/assets/images/no-image.svg"
+}
+
+// srcSet của ảnh: màn hình nét (điện thoại, Retina) lấy ảnh gấp đôi width. Chưa có ảnh thì không cần
+export const mediaSrcSet = (ctx: { fileUrl: string }, path: string | null | undefined, width: number): string | undefined => {
+  return path ? sizedSrcSet(`${ctx.fileUrl}${path}`, width) : undefined
 }
 
 // Bộ hàm dịch theo ngôn ngữ của trang

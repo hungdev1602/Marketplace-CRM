@@ -1,10 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { useRouter } from "next/navigation"
 import { cx } from "@/lib/format"
 import { createTranslator } from "@/lib/i18n"
+import { startTopLoader } from "@/lib/top-loader"
 
 // Bộ lọc ở trang danh sách sản phẩm (cột bên trái) và ô sắp xếp
 // Gửi form là chuyển sang đường dẫn có bộ lọc, ví dụ /products?origin=VN&priceMax=500
@@ -42,7 +43,9 @@ export function ProductFilter(props: Props) {
     }
     const query = params.toString()
     setIsOpen(false)
-    router.push(props.formAction + (query ? `?${query}` : ""))
+    const url = props.formAction + (query ? `?${query}` : "")
+    startTopLoader(url)
+    router.push(url)
   }
 
   const checkbox = (name: string, value: string, label: string, checked: boolean) => {

@@ -1,9 +1,12 @@
 "use client"
 
 import { useState } from "react"
+import { usePathname, useSearchParams } from "next/navigation"
 import Swal from "sweetalert2"
 import { cx } from "@/lib/format"
+import { AdminLink } from "./AdminLink"
 import { adminCall } from "./api"
+import { adminGo } from "./navigation"
 import { drawNotify, notifySuccess } from "./notify"
 
 // ===== Các khối giao diện nhỏ dùng lại ở nhiều trang admin =====
@@ -55,7 +58,7 @@ export function ApiButton({ api, method = "GET", className, style, title, childr
   )
 }
 
-// Đổi tham số trên đường dẫn rồi tải lại trang: giá trị trống thì bỏ tham số
+// Đổi tham số trên đường dẫn rồi mở trang mới (không tải lại cả trang): giá trị trống thì bỏ tham số
 // Lọc / tìm lại thì quay về trang 1
 const goWithParams = (params: { [key: string]: string }, resetPage: boolean = true) => {
   const url = new URL(window.location.href)
@@ -64,7 +67,7 @@ const goWithParams = (params: { [key: string]: string }, resetPage: boolean = tr
     else url.searchParams.delete(key)
   }
   if(resetPage) url.searchParams.delete("page")
-  window.location.href = url.href
+  adminGo(`${url.pathname}${url.search}`)
 }
 
 // Ô tìm kiếm theo từ khoá (?keyword=...)
@@ -119,15 +122,18 @@ export function FilterSelect({ name, value, className = "form-select", children 
 }
 
 // Phân trang: 1 … 4 5 [6] 7 8 … 20, bấm số trang thì đổi ?page= trên đường dẫn (giữ nguyên bộ lọc đang chọn)
+// Mỗi số trang là 1 link thật (AdminLink): chuyển trang không tải lại, Ctrl + bấm thì mở tab mới
 export function AdminPagination({ totalPage, page }: { totalPage: number, page?: number }) {
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const totalPages = totalPage || 0
   const currentPage = page || 1
   if(!(totalPages > 1)) return null
 
-  const go = (event: React.MouseEvent, target: number) => {
-    event.preventDefault()
-    if(target < 1 || target > totalPages || target === currentPage) return
-    goWithParams({ page: `${target}` }, false)
+  const pageHref = (target: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("page", `${target}`)
+    return `${pathname}?${params.toString()}`
   }
 
   // Các trang ở giữa (điều chỉnh để hiển thị cân đối ở đầu và cuối danh sách)
@@ -142,7 +148,9 @@ export function AdminPagination({ totalPage, page }: { totalPage: number, page?:
 
   const pageItem = (target: number) => (
     <li className={cx("page-item", currentPage === target && "active")} key={target}>
-      <a className="page-link" href="#" onClick={event => go(event, target)}>{target}</a>
+      {currentPage === target
+        ? <span className="page-link" aria-current="page">{target}</span>
+        : <AdminLink className="page-link" href={pageHref(target)}>{target}</AdminLink>}
     </li>
   )
 
@@ -151,7 +159,9 @@ export function AdminPagination({ totalPage, page }: { totalPage: number, page?:
       <nav aria-label="Phân trang">
         <ul className="pagination justify-content-center">
           <li className={cx("page-item", currentPage === 1 && "disabled")}>
-            <a className="page-link" href="#" aria-label="Previous" onClick={event => go(event, currentPage - 1)}>&laquo;</a>
+            {currentPage > 1
+              ? <AdminLink className="page-link" href={pageHref(currentPage - 1)} aria-label="Previous">&laquo;</AdminLink>
+              : <span className="page-link" aria-label="Previous">&laquo;</span>}
           </li>
           {pageItem(1)}
           {currentPage > 3 && (
@@ -163,7 +173,9 @@ export function AdminPagination({ totalPage, page }: { totalPage: number, page?:
           )}
           {pageItem(totalPages)}
           <li className={cx("page-item", currentPage === totalPages && "disabled")}>
-            <a className="page-link" href="#" aria-label="Next" onClick={event => go(event, currentPage + 1)}>&raquo;</a>
+            {currentPage < totalPages
+              ? <AdminLink className="page-link" href={pageHref(currentPage + 1)} aria-label="Next">&raquo;</AdminLink>
+              : <span className="page-link" aria-label="Next">&raquo;</span>}
           </li>
         </ul>
       </nav>

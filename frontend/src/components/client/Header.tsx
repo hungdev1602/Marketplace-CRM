@@ -1,10 +1,10 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { cx } from "@/lib/format"
 import { createTranslator, languageList } from "@/lib/i18n"
-import { mediaUrl, telHref } from "@/lib/view-ctx"
+import { mediaSrcSet, mediaUrl, telHref } from "@/lib/view-ctx"
 import { AccountLink, MobileMenuButton, ShopIconLinks, ThemeToggle } from "./HeaderParts"
 import { SearchBox } from "./SearchBox"
 import { useShop } from "./ShopProvider"
@@ -128,7 +128,7 @@ export function MainMenu() {
                       <Link href={`/category/${item.slug}`} onClick={closeCategory}>
                         <span>
                           {item.avatar
-                            ? <img alt={tName(item)} src={mediaUrl(ctx, item.avatar)} loading="lazy" />
+                            ? <img alt={tName(item)} src={mediaUrl(ctx, item.avatar, 160)} srcSet={mediaSrcSet(ctx, item.avatar, 160)} loading="lazy" />
                             : <i className="fas fa-utensils"></i>}
                         </span>
                         {tName(item)}

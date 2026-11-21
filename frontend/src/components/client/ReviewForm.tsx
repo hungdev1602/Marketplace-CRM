@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react"
 import { sendForm, sendJson } from "@/lib/api-client"
 import { cx } from "@/lib/format"
+import { sizedUrl } from "@/lib/media"
 import { createTranslator } from "@/lib/i18n"
+import { goTo } from "@/lib/top-loader"
 import { saveToastForNextPage } from "./Toast"
 
 // ===== Form viết / sửa đánh giá sản phẩm (trang /review/write/:code/:productId) =====
@@ -176,7 +178,7 @@ export function ReviewForm(props: Props) {
 
     if(result.code === "success") {
       if(result.message) saveToastForNextPage(result.message)
-      window.location.href = result.redirect || "/"
+      goTo(result.redirect || "/")
       return
     }
 
@@ -195,7 +197,7 @@ export function ReviewForm(props: Props) {
     const result = await sendJson(`${props.formAction}/delete`, "POST", { key: props.accessKey }, t("errorGeneral"))
     if(result.code === "success") {
       if(result.message) saveToastForNextPage(result.message)
-      window.location.href = result.redirect || "/"
+      goTo(result.redirect || "/")
       return
     }
     setMessage(result.message || "")
@@ -286,7 +288,7 @@ export function ReviewForm(props: Props) {
         <ul className="sf-review-upload">
           {photoList.map(photo => (
             <li className="sf-review-upload-item" key={photo.id}>
-              <img src={"keep" in photo ? `${props.fileUrl}${photo.keep}` : photo.url} alt="" />
+              <img src={"keep" in photo ? sizedUrl(`${props.fileUrl}${photo.keep}`, 320) : photo.url} alt="" />
               <button
                 type="button"
                 className="sf-review-upload-remove"

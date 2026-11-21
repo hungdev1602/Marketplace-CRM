@@ -1,8 +1,8 @@
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { ClientShell } from "@/components/client/Shell"
 import { PageBanner } from "@/components/client/common"
 import { clientMetadata, loadClientPage, type PageProps } from "@/lib/client-page"
-import { makeCtx, mediaUrl, translator } from "@/lib/view-ctx"
+import { makeCtx, mediaSrcSet, mediaUrl, translator } from "@/lib/view-ctx"
 
 // Trang chi tiết bài viết: /blog/:slug
 // Dữ liệu: hàm detail ở server/controller/client/article.controller.ts
@@ -51,7 +51,7 @@ export default async function ArticleDetailPage(props: Props) {
               <article className="sf-article-detail">
                 {article.avatar && (
                   <div className="sf-article-detail-img">
-                    <img src={mediaUrl(ctx, article.avatar)} alt={article.name} />
+                    <img src={mediaUrl(ctx, article.avatar, 960)} srcSet={mediaSrcSet(ctx, article.avatar, 960)} alt={article.name} />
                   </div>
                 )}
                 {contentHtml && <div className="sf-content" dangerouslySetInnerHTML={{ __html: contentHtml }}></div>}
@@ -73,7 +73,7 @@ export default async function ArticleDetailPage(props: Props) {
                       {latestList.map(item => (
                         <li key={item.id}>
                           <Link href={`/blog/${item.slug}`} className="sf-latest-img">
-                            <img src={mediaUrl(ctx, item.avatar)} alt={item.name} loading="lazy" />
+                            <img src={mediaUrl(ctx, item.avatar, 480)} srcSet={mediaSrcSet(ctx, item.avatar, 480)} alt={item.name} loading="lazy" />
                           </Link>
                           <div>
                             <Link href={`/blog/${item.slug}`}>{item.name}</Link>

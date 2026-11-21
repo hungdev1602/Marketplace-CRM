@@ -1,6 +1,7 @@
 "use client"
 
 import { adminApiUrl } from "@/lib/admin"
+import { goTo } from "@/lib/top-loader"
 import { notifyError } from "./notify"
 
 // ===== Gọi API admin của server Express từ trình duyệt =====
@@ -27,7 +28,7 @@ export const adminRequest = async (path: string, method: string = "GET", body?: 
     const data = await response.json()
     // Phiên đăng nhập đã hết: server muốn chuyển về trang đăng nhập
     if(data?.code === "redirect") {
-      window.location.href = data.url
+      goTo(data.url)
       return { code: "error", message: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!" }
     }
     return data

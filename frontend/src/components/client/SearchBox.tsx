@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { getJson } from "@/lib/api-client"
 import { cx } from "@/lib/format"
 import { createTranslator } from "@/lib/i18n"
+import { startTopLoader } from "@/lib/top-loader"
 import { useToast } from "./Toast"
 
 // ===== Ô tìm kiếm ở đầu trang =====
@@ -240,6 +241,7 @@ export function SearchBox({ lang, categoryTree, initialKeyword, initialCategory 
   const goTo = (url: string) => {
     setOpen(false)
     inputRef.current?.blur()
+    startTopLoader(url)
     router.push(url)
   }
 

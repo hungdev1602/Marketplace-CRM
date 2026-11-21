@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react"
 import { createTranslator } from "@/lib/i18n"
+import { sizedSrcSet, sizedUrl } from "@/lib/media"
 
 // ===== Xem ảnh lớn (ảnh của khách trong đánh giá) =====
 // Bấm ‹ ›, phím ← →, vuốt để xem ảnh khác; Esc hoặc bấm ra vùng tối để đóng
@@ -111,14 +112,15 @@ export function ReviewPhotos({ photos, fileUrl, limit, lang }: { photos: string[
   const shownList = limit ? photoList.slice(0, limit) : photoList
   if(photoList.length === 0) return null
 
-  const urlList = photoList.map(photo => `${fileUrl}${photo}`)
+  // Xem lớn: ảnh rộng 1920px (ảnh chụp điện thoại gốc có thể vài MB), ảnh nhỏ trong danh sách: 160px
+  const urlList = photoList.map(photo => sizedUrl(`${fileUrl}${photo}`, 1920))
 
   return (
     <ul className="sf-review-photos">
       {shownList.map((photo, index) => (
         <li key={photo}>
           <button type="button" aria-label={`${t("reviewPhoto")} ${index + 1}`} onClick={() => openLightbox(urlList, index)}>
-            <img src={`${fileUrl}${photo}`} alt="" loading="lazy" />
+            <img src={sizedUrl(`${fileUrl}${photo}`, 160)} srcSet={sizedSrcSet(`${fileUrl}${photo}`, 160)} alt="" loading="lazy" />
             {index == shownList.length - 1 && photoList.length > shownList.length && (
               <span className="sf-review-photo-more">+{photoList.length - shownList.length}</span>
             )}

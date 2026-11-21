@@ -1,7 +1,9 @@
 import { ActionButton, TextPatchForm } from "@/components/admin/ActionButton"
 import { AdminPagination, EmptyRow, FilterForm } from "@/components/admin/ui"
 import { adminUrl } from "@/lib/admin"
+import { sizedUrl } from "@/lib/media"
 import { adminMetadata, adminPage, type AdminPageProps } from "@/lib/admin-page"
+import { AdminLink } from "@/components/admin/AdminLink"
 
 // Đánh giá sản phẩm của khách: /admin/review/list (duyệt, từ chối, xoá, trả lời khách)
 // Dữ liệu: hàm list ở server/controller/admin/review.controller.ts
@@ -32,16 +34,16 @@ export default async function ReviewListPage(props: AdminPageProps) {
                   {data.filterProduct && (
                     <div className="small text-muted mt-1">
                       Sản phẩm: <b>{data.filterProduct.name}</b>
-                      <a className="ms-2" href={adminUrl("/review/list")}>Xem tất cả sản phẩm</a>
+                      <AdminLink className="ms-2" href={adminUrl("/review/list")}>Xem tất cả sản phẩm</AdminLink>
                     </div>
                   )}
                 </div>
                 <div className="col-auto">
                   {data.pendingCount > 0 && (
-                    <a className="btn btn-warning" href={adminUrl("/review/list?status=pending")}>
+                    <AdminLink className="btn btn-warning" href={adminUrl("/review/list?status=pending")}>
                       <i className="fa-solid fa-hourglass-half me-1"></i>
                       {data.pendingCount} đánh giá chờ duyệt
-                    </a>
+                    </AdminLink>
                   )}
                 </div>
               </div>
@@ -51,7 +53,7 @@ export default async function ReviewListPage(props: AdminPageProps) {
                 <p className="text-muted small mb-3">
                   <i className="fa-solid fa-circle-info me-1"></i>
                   Đánh giá có chữ / ảnh chỉ hiện trên trang sản phẩm sau khi được duyệt. Chỉ chấm sao (không viết gì) thì được đăng ngay.
-                  {" "}Đổi cách duyệt ở <a href={adminUrl("/setting/edit/review")}>Cài đặt cửa hàng → Đánh giá sản phẩm</a>.
+                  {" "}Đổi cách duyệt ở <AdminLink href={adminUrl("/setting/edit/review")}>Cài đặt cửa hàng → Đánh giá sản phẩm</AdminLink>.
                 </p>
               )}
               <FilterForm className="row g-2 align-items-end mb-3">
@@ -88,7 +90,7 @@ export default async function ReviewListPage(props: AdminPageProps) {
                     <i className="fa-solid fa-filter me-1"></i>
                     Lọc
                   </button>
-                  <a className="btn btn-secondary" href={adminUrl("/review/list")}>Xoá lọc</a>
+                  <AdminLink className="btn btn-secondary" href={adminUrl("/review/list")}>Xoá lọc</AdminLink>
                 </div>
               </FilterForm>
               <p className="text-muted mb-2">Tìm thấy {data.pagination.totalRecord} đánh giá</p>
@@ -115,7 +117,7 @@ export default async function ReviewListPage(props: AdminPageProps) {
                           {product ? (
                             <div className="d-flex align-items-start gap-2">
                               {review.productImage && (
-                                <img className="rounded border" src={`${fileUrl}${review.productImage}`} alt="" style={{ width: "48px", height: "48px", objectFit: "contain", flex: "0 0 auto" }} />
+                                <img className="rounded border" src={sizedUrl(`${fileUrl}${review.productImage}`, 160)} alt="" style={{ width: "48px", height: "48px", objectFit: "contain", flex: "0 0 auto" }} />
                               )}
                               <div>
                                 {!product.deleted && product.status == "active" ? (
@@ -131,7 +133,7 @@ export default async function ReviewListPage(props: AdminPageProps) {
                                     <span className="text-warning">★</span> {product.rating} · {product.ratingCount} lượt
                                   </div>
                                 )}
-                                <a className="small" href={adminUrl(`/review/list?productId=${review.productId}`)}>Đánh giá của sản phẩm này</a>
+                                <AdminLink className="small" href={adminUrl(`/review/list?productId=${review.productId}`)}>Đánh giá của sản phẩm này</AdminLink>
                               </div>
                             </div>
                           ) : (
@@ -142,7 +144,7 @@ export default async function ReviewListPage(props: AdminPageProps) {
                           <div className="fw-medium">{review.customerName}</div>
                           <div className="small text-muted">{review.customerEmail}</div>
                           <div className="small">
-                            Đơn <a className="font-monospace" href={adminUrl(`/order/detail/${review.orderId}`)}>{review.orderCode}</a>
+                            Đơn <AdminLink className="font-monospace" href={adminUrl(`/order/detail/${review.orderId}`)}>{review.orderCode}</AdminLink>
                           </div>
                           <div className="small text-muted">Tên hiện: {review.anonymous ? "Покупатель (ẩn tên)" : review.authorName}</div>
                           <div className="small text-muted">Ngôn ngữ: {review.lang == "vi" ? "Tiếng Việt" : "Tiếng Nga"}</div>
@@ -169,7 +171,7 @@ export default async function ReviewListPage(props: AdminPageProps) {
                             <div className="d-flex flex-wrap gap-2 mt-2">
                               {review.photos.map((photo: string) => (
                                 <a key={photo} href={`${fileUrl}${photo}`} target="_blank" rel="noopener" title="Xem ảnh lớn">
-                                  <img className="rounded border" src={`${fileUrl}${photo}`} alt="" style={{ width: "72px", height: "72px", objectFit: "cover" }} />
+                                  <img className="rounded border" src={sizedUrl(`${fileUrl}${photo}`, 160)} alt="" loading="lazy" style={{ width: "72px", height: "72px", objectFit: "cover" }} />
                                 </a>
                               ))}
                             </div>

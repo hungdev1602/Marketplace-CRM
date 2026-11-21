@@ -5,7 +5,9 @@ import Swal from "sweetalert2"
 import { adminUrl } from "@/lib/admin"
 import { cx } from "@/lib/format"
 import { adminRequest } from "../api"
+import { adminReload } from "../navigation"
 import { drawNotify, notifyError, notifySuccess } from "../notify"
+import { AdminLink } from "../AdminLink"
 
 // ===== Kết nối API bên thứ 3 (Т-Банк, ApiShip, email) và Cài đặt cửa hàng =====
 
@@ -40,7 +42,7 @@ const runTest = async (key: string): Promise<boolean> => {
 
 const spinner = (text: string) => <><span className="spinner-border spinner-border-sm me-1"></span> {text}</>
 
-// Nút "Kiểm tra" ở trang danh sách: xong thì tải lại trang để cập nhật kết quả
+// Nút "Kiểm tra" ở trang danh sách: xong thì lấy lại dữ liệu trang để cập nhật kết quả
 export function IntegrationTestButton({ integrationKey }: { integrationKey: string }) {
   const [isTesting, setIsTesting] = useState(false)
   return (
@@ -51,7 +53,7 @@ export function IntegrationTestButton({ integrationKey }: { integrationKey: stri
       onClick={async () => {
         setIsTesting(true)
         if(await runTest(integrationKey)) {
-          window.location.reload()
+          adminReload()
           return
         }
         setIsTesting(false)
@@ -344,7 +346,7 @@ export function IntegrationForm({ view, groups, isSetting, siteUrl, siteUrlHttps
     }
     notifySuccess(data.message || "")
     await runTest(definition.key)
-    window.location.reload()
+    adminReload()
   }
 
   return (
@@ -421,7 +423,7 @@ export function IntegrationForm({ view, groups, isSetting, siteUrl, siteUrlHttps
             {submitting === "test" ? spinner("Đang lưu và kiểm tra...") : <><i className="fa-solid fa-plug-circle-check me-1"></i>Lưu &amp; kiểm tra kết nối</>}
           </button>
         )}
-        <a className="btn btn-outline-secondary" href={listUrl}>Quay lại</a>
+        <AdminLink className="btn btn-outline-secondary" href={listUrl}>Quay lại</AdminLink>
       </div>
     </form>
   )

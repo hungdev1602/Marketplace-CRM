@@ -39,7 +39,7 @@ trong thư mục dự án `Marketplace-CRM`:
 git checkout main
 git pull origin main
 cd server
-yarn install
+npm install
 ```
 
 ## Bước 2 — Thêm khoá mã hoá vào `server/.env`
@@ -61,7 +61,7 @@ yarn install
 ## Bước 3 — Chạy và mở trang Kết nối API
 
 ```bash
-yarn start
+npm start
 ```
 
 1. Mở http://localhost:3000/admin, đăng nhập.

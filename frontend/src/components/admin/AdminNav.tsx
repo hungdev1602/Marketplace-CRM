@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { adminUrl } from "@/lib/admin"
 import { cx } from "@/lib/format"
 import { useAdmin } from "./AdminProvider"
+import { AdminLink } from "./AdminLink"
 
 // ===== Thanh trên cùng và menu bên trái của trang admin =====
 
@@ -104,7 +105,7 @@ export function Topbar() {
   }
 
   // Ảnh đại diện của tài khoản đang đăng nhập (chưa có thì dùng ảnh mặc định)
-  const accountAvatar = account?.avatar ? fileSrc(account.avatar) : "/admin/assets/images/users/avatar-1.jpg"
+  const accountAvatar = account?.avatar ? fileSrc(account.avatar, 160) : "/admin/assets/images/users/avatar-1.jpg"
 
   return (
     <div className="topbar d-print-none">
@@ -118,10 +119,10 @@ export function Topbar() {
             </li>
             {/* Logo chỉ hiện khi màn hình < 1200px (lúc này menu trái bị ẩn). Điện thoại: icon vuông, tablet: logo ngang */}
             <li className="topbar-logo d-xl-none">
-              <a href={adminUrl("/dashboard")}>
+              <AdminLink href={adminUrl("/dashboard")}>
                 <img className="d-sm-none" alt="SFoodie" src="/admin/assets/images/sfoodie-icon.png" />
                 <img className="d-none d-sm-inline-block" alt="SFoodie" src="/admin/assets/images/sfoodie-logo.png" />
-              </a>
+              </AdminLink>
             </li>
             <li className="mx-3 welcome-text">
               <h3 className="mb-0 fw-bold text-truncate">Hello, {account?.fullName}!</h3>
@@ -177,10 +178,10 @@ export function Startbar() {
     <>
       <div className="startbar d-print-none">
         <div className="brand">
-          <a className="logo" href={adminUrl("/dashboard")}>
+          <AdminLink className="logo" href={adminUrl("/dashboard")}>
             <img className="logo-sm" alt="SFoodie" src="/admin/assets/images/sfoodie-icon.png" />
             <img className="logo-lg" alt="SFoodie" src="/admin/assets/images/sfoodie-logo.png" />
-          </a>
+          </AdminLink>
         </div>
         <div className="startbar-menu">
           <div id="startbarCollapse" className="startbar-collapse" style={{ overflowY: "auto" }}>
@@ -217,7 +218,7 @@ export function Startbar() {
                           <ul className="nav flex-column">
                             {childList.map(child => (
                               <li className={cx("nav-item", isActive(child.href) && "active")} key={child.href}>
-                                <a className={cx("nav-link", isActive(child.href) && "active")} href={adminUrl(child.href)}>{child.label}</a>
+                                <AdminLink className={cx("nav-link", isActive(child.href) && "active")} href={adminUrl(child.href)}>{child.label}</AdminLink>
                               </li>
                             ))}
                           </ul>
@@ -230,10 +231,10 @@ export function Startbar() {
                   if(!isAllowed || !item.href) return null
                   return (
                     <li className={cx("nav-item", isActive(item.href) && "active")} key={item.label}>
-                      <a className={cx("nav-link", isActive(item.href) && "active")} href={adminUrl(item.href)}>
+                      <AdminLink className={cx("nav-link", isActive(item.href) && "active")} href={adminUrl(item.href)}>
                         <i className={`${item.icon} menu-icon`}></i>
                         <span>{item.label}</span>
-                      </a>
+                      </AdminLink>
                     </li>
                   )
                 })}

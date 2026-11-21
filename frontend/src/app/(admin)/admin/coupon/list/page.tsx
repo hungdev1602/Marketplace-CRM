@@ -2,6 +2,7 @@ import { DeleteButton, EditLink, HeaderLink } from "@/components/admin/list"
 import { AdminPagination, ApiButton, CardHeader, CopyButton, EmptyRow, FilterForm } from "@/components/admin/ui"
 import { adminUrl } from "@/lib/admin"
 import { adminMetadata, adminPage, type AdminPageProps } from "@/lib/admin-page"
+import { AdminLink } from "@/components/admin/AdminLink"
 
 // Danh sách mã giảm giá: /admin/coupon/list
 // Dữ liệu: hàm list ở server/controller/admin/coupon.controller.ts
@@ -50,7 +51,7 @@ export default async function CouponListPage(props: AdminPageProps) {
                     <i className="fa-solid fa-filter me-1"></i>
                     Lọc
                   </button>
-                  <a className="btn btn-secondary" href={adminUrl("/coupon/list")}>Xoá lọc</a>
+                  <AdminLink className="btn btn-secondary" href={adminUrl("/coupon/list")}>Xoá lọc</AdminLink>
                 </div>
               </FilterForm>
               <p className="text-muted mb-2">Tìm thấy {data.pagination.totalRecord} mã giảm giá</p>

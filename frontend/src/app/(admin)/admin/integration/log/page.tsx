@@ -1,6 +1,7 @@
 import { AdminPagination, FilterForm } from "@/components/admin/ui"
 import { adminUrl } from "@/lib/admin"
 import { adminMetadata, adminPage, type AdminPageProps } from "@/lib/admin-page"
+import { AdminLink } from "@/components/admin/AdminLink"
 
 // Nhật ký gọi API bên thứ 3: /admin/integration/log
 // Mỗi lần server gọi Т-Банк, ApiShip, gửi email... ghi 1 dòng. Không lưu dữ liệu gửi đi (khoá API, thông tin khách)
@@ -20,10 +21,10 @@ export default async function IntegrationLogPage(props: AdminPageProps) {
             <div className="card-header">
               <div className="row align-items-center">
                 <div className="col">
-                  <a className="text-muted small" href={adminUrl("/integration/list")}>
+                  <AdminLink className="text-muted small" href={adminUrl("/integration/list")}>
                     <i className="fa-solid fa-arrow-left me-1"></i>
                     Kết nối API
-                  </a>
+                  </AdminLink>
                   <h4 className="card-title mt-1">{data.pageTitle}</h4>
                   <p className="text-muted mb-0">
                     Mỗi lần website gọi dịch vụ bên ngoài (tạo thanh toán, tính phí giao hàng, tạo vận đơn, gửi email...).
@@ -54,7 +55,7 @@ export default async function IntegrationLogPage(props: AdminPageProps) {
                     <i className="fa-solid fa-filter me-1"></i>
                     Lọc
                   </button>
-                  <a className="btn btn-secondary" href={adminUrl("/integration/log")}>Xoá bộ lọc</a>
+                  <AdminLink className="btn btn-secondary" href={adminUrl("/integration/log")}>Xoá bộ lọc</AdminLink>
                 </div>
               </FilterForm>
               <p className="text-muted mb-2">Tìm thấy {data.pagination.totalRecord} lần gọi</p>

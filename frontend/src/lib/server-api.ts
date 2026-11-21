@@ -45,6 +45,20 @@ export class ApiError extends Error {
   }
 }
 
+// Ghi thời gian server Express trả dữ liệu ra cửa sổ Terminal đang chạy Next.js, để biết trang chậm do đâu:
+// - Số ms ở đây lớn (vài trăm ms trở lên): chậm ở server Express / database (MongoDB Atlas ở xa thì mỗi lần hỏi mất vài chục - vài trăm ms)
+// - Số ms nhỏ mà trình duyệt vẫn chậm: do mạng, ảnh nặng, hoặc đang chạy "npm run dev" (lần đầu mở mỗi trang phải biên dịch)
+// Chạy "npm run dev": ghi mọi trang. Chạy bản build ("npm start"): chỉ ghi trang chậm hơn 1,5 giây
+const logApiTime = (url: string, startedAt: number, status: number) => {
+  const time = Math.round(performance.now() - startedAt)
+  if(process.env.NODE_ENV !== "production") {
+    console.log(`[Express] GET ${url} ${status} - ${time} ms`)
+  }
+  else if(time > 1500) {
+    console.warn(`[Express] GET ${url} ${status} - chậm: ${time} ms`)
+  }
+}
+
 // cache(): trong 1 lần dựng trang, generateMetadata và trang cùng gọi 1 đường dẫn thì chỉ hỏi server 1 lần
 const fetchPage = cache(async (url: string): Promise<PagePayload> => {
   const [cookieStore, headerStore] = await Promise.all([cookies(), headers()])
@@ -63,6 +77,7 @@ const fetchPage = cache(async (url: string): Promise<PagePayload> => {
     if(value) requestHeaders[name] = value
   }
 
+  const startedAt = performance.now()
   let response: Response
   try {
     response = await fetch(`${API_URL}${url}`, {
@@ -81,6 +96,7 @@ const fetchPage = cache(async (url: string): Promise<PagePayload> => {
   }
 
   const payload = await response.json()
+  logApiTime(url, startedAt, response.status)
   if(payload?.code !== "render" && payload?.code !== "redirect"){
     // Route chỉ trả JSON thông báo (ví dụ { code: "error", message })
     throw new ApiError(payload?.message || `Server trả về dữ liệu không đúng định dạng ở ${url}`, response.status)

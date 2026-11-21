@@ -1,0 +1,87 @@
+/* ===== Thanh loading mỏng ở trên cùng trang (components/TopLoader.tsx) =====
+   Màu thanh: biến --sf-top-loader-color (TopLoader truyền vào theo màu chính của trang khách / trang admin) */
+
+.sf-top-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100000; /* nằm trên đầu trang dính (sticky), menu, cửa sổ modal */
+  height: 3px;
+  pointer-events: none; /* không chặn bấm vào đầu trang bên dưới */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sf-top-loader.is-active {
+  opacity: 1;
+  transition-duration: 0.1s;
+}
+
+/* Thanh chạy: dài bằng cả chiều ngang màn hình, đẩy sang trái để chỉ lộ ra phần đã chạy được */
+.sf-top-loader-bar {
+  position: absolute;
+  inset: 0;
+  border-radius: 0 3px 3px 0;
+  background: var(--sf-top-loader-color, #02cae5);
+  transform: translate3d(-100%, 0, 0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+/* Đầu thanh phát sáng nhẹ */
+.sf-top-loader-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 96px;
+  height: 100%;
+  border-radius: inherit;
+  box-shadow: 0 0 10px var(--sf-top-loader-color, #02cae5), 0 0 4px var(--sf-top-loader-color, #02cae5);
+  opacity: 0.85;
+}
+
+/* Vệt sáng chạy dọc thanh trong lúc chờ */
+.sf-top-loader-bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 25%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 55%), transparent);
+  transform: translate3d(-100%, 0, 0);
+  animation: sf-top-loader-shine 1.6s ease-in-out infinite;
+}
+
+@keyframes sf-top-loader-shine {
+  to {
+    transform: translate3d(400%, 0, 0);
+  }
+}
+
+/* Vừa mở trang mới (sau khi bấm link tải lại cả trang): đoạn script đầu trang gắn data-top-loader vào thẻ <html>
+   để thanh hiện tiếp ngay từ lúc trang hiện ra, chạy tiếp từ chỗ trang trước đang dừng (--sf-top-loader-from) */
+html[data-top-loader] .sf-top-loader {
+  opacity: 1;
+  transition: none;
+}
+
+html[data-top-loader] .sf-top-loader-bar {
+  transform: translate3d(calc((var(--sf-top-loader-from, 0.3) - 1) * 100%), 0, 0);
+  transition: none;
+}
+
+/* Máy khách bật "giảm chuyển động": bỏ vệt sáng chạy */
+@media (prefers-reduced-motion: reduce) {
+  .sf-top-loader-bar::before {
+    display: none;
+  }
+}
+
+@media print {
+  .sf-top-loader {
+    display: none;
+  }
+}

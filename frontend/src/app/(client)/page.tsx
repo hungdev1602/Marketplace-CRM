@@ -1,9 +1,9 @@
-import Link from "next/link"
+import Link from "@/components/client/ShopLink"
 import { ClientShell } from "@/components/client/Shell"
 import { ArticleCard, ProductCard, SectionHeading } from "@/components/client/common"
 import { clientMetadata, loadClientPage, type PageProps } from "@/lib/client-page"
 import { cx, formatNumber } from "@/lib/format"
-import { makeCtx, mediaUrl, translator } from "@/lib/view-ctx"
+import { makeCtx, mediaSrcSet, mediaUrl, translator } from "@/lib/view-ctx"
 
 // Trang chủ: /
 // Dữ liệu: server/controller/client/homePage.controller.ts
@@ -77,7 +77,7 @@ export default async function HomePage({ searchParams }: PageProps) {
                   className={`sf-hero-product sf-hero-product-${index + 1}`}
                   title={tName(product)}
                 >
-                  <img src={mediaUrl(ctx, product.cardImage)} alt={tName(product)} />
+                  <img src={mediaUrl(ctx, product.cardImage, 480)} srcSet={mediaSrcSet(ctx, product.cardImage, 480)} alt={tName(product)} />
                   {product.discountPercent ? <span className="sf-badge sf-badge-sale">−{product.discountPercent}%</span> : null}
                 </Link>
               )) : (
@@ -97,7 +97,7 @@ export default async function HomePage({ searchParams }: PageProps) {
                 <Link key={item.id} href={`/category/${item.slug}`} className="sf-category-card">
                   <span className="sf-category-img">
                     {item.avatar
-                      ? <img src={mediaUrl(ctx, item.avatar)} alt={tName(item)} loading="lazy" />
+                      ? <img src={mediaUrl(ctx, item.avatar, 160)} srcSet={mediaSrcSet(ctx, item.avatar, 160)} alt={tName(item)} loading="lazy" />
                       : <i className="fas fa-utensils"></i>}
                   </span>
                   <span className="sf-category-name">{tName(item)}</span>
