@@ -291,6 +291,11 @@ const vi: Record<keyof typeof ru, string> = {
   compareCheapest: "Rẻ nhất",
   compareBestValue: "Lợi nhất",
   compareTopRated: "Đánh giá cao nhất",
+  compareShown: "Sản phẩm {from}–{to} / {total}",
+  comparePrev: "Sản phẩm trước",
+  compareNext: "Sản phẩm tiếp theo",
+  compareAllGroups: "Tất cả",
+  compareNoCategory: "Chưa có danh mục",
   // Tài khoản khách: đăng nhập, đăng ký
   account: "Tài khoản",
   login: "Đăng nhập",

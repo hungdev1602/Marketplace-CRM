@@ -1,6 +1,6 @@
 "use client"
 
-import { Fragment, useState } from "react"
+import { Fragment, useCallback, useEffect, useRef, useState } from "react"
 import Link from "@/components/client/ShopLink"
 import { useRouter } from "next/navigation"
 import { cx, formatNumber } from "@/lib/format"
@@ -17,7 +17,10 @@ import { RatingStars } from "../common"
 // - Dòng mà không sản phẩm nào có thông tin thì không hiện
 // - Ô tốt nhất (rẻ nhất, giá cho 1 kg thấp nhất, đánh giá cao nhất) được tô xanh
 // - "Только различия": ẩn các dòng mà mọi sản phẩm giống nhau
-// - Điện thoại: tên dòng nằm trên 1 hàng riêng, các cột sản phẩm kéo ngang
+// - Sản phẩm thuộc nhiều danh mục: các nút lọc theo danh mục ("Все", "Лапша", "Соусы"...), so sánh trong từng danh mục
+// - Nhiều sản phẩm hơn màn hình: kéo / vuốt ngang, nút ‹ › trượt sang nhóm sản phẩm tiếp theo,
+//   cuộn xuống thì hàng tên sản phẩm (ảnh nhỏ, tên, giá) dính ở trên cùng để luôn biết cột nào là sản phẩm nào
+// - Điện thoại: tên dòng nằm trên 1 hàng riêng, các cột sản phẩm vuốt ngang
 // productList: dữ liệu từ server/controller/client/compare.controller.ts
 
 // 1 ô của bảng
@@ -262,55 +265,172 @@ function ProductHead({ product }: { product: any }) {
   )
 }
 
-export function CompareView({ productList: initialList, maxItems }: { productList: any[], maxItems: number }) {
-  const router = useRouter()
-  const { ctx, state, request, setCompareCount } = useShop()
-  const translator = createTranslator(ctx.lang)
-  const { t, tCount } = translator
-  const { showToast } = useToast()
-  const [isOnlyDiff, setIsOnlyDiff] = useState(false)
-  const [isCleared, setIsCleared] = useState(false)
 
-  // Sản phẩm khách vừa bỏ khỏi so sánh thì ẩn cột đó
-  const productList = isCleared ? [] : initialList.filter(product => state.compareMap[product.id] !== false)
+// Vị trí cột sản phẩm trong bảng (px), left tính từ cột sản phẩm đầu tiên
+type ColumnLayout = { labelWidth: number, columns: { left: number, width: number }[] }
 
-  if(productList.length === 0) {
-    return (
-      <div className="sf-empty">
-        <i className="fas fa-balance-scale"></i>
-        <h3>{t("compareEmptyTitle")}</h3>
-        <p>{t("compareEmptyText")}</p>
-        <Link href="/products" className="sf-btn sf-btn-primary">{t("goShopping")}</Link>
-      </div>
-    )
-  }
+// Trạng thái nút ‹ ›: đang xem sản phẩm thứ from đến to (đếm từ 1)
+type NavState = { from: number, to: number, canPrev: boolean, canNext: boolean }
 
-  // Bỏ hết sản phẩm khỏi so sánh
-  const handleClear = async () => {
-    if(!confirm(t("clearCompareConfirm"))) return
-    const data = await request("/compare/clear", "DELETE")
-    if(data.code === "success") {
-      setIsCleared(true)
-      setCompareCount(0)
-      showToast(data.message, "success")
-      router.refresh()
+// Chiều cao phần đầu trang đang dính trên cùng (máy tính: menu, điện thoại: logo + ô tìm kiếm),
+// hàng tên sản phẩm dính ngay bên dưới
+const getStickyTop = (): number => {
+  let top = 0
+  document.querySelectorAll<HTMLElement>(".sf-header, .main_menu").forEach(element => {
+    const style = getComputedStyle(element)
+    if(style.position === "sticky" && style.display !== "none") {
+      top = Math.max(top, element.getBoundingClientRect().bottom)
+    }
+  })
+  return Math.max(0, Math.round(top))
+}
+
+// Nút ‹ › và "Товары 1–4 из 20"
+function CompareNav({ nav, total, lang, onMove }: { nav: NavState, total: number, lang: string, onMove: (direction: 1 | -1) => void }) {
+  const { t } = createTranslator(lang)
+  return (
+    <div className="sf-cmp-nav">
+      <button type="button" className="sf-cmp-nav-btn" aria-label={t("comparePrev")} title={t("comparePrev")} disabled={!nav.canPrev} onClick={() => onMove(-1)}>
+        <i className="fas fa-chevron-left"></i>
+      </button>
+      <span className="sf-cmp-nav-text">
+        {t("compareShown")
+          .replace("{from}", `${nav.from}`)
+          .replace("{to}", `${nav.to}`)
+          .replace("{total}", `${total}`)}
+      </span>
+      <button type="button" className="sf-cmp-nav-btn" aria-label={t("compareNext")} title={t("compareNext")} disabled={!nav.canNext} onClick={() => onMove(1)}>
+        <i className="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  )
+}
+
+// Bảng so sánh: kéo ngang, nút ‹ ›, hàng tên sản phẩm dính trên cùng khi cuộn xuống
+function CompareTable({ productList, sectionList, canAddMore }: { productList: any[], sectionList: Section[], canAddMore: boolean }) {
+  const { ctx } = useShop()
+  const { t, tName } = createTranslator(ctx.lang)
+
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const tableRef = useRef<HTMLTableElement>(null)
+  const stickyRef = useRef<HTMLDivElement>(null)
+  const barRowRef = useRef<HTMLDivElement>(null)
+  const layoutRef = useRef<ColumnLayout>({ labelWidth: 0, columns: [] })
+  const [layout, setLayout] = useState<ColumnLayout>(layoutRef.current)
+  const [nav, setNav] = useState<NavState>({ from: 1, to: productList.length, canPrev: false, canNext: false })
+  const [isBarVisible, setIsBarVisible] = useState(false)
+
+  // Đổi sản phẩm / dòng hiển thị thì đo lại vị trí các cột
+  const layoutKey = `${productList.map(product => product.id).join(",")}|${sectionList.map(section => section.rows.map(row => row.id).join(",")).join("|")}`
+
+  // Khi kéo ngang: hàng tên sản phẩm dính trên cùng chạy theo bảng, cập nhật "Товары 1–4 из 20" và nút ‹ ›
+  // (đổi thẳng style của hàng tên sản phẩm, không dựng lại cả bảng ở mỗi lần cuộn)
+  const updateNav = useCallback(() => {
+    const scroll = scrollRef.current
+    if(!scroll) return
+    const { labelWidth, columns } = layoutRef.current
+    const left = scroll.scrollLeft
+    const viewWidth = scroll.clientWidth - labelWidth
+
+    if(barRowRef.current) barRowRef.current.style.transform = `translateX(${-left}px)`
+
+    // Sản phẩm được tính là đang xem khi hiện quá nửa cột
+    let from = 0
+    let to = 0
+    columns.forEach((column, index) => {
+      const visibleWidth = Math.min(column.left + column.width, left + viewWidth) - Math.max(column.left, left)
+      if(visibleWidth >= column.width / 2) {
+        if(!from) from = index + 1
+        to = index + 1
+      }
+    })
+
+    const next: NavState = {
+      from: from || 1,
+      to: to || columns.length,
+      canPrev: left > 1,
+      canNext: left + scroll.clientWidth < scroll.scrollWidth - 1
+    }
+    setNav(current => current.from === next.from && current.to === next.to
+      && current.canPrev === next.canPrev && current.canNext === next.canNext ? current : next)
+  }, [])
+
+  // Đo lại vị trí các cột (mở trang, đổi cỡ cửa sổ, bỏ bớt sản phẩm, "Только различия")
+  const measure = useCallback(() => {
+    const table = tableRef.current
+    if(!table) return
+    const corner = table.querySelector<HTMLElement>(".sf-cmp-corner")
+    const labelWidth = corner ? corner.offsetWidth : 0
+    const columns = Array.from(table.querySelectorAll<HTMLElement>("thead .sf-cmp-product")).map(cell => ({
+      left: cell.offsetLeft - labelWidth,
+      width: cell.offsetWidth
+    }))
+    const newLayout = { labelWidth, columns }
+    if(JSON.stringify(newLayout) !== JSON.stringify(layoutRef.current)) {
+      layoutRef.current = newLayout
+      setLayout(newLayout)
+    }
+    updateNav()
+  }, [updateNav])
+
+  useEffect(() => {
+    measure()
+    const table = tableRef.current
+    if(!table || !("ResizeObserver" in window)) return
+    const observer = new ResizeObserver(() => measure())
+    observer.observe(table)
+    if(scrollRef.current) observer.observe(scrollRef.current)
+    return () => observer.disconnect()
+  }, [measure, layoutKey])
+
+  // Cuộn trang: hàng đầu bảng (ảnh, tên sản phẩm) đã bị cuộn khuất thì hiện hàng tên sản phẩm dính trên cùng
+  useEffect(() => {
+    let frame = 0
+    const update = () => {
+      frame = 0
+      const table = tableRef.current
+      const head = table?.tHead
+      if(!table || !head) return
+      const top = getStickyTop()
+      if(stickyRef.current) stickyRef.current.style.top = `${top}px`
+      const headBottom = head.getBoundingClientRect().bottom
+      const tableBottom = table.getBoundingClientRect().bottom
+      setIsBarVisible(headBottom < top + 8 && tableBottom > top + 140)
+    }
+    const onScroll = () => {
+      if(!frame) frame = requestAnimationFrame(update)
+    }
+    update()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    window.addEventListener("resize", onScroll)
+    return () => {
+      window.removeEventListener("scroll", onScroll)
+      window.removeEventListener("resize", onScroll)
+      if(frame) cancelAnimationFrame(frame)
+    }
+  }, [])
+
+  // Bấm ‹ ›: trượt cả 1 màn hình sản phẩm, dừng đúng mép cột
+  const move = (direction: 1 | -1) => {
+    const scroll = scrollRef.current
+    if(!scroll) return
+    const { labelWidth, columns } = layoutRef.current
+    const left = scroll.scrollLeft
+    const viewWidth = scroll.clientWidth - labelWidth
+    let target = 0
+    if(direction > 0) {
+      const nextColumn = columns.find(column => column.left + column.width > left + viewWidth + 1)
+      target = nextColumn ? nextColumn.left : scroll.scrollWidth
     }
     else {
-      showToast(data.message, "error")
+      const firstColumn = columns.find(column => column.left >= left - viewWidth - 1)
+      target = firstColumn ? firstColumn.left : 0
     }
+    const isReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    scroll.scrollTo({ left: target, behavior: isReducedMotion ? "auto" : "smooth" })
   }
 
-  const canCompare = productList.length > 1
-  const canAddMore = productList.length < maxItems
-  const sectionList = buildSectionList(productList, ctx, translator)
-    // "Только различия": bỏ dòng mà mọi sản phẩm giống nhau
-    .map(section => ({
-      ...section,
-      rows: isOnlyDiff && canCompare
-        ? section.rows.filter(row => row.cells.some(cell => cell.value !== row.cells[0].value))
-        : section.rows
-    }))
-    .filter(section => section.rows.length > 0)
+  const hasOverflow = nav.canPrev || nav.canNext
 
   // Số cột: cột tên dòng + các sản phẩm + cột "Добавить товар"
   const productColumnCount = productList.length + (canAddMore ? 1 : 0)
@@ -319,47 +439,37 @@ export function CompareView({ productList: initialList, maxItems }: { productLis
   const tableStyle = { "--sf-cmp-cols": productColumnCount, "--sf-cmp-products": productList.length } as React.CSSProperties
 
   return (
-    <div className="sf-compare">
-      <div className="sf-shop-toolbar sf-compare-toolbar">
-        <p>
-          <b>{tCount(productList.length, "productCount")}</b>
-          <span className="sf-compare-limit">{t("compareLimit").replace("{count}", `${maxItems}`)}</span>
-        </p>
-        <div className="sf-toolbar-actions">
-          {canCompare && (
-            <div className="form-check sf-check sf-compare-diff">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="compare-only-diff"
-                checked={isOnlyDiff}
-                onChange={event => setIsOnlyDiff(event.target.checked)}
-              />
-              <label className="form-check-label" htmlFor="compare-only-diff">{t("compareOnlyDiff")}</label>
+    <>
+      {hasOverflow && <CompareNav nav={nav} total={productList.length} lang={ctx.lang} onMove={move} />}
+
+      {/* Hàng tên sản phẩm dính trên cùng khi cuộn xuống (chỉ để nhìn, nên ẩn với trình đọc màn hình) */}
+      <div ref={stickyRef} className="sf-cmp-sticky">
+        <div className={cx("sf-cmp-sticky-bar", isBarVisible && "is-visible")}>
+          <div className="sf-cmp-sticky-nav" style={{ width: layout.labelWidth }}>
+            {hasOverflow && <CompareNav nav={nav} total={productList.length} lang={ctx.lang} onMove={move} />}
+          </div>
+          <div className="sf-cmp-sticky-view" aria-hidden="true">
+            <div ref={barRowRef} className="sf-cmp-sticky-row">
+              {productList.map((product, index) => (
+                <Link
+                  key={product.id}
+                  href={`/product/${product.slug}`}
+                  className="sf-cmp-sticky-item"
+                  style={{ width: layout.columns[index]?.width || undefined }}
+                  tabIndex={-1}
+                >
+                  <img src={mediaUrl(ctx, product.cardImage, 160)} alt="" loading="lazy" />
+                  <span className="sf-cmp-sticky-name">{tName(product)}</span>
+                  <b className={cx(product.discountPercent && "is-sale")}>{product.priceFormat}</b>
+                </Link>
+              ))}
             </div>
-          )}
-          {canAddMore && (
-            <Link href="/products" className="sf-btn sf-btn-light sf-btn-sm sf-compare-add-btn">
-              <i className="fas fa-plus"></i>
-              {t("compareAddMore")}
-            </Link>
-          )}
-          <button type="button" className="sf-link-btn" onClick={handleClear}>
-            <i className="far fa-trash-alt"></i>
-            {t("clearCompare")}
-          </button>
+          </div>
         </div>
       </div>
 
-      {!canCompare && (
-        <p className="sf-compare-hint">
-          <i className="fas fa-info-circle"></i>
-          {t("compareAddHint")}
-        </p>
-      )}
-
-      <div className="sf-compare-scroll" role="region" aria-label={t("compare")} tabIndex={0}>
-        <table className="sf-compare-table" style={tableStyle}>
+      <div ref={scrollRef} className="sf-compare-scroll" role="region" aria-label={t("compare")} tabIndex={0} onScroll={updateNav}>
+        <table ref={tableRef} className="sf-compare-table" style={tableStyle}>
           <thead>
             <tr>
               <td className="sf-cmp-corner"></td>
@@ -414,6 +524,150 @@ export function CompareView({ productList: initialList, maxItems }: { productLis
           ))}
         </table>
       </div>
+    </>
+  )
+}
+
+// Danh mục để lọc ở trang so sánh: danh mục đầu tiên của sản phẩm ("" là sản phẩm chưa có danh mục)
+const getGroupId = (product: any): string => product.categoryList?.[0]?.id || ""
+
+export function CompareView({ productList: initialList, maxItems }: { productList: any[], maxItems: number }) {
+  const router = useRouter()
+  const { ctx, state, request, setCompareCount } = useShop()
+  const translator = createTranslator(ctx.lang)
+  const { t, tName, tCount } = translator
+  const { showToast } = useToast()
+  const [isOnlyDiff, setIsOnlyDiff] = useState(false)
+  const [isCleared, setIsCleared] = useState(false)
+  const [groupId, setGroupId] = useState<string | null>(null) // null: tất cả danh mục
+
+  // Sản phẩm khách vừa bỏ khỏi so sánh thì ẩn cột đó
+  const productList = isCleared ? [] : initialList.filter(product => state.compareMap[product.id] !== false)
+
+  if(productList.length === 0) {
+    return (
+      <div className="sf-empty">
+        <i className="fas fa-balance-scale"></i>
+        <h3>{t("compareEmptyTitle")}</h3>
+        <p>{t("compareEmptyText")}</p>
+        <Link href="/products" className="sf-btn sf-btn-primary">{t("goShopping")}</Link>
+      </div>
+    )
+  }
+
+  // Bỏ hết sản phẩm khỏi so sánh
+  const handleClear = async () => {
+    if(!confirm(t("clearCompareConfirm"))) return
+    const data = await request("/compare/clear", "DELETE")
+    if(data.code === "success") {
+      setIsCleared(true)
+      setCompareCount(0)
+      showToast(data.message, "success")
+      router.refresh()
+    }
+    else {
+      showToast(data.message, "error")
+    }
+  }
+
+  // Các danh mục có sản phẩm đang so sánh (theo thứ tự khách thêm), kèm số sản phẩm
+  const groupList: { id: string, name: string, count: number }[] = []
+  for (const product of productList) {
+    const id = getGroupId(product)
+    const group = groupList.find(item => item.id === id)
+    if(group) {
+      group.count++
+    }
+    else {
+      groupList.push({ id: id, name: id ? tName(product.categoryList[0]) : t("compareNoCategory"), count: 1 })
+    }
+  }
+
+  // Danh mục đang chọn không còn sản phẩm (vừa bỏ hết) thì quay về "Все"
+  const activeGroupId = groupList.length > 1 && groupList.some(group => group.id === groupId) ? groupId : null
+  const visibleList = activeGroupId === null ? productList : productList.filter(product => getGroupId(product) === activeGroupId)
+
+  const canCompare = visibleList.length > 1
+  const canAddMore = productList.length < maxItems
+  const sectionList = buildSectionList(visibleList, ctx, translator)
+    // "Только различия": bỏ dòng mà mọi sản phẩm giống nhau
+    .map(section => ({
+      ...section,
+      rows: isOnlyDiff && canCompare
+        ? section.rows.filter(row => row.cells.some(cell => cell.value !== row.cells[0].value))
+        : section.rows
+    }))
+    .filter(section => section.rows.length > 0)
+
+  return (
+    <div className="sf-compare">
+      <div className="sf-shop-toolbar sf-compare-toolbar">
+        <p>
+          <b>{tCount(productList.length, "productCount")}</b>
+          <span className="sf-compare-limit">{t("compareLimit").replace("{count}", `${maxItems}`)}</span>
+        </p>
+        <div className="sf-toolbar-actions">
+          {productList.length > 1 && (
+            <div className="form-check sf-check sf-compare-diff">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                id="compare-only-diff"
+                checked={isOnlyDiff}
+                onChange={event => setIsOnlyDiff(event.target.checked)}
+              />
+              <label className="form-check-label" htmlFor="compare-only-diff">{t("compareOnlyDiff")}</label>
+            </div>
+          )}
+          {canAddMore && (
+            <Link href="/products" className="sf-btn sf-btn-light sf-btn-sm sf-compare-add-btn">
+              <i className="fas fa-plus"></i>
+              {t("compareAddMore")}
+            </Link>
+          )}
+          <button type="button" className="sf-link-btn" onClick={handleClear}>
+            <i className="far fa-trash-alt"></i>
+            {t("clearCompare")}
+          </button>
+        </div>
+      </div>
+
+      {/* Lọc theo danh mục: so mì với mì, nước chấm với nước chấm */}
+      {groupList.length > 1 && (
+        <div className="sf-cmp-groups" role="group" aria-label={t("categories")}>
+          <button
+            type="button"
+            className={cx("sf-chip", activeGroupId === null && "active")}
+            aria-pressed={activeGroupId === null}
+            onClick={() => setGroupId(null)}
+          >
+            {t("compareAllGroups")}
+            <span>{productList.length}</span>
+          </button>
+          {groupList.map(group => (
+            <button
+              key={group.id || "none"}
+              type="button"
+              className={cx("sf-chip", activeGroupId === group.id && "active")}
+              aria-pressed={activeGroupId === group.id}
+              onClick={() => setGroupId(group.id)}
+            >
+              {group.name}
+              <span>{group.count}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!canCompare && (
+        <p className="sf-compare-hint">
+          <i className="fas fa-info-circle"></i>
+          {t("compareAddHint")}
+        </p>
+      )}
+
+      {/* key: đổi danh mục thì bảng mới bắt đầu lại từ sản phẩm đầu tiên */}
+      <CompareTable key={activeGroupId ?? "all"} productList={visibleList} sectionList={sectionList} canAddMore={canAddMore} />
 
       {sectionList.length === 0 && (
         <p className="sf-compare-hint">

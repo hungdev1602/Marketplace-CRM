@@ -14,8 +14,8 @@ Tính năng này nằm trên nhánh `claude/adoring-franklin-u2tl6n` (tách ra t
   Bấm 1 lần là thêm vào so sánh (nút chuyển sang nền xanh cyan), bấm lần nữa là bỏ ra.
 - Trang chi tiết sản phẩm: nút **«⚖ Сравнить»** dưới nút «Добавить в корзину» (đã thêm thì đổi thành «В сравнении»).
 - Sau khi bấm hiện thông báo «Товар добавлен к сравнению» kèm link **«Перейти к сравнению»**.
-- So sánh được **tối đa 4 sản phẩm** cùng lúc (máy tính hiện vừa 4 cột). Bấm sản phẩm thứ 5 thì báo
-  «Сравнить можно не больше 4 товаров…» kèm link sang trang so sánh để bỏ bớt.
+- So sánh được **tối đa 20 sản phẩm** cùng lúc, trên cả máy tính và điện thoại. Bấm sản phẩm thứ 21 thì báo
+  «Сравнить можно не больше 20 товаров…» kèm link sang trang so sánh để bỏ bớt.
 - Sản phẩm hết hàng vẫn so sánh được (nút giỏ hàng hiện «Нет в наличии»).
 
 **Biểu tượng ⚖ ở đầu trang**
@@ -37,7 +37,16 @@ Tính năng này nằm trên nhánh `claude/adoring-franklin-u2tl6n` (tách ra t
 - Ô tick **«Только различия»**: ẩn các dòng mà mọi sản phẩm giống nhau (ví dụ cùng điều kiện bảo quản).
 - Thông tin mà **không sản phẩm nào có** thì cả dòng tự ẩn; sản phẩm nào thiếu thông tin thì ô đó hiện «—».
   ⇒ Nhập càng đủ thông tin sản phẩm ở trang admin (khối lượng, КБЖУ, thành phần, dị ứng…) thì bảng so sánh càng hữu ích.
-- Cột cuối **«Добавить товар»** (khi chưa đủ 4 sản phẩm) mở danh sách sản phẩm. Nút **«Очистить сравнение»** bỏ hết.
+- Cột cuối **«Добавить товар»** (khi chưa đủ 20 sản phẩm) mở danh sách sản phẩm. Nút **«Очистить сравнение»** bỏ hết.
+- **Nhiều sản phẩm hơn màn hình** (máy tính vừa khoảng 4–5 cột, điện thoại 2 cột):
+  - Kéo / vuốt ngang bảng (touchpad vuốt 2 ngón, chuột: Shift + lăn chuột). Bảng tự dừng đúng mép cột sản phẩm.
+  - Nút **‹ ›** phía trên bảng kèm dòng **«Товары 1–4 из 20»**: bấm › để trượt sang nhóm sản phẩm tiếp theo.
+  - Cột tên dòng («Цена», «Состав»…) luôn đứng yên bên trái.
+  - Cuộn xuống dưới thì **hàng tên sản phẩm dính trên cùng** (ảnh nhỏ, tên, giá của từng cột, chạy ngang theo bảng),
+    nên lúc xem dòng «Состав» ở giữa bảng vẫn biết cột nào là sản phẩm nào. Trên máy tính hàng này có thêm nút ‹ ›.
+- **Lọc theo danh mục**: khi sản phẩm đang so sánh thuộc nhiều danh mục, phía trên bảng có các nút
+  «Все 20», «Лапша 9», «Соусы 6»… để so mì với mì, nước chấm với nước chấm. Ô tô xanh («Дешевле всех»…) và
+  «Только различия» tính trong danh mục đang chọn.
 - Điện thoại: tên mỗi dòng nằm trên 1 hàng riêng, các cột sản phẩm vuốt ngang được.
 - Có giao diện sáng / tối, tiếng Nga / tiếng Việt như các trang khác.
 
@@ -124,13 +133,17 @@ Mở trình duyệt: **http://localhost:3001**
 
 - [ ] Trang danh sách sản phẩm: bấm nút ⚖ trên 2–3 thẻ ⇒ nút chuyển màu cyan, biểu tượng ⚖ ở menu hiện số 2, 3
 - [ ] Bấm ⚖ lần nữa trên 1 thẻ ⇒ nút về màu trắng, số giảm đi 1
-- [ ] Thêm đủ 4 sản phẩm rồi bấm sản phẩm thứ 5 ⇒ báo «Сравнить можно не больше 4 товаров…», link «Перейти к сравнению» mở trang so sánh
+- [ ] Thêm nhiều sản phẩm (ví dụ 10–20, ở nhiều danh mục). Bấm sản phẩm thứ 21 ⇒ báo «Сравнить можно не больше 20 товаров…»,
+      link «Перейти к сравнению» mở trang so sánh
 - [ ] Trang chi tiết sản phẩm: nút «Сравнить» / «В сравнении»
 - [ ] Bấm biểu tượng ⚖ ở menu (hoặc mở thẳng http://localhost:3001/compare):
   - [ ] Ô xanh «Дешевле всех», «Выгоднее всех», «Лучшая оценка» đúng sản phẩm
   - [ ] Dòng «Цена за 1 кг / 1 л» tính đúng (giá ÷ khối lượng tịnh)
   - [ ] Tick «Только различия» ⇒ các dòng giống nhau biến mất
   - [ ] Bấm ✕ trên 1 cột ⇒ cột biến mất, số trên biểu tượng ⚖ giảm
+  - [ ] Nút ‹ › trên bảng: «Товары 1–4 из 20» đổi theo, tới cuối thì nút › mờ đi
+  - [ ] Cuộn xuống giữa bảng ⇒ hàng tên sản phẩm dính dưới menu, kéo ngang bảng thì hàng này chạy theo
+  - [ ] Nút danh mục («Все», «Лапша»…) ⇒ bảng chỉ còn sản phẩm của danh mục đó
   - [ ] «В корзину» trong bảng ⇒ thêm vào giỏ như bình thường
   - [ ] «Очистить сравнение» ⇒ hiện «В сравнении пока нет товаров»
 - [ ] Tải lại trang, tắt / mở lại trình duyệt ⇒ danh sách so sánh vẫn còn (giữ 30 ngày)
@@ -152,7 +165,8 @@ git checkout main
 
 Sửa trong `server/config/variable.config.ts` rồi khởi động lại server Express:
 
-- `clientCompareMaxItems` — số sản phẩm tối đa được so sánh (mặc định 4). Đặt nhiều hơn thì máy tính kéo ngang bảng để xem hết.
+- `clientCompareMaxItems` — số sản phẩm tối đa được so sánh (mặc định 20, máy tính và điện thoại như nhau).
+  Danh sách nằm trong cookie, nên không đặt quá 100.
 - `clientCompareKeepDays` — số ngày trình duyệt giữ danh sách so sánh (mặc định 30).
 
 Từ ngữ trên trang: sửa ở `server/locales/ru.ts` và `server/locales/vi.ts` (các key bắt đầu bằng `compare`, ví dụ `compareFull`, `compareUnitPrice`).

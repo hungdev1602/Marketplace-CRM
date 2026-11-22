@@ -290,6 +290,11 @@ const ru = {
   compareCheapest: "Дешевле всех",
   compareBestValue: "Выгоднее всех",
   compareTopRated: "Лучшая оценка",
+  compareShown: "Товары {from}–{to} из {total}",
+  comparePrev: "Предыдущие товары",
+  compareNext: "Следующие товары",
+  compareAllGroups: "Все",
+  compareNoCategory: "Без категории",
   // Tài khoản khách: đăng nhập, đăng ký
   account: "Аккаунт",
   login: "Вход",
