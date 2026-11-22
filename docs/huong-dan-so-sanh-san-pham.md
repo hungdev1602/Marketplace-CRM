@@ -39,8 +39,12 @@ Tính năng này nằm trên nhánh `claude/adoring-franklin-u2tl6n` (tách ra t
   ⇒ Nhập càng đủ thông tin sản phẩm ở trang admin (khối lượng, КБЖУ, thành phần, dị ứng…) thì bảng so sánh càng hữu ích.
 - Cột cuối **«Добавить товар»** (khi chưa đủ 20 sản phẩm) mở danh sách sản phẩm. Nút **«Очистить сравнение»** bỏ hết.
 - **Nhiều sản phẩm hơn màn hình** (máy tính vừa khoảng 4–5 cột, điện thoại 2 cột):
-  - Kéo / vuốt ngang bảng (touchpad vuốt 2 ngón, chuột: Shift + lăn chuột). Bảng tự dừng đúng mép cột sản phẩm.
-  - Nút **‹ ›** phía trên bảng kèm dòng **«Товары 1–4 из 20»**: bấm › để trượt sang nhóm sản phẩm tiếp theo.
+  - **Máy tính / laptop: 2 nút mũi tên to màu cyan ở 2 mép bảng**. Nút luôn nằm giữa màn hình khi cuộn lên xuống,
+    bấm › để trượt sang nhóm sản phẩm tiếp theo. Ở đầu bảng không có nút ‹, tới cuối bảng thì nút › biến mất.
+  - Mép bảng phía còn sản phẩm có **bóng mờ**, để khách biết còn kéo sang được.
+  - Phía trên bảng có dòng **«Товары 1–4 из 20»** cho biết đang xem sản phẩm thứ mấy.
+  - Điện thoại: vuốt ngang bảng, hoặc dùng nút ‹ › nhỏ phía trên bảng (không đặt nút to đè lên bảng vì cột hẹp).
+  - Vẫn kéo ngang được bằng touchpad (vuốt 2 ngón) hoặc chuột (Shift + lăn chuột). Bảng tự dừng đúng mép cột sản phẩm.
   - Cột tên dòng («Цена», «Состав»…) luôn đứng yên bên trái.
   - Cuộn xuống dưới thì **hàng tên sản phẩm dính trên cùng** (ảnh nhỏ, tên, giá của từng cột, chạy ngang theo bảng),
     nên lúc xem dòng «Состав» ở giữa bảng vẫn biết cột nào là sản phẩm nào. Trên máy tính hàng này có thêm nút ‹ ›.
@@ -141,7 +145,9 @@ Mở trình duyệt: **http://localhost:3001**
   - [ ] Dòng «Цена за 1 кг / 1 л» tính đúng (giá ÷ khối lượng tịnh)
   - [ ] Tick «Только различия» ⇒ các dòng giống nhau biến mất
   - [ ] Bấm ✕ trên 1 cột ⇒ cột biến mất, số trên biểu tượng ⚖ giảm
-  - [ ] Nút ‹ › trên bảng: «Товары 1–4 из 20» đổi theo, tới cuối thì nút › mờ đi
+  - [ ] Máy tính: 2 nút mũi tên to ở 2 mép bảng, cuộn xuống thì nút vẫn ở giữa màn hình; bấm › thì «Товары 1–4 из 20» đổi theo,
+        tới cuối bảng thì nút › biến mất
+  - [ ] Điện thoại: nút ‹ › nhỏ phía trên bảng
   - [ ] Cuộn xuống giữa bảng ⇒ hàng tên sản phẩm dính dưới menu, kéo ngang bảng thì hàng này chạy theo
   - [ ] Nút danh mục («Все», «Лапша»…) ⇒ bảng chỉ còn sản phẩm của danh mục đó
   - [ ] «В корзину» trong bảng ⇒ thêm vào giỏ như bình thường

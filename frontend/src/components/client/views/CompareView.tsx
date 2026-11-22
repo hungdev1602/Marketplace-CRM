@@ -18,7 +18,8 @@ import { RatingStars } from "../common"
 // - Ô tốt nhất (rẻ nhất, giá cho 1 kg thấp nhất, đánh giá cao nhất) được tô xanh
 // - "Только различия": ẩn các dòng mà mọi sản phẩm giống nhau
 // - Sản phẩm thuộc nhiều danh mục: các nút lọc theo danh mục ("Все", "Лапша", "Соусы"...), so sánh trong từng danh mục
-// - Nhiều sản phẩm hơn màn hình: kéo / vuốt ngang, nút ‹ › trượt sang nhóm sản phẩm tiếp theo,
+// - Nhiều sản phẩm hơn màn hình: kéo / vuốt ngang; máy tính có 2 nút mũi tên to ở 2 mép bảng (luôn nằm giữa màn hình
+//   khi cuộn), điện thoại có nút ‹ › phía trên bảng; mép bảng phía còn sản phẩm có bóng mờ để khách biết còn kéo được;
 //   cuộn xuống thì hàng tên sản phẩm (ảnh nhỏ, tên, giá) dính ở trên cùng để luôn biết cột nào là sản phẩm nào
 // - Điện thoại: tên dòng nằm trên 1 hàng riêng, các cột sản phẩm vuốt ngang
 // productList: dữ liệu từ server/controller/client/compare.controller.ts
@@ -285,23 +286,35 @@ const getStickyTop = (): number => {
   return Math.max(0, Math.round(top))
 }
 
-// Nút ‹ › và "Товары 1–4 из 20"
-function CompareNav({ nav, total, lang, onMove }: { nav: NavState, total: number, lang: string, onMove: (direction: 1 | -1) => void }) {
+// "Товары 1–4 из 20" kèm nút ‹ › nhỏ (nút nhỏ chỉ hiện trên điện thoại, máy tính dùng 2 nút to ở 2 mép bảng)
+// - withButtons: false thì chỉ có dòng chữ (hàng tên sản phẩm dính trên cùng)
+function CompareNav({ nav, total, lang, onMove, withButtons = true }: {
+  nav: NavState
+  total: number
+  lang: string
+  onMove: (direction: 1 | -1) => void
+  withButtons?: boolean
+}) {
   const { t } = createTranslator(lang)
   return (
     <div className="sf-cmp-nav">
-      <button type="button" className="sf-cmp-nav-btn" aria-label={t("comparePrev")} title={t("comparePrev")} disabled={!nav.canPrev} onClick={() => onMove(-1)}>
-        <i className="fas fa-chevron-left"></i>
-      </button>
+      {withButtons && (
+        <button type="button" className="sf-cmp-nav-btn" aria-label={t("comparePrev")} title={t("comparePrev")} disabled={!nav.canPrev} onClick={() => onMove(-1)}>
+          <i className="fas fa-chevron-left"></i>
+        </button>
+      )}
       <span className="sf-cmp-nav-text">
+        <i className="fas fa-arrows-alt-h"></i>
         {t("compareShown")
           .replace("{from}", `${nav.from}`)
           .replace("{to}", `${nav.to}`)
           .replace("{total}", `${total}`)}
       </span>
-      <button type="button" className="sf-cmp-nav-btn" aria-label={t("compareNext")} title={t("compareNext")} disabled={!nav.canNext} onClick={() => onMove(1)}>
-        <i className="fas fa-chevron-right"></i>
-      </button>
+      {withButtons && (
+        <button type="button" className="sf-cmp-nav-btn" aria-label={t("compareNext")} title={t("compareNext")} disabled={!nav.canNext} onClick={() => onMove(1)}>
+          <i className="fas fa-chevron-right"></i>
+        </button>
+      )}
     </div>
   )
 }
@@ -446,7 +459,7 @@ function CompareTable({ productList, sectionList, canAddMore }: { productList: a
       <div ref={stickyRef} className="sf-cmp-sticky">
         <div className={cx("sf-cmp-sticky-bar", isBarVisible && "is-visible")}>
           <div className="sf-cmp-sticky-nav" style={{ width: layout.labelWidth }}>
-            {hasOverflow && <CompareNav nav={nav} total={productList.length} lang={ctx.lang} onMove={move} />}
+            {hasOverflow && <CompareNav nav={nav} total={productList.length} lang={ctx.lang} onMove={move} withButtons={false} />}
           </div>
           <div className="sf-cmp-sticky-view" aria-hidden="true">
             <div ref={barRowRef} className="sf-cmp-sticky-row">
@@ -468,61 +481,92 @@ function CompareTable({ productList, sectionList, canAddMore }: { productList: a
         </div>
       </div>
 
-      <div ref={scrollRef} className="sf-compare-scroll" role="region" aria-label={t("compare")} tabIndex={0} onScroll={updateNav}>
-        <table ref={tableRef} className="sf-compare-table" style={tableStyle}>
-          <thead>
-            <tr>
-              <td className="sf-cmp-corner"></td>
-              {productList.map(product => (
-                <th key={product.id} scope="col" className="sf-cmp-product">
-                  <ProductHead product={product} />
-                </th>
-              ))}
-              {canAddMore && (
-                <td className="sf-cmp-add">
-                  <Link href="/products" className="sf-cmp-add-box">
-                    <i className="fas fa-plus"></i>
-                    <span>{t("compareAddMore")}</span>
-                  </Link>
-                </td>
-              )}
-            </tr>
-          </thead>
-          {sectionList.map(section => (
-            <tbody key={section.id}>
-              <tr className="sf-cmp-section">
-                <th colSpan={columnCount} scope="colgroup">
-                  <span>{section.title}</span>
-                </th>
+      {/* can-prev / can-next: còn sản phẩm bên trái / bên phải => bóng mờ ở mép bảng + nút mũi tên to */}
+      <div className={cx("sf-compare-frame", nav.canPrev && "can-prev", nav.canNext && "can-next")}>
+        <div ref={scrollRef} className="sf-compare-scroll" role="region" aria-label={t("compare")} tabIndex={0} onScroll={updateNav}>
+          <table ref={tableRef} className="sf-compare-table" style={tableStyle}>
+            <thead>
+              <tr>
+                <td className="sf-cmp-corner"></td>
+                {productList.map(product => (
+                  <th key={product.id} scope="col" className="sf-cmp-product">
+                    <ProductHead product={product} />
+                  </th>
+                ))}
+                {canAddMore && (
+                  <td className="sf-cmp-add">
+                    <Link href="/products" className="sf-cmp-add-box">
+                      <i className="fas fa-plus"></i>
+                      <span>{t("compareAddMore")}</span>
+                    </Link>
+                  </td>
+                )}
               </tr>
-              {section.rows.map(row => (
-                <Fragment key={row.id}>
-                  {/* Điện thoại: tên dòng nằm trên 1 hàng riêng (máy tính dùng ô đầu dòng bên dưới) */}
-                  <tr className="sf-cmp-mlabel" aria-hidden="true">
-                    <td colSpan={columnCount}>
-                      <span>{row.label}</span>
-                    </td>
-                  </tr>
-                  <tr className="sf-cmp-row">
-                    <th scope="row">{row.label}</th>
-                    {row.cells.map((cell, index) => (
-                      <td key={productList[index].id} className={cx(cell.isBest && "is-best")}>
-                        {cell.content ?? <span className="sf-cmp-empty">—</span>}
-                        {cell.isBest && row.bestLabel && (
-                          <span className="sf-cmp-best">
-                            <i className="fas fa-check"></i>
-                            {row.bestLabel}
-                          </span>
-                        )}
+            </thead>
+            {sectionList.map(section => (
+              <tbody key={section.id}>
+                <tr className="sf-cmp-section">
+                  <th colSpan={columnCount} scope="colgroup">
+                    <span>{section.title}</span>
+                  </th>
+                </tr>
+                {section.rows.map(row => (
+                  <Fragment key={row.id}>
+                    {/* Điện thoại: tên dòng nằm trên 1 hàng riêng (máy tính dùng ô đầu dòng bên dưới) */}
+                    <tr className="sf-cmp-mlabel" aria-hidden="true">
+                      <td colSpan={columnCount}>
+                        <span>{row.label}</span>
                       </td>
-                    ))}
-                    {canAddMore && <td className="sf-cmp-add-cell"></td>}
-                  </tr>
-                </Fragment>
-              ))}
-            </tbody>
-          ))}
-        </table>
+                    </tr>
+                    <tr className="sf-cmp-row">
+                      <th scope="row">{row.label}</th>
+                      {row.cells.map((cell, index) => (
+                        <td key={productList[index].id} className={cx(cell.isBest && "is-best")}>
+                          {cell.content ?? <span className="sf-cmp-empty">—</span>}
+                          {cell.isBest && row.bestLabel && (
+                            <span className="sf-cmp-best">
+                              <i className="fas fa-check"></i>
+                              {row.bestLabel}
+                            </span>
+                          )}
+                        </td>
+                      ))}
+                      {canAddMore && <td className="sf-cmp-add-cell"></td>}
+                    </tr>
+                  </Fragment>
+                ))}
+              </tbody>
+            ))}
+          </table>
+        </div>
+
+        {/* Máy tính: 2 nút mũi tên to ở 2 mép bảng, dính giữa màn hình khi cuộn dọc (CSS position: sticky) */}
+        {hasOverflow && (
+          <div className="sf-cmp-arrows">
+            <div className="sf-cmp-arrows-inner">
+              <button
+                type="button"
+                className="sf-cmp-arrow sf-cmp-arrow-prev"
+                aria-label={t("comparePrev")}
+                title={t("comparePrev")}
+                hidden={!nav.canPrev}
+                onClick={() => move(-1)}
+              >
+                <i className="fas fa-chevron-left"></i>
+              </button>
+              <button
+                type="button"
+                className="sf-cmp-arrow sf-cmp-arrow-next"
+                aria-label={t("compareNext")}
+                title={t("compareNext")}
+                hidden={!nav.canNext}
+                onClick={() => move(1)}
+              >
+                <i className="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   )

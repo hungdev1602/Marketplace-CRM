@@ -8511,8 +8511,10 @@ body.sf-lightbox-open {
     border-bottom-width: 2px;
 }
 
+/* isolation: nút ✕, nhãn giảm giá trong ô không nổi lên trên cột tên dòng (dính bên trái) khi kéo ngang */
 .sf-cmp-head {
     position: relative;
+    isolation: isolate;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -9063,5 +9065,147 @@ body.sf-lightbox-open {
 
     .sf-cmp-sticky-name {
         font-size: 12px;
+    }
+}
+
+/* Bảng so sánh có nhiều sản phẩm hơn màn hình:
+   - Mép bảng phía còn sản phẩm (bên trái / bên phải) có bóng mờ, để khách biết còn kéo được
+   - Máy tính: 2 nút mũi tên to màu cyan ở 2 mép bảng, dính giữa màn hình khi cuộn dọc */
+.sf-compare-frame {
+    --sf-cmp-edge: rgb(17 20 23 / 14%);
+    position: relative;
+}
+
+:root[data-theme="dark"] .sf-compare-frame {
+    --sf-cmp-edge: rgb(0 0 0 / 38%);
+}
+
+.sf-compare-frame::before,
+.sf-compare-frame::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    z-index: 2;
+    width: 64px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease;
+}
+
+.sf-compare-frame::before {
+    left: calc(var(--sf-cmp-label) + 2px);
+    background: linear-gradient(to right, var(--sf-cmp-edge), transparent);
+}
+
+.sf-compare-frame::after {
+    right: 2px;
+    border-radius: 0 calc(var(--sf-radius) - 2px) calc(var(--sf-radius) - 2px) 0;
+    background: linear-gradient(to left, var(--sf-cmp-edge), transparent);
+}
+
+.sf-compare-frame.can-prev::before,
+.sf-compare-frame.can-next::after {
+    opacity: 1;
+}
+
+/* Lớp phủ cao bằng cả bảng; bên trong là hàng nút dính giữa màn hình (bắt đầu ngang giữa ảnh sản phẩm) */
+.sf-cmp-arrows {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.sf-cmp-arrows-inner {
+    position: sticky;
+    top: calc(50vh - 30px);
+    height: 60px;
+    margin-top: 110px;
+}
+
+.sf-cmp-arrow {
+    position: absolute;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    border: 3px solid var(--sf-black);
+    border-radius: 50%;
+    background: var(--sf-cyan);
+    box-shadow: 0 8px 24px rgb(17 20 23 / 28%);
+    color: var(--sf-black);
+    font-size: 22px;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.sf-cmp-arrow[hidden] {
+    display: none;
+}
+
+.sf-cmp-arrow-prev {
+    left: calc(var(--sf-cmp-label) + 14px);
+}
+
+.sf-cmp-arrow-next {
+    right: 14px;
+}
+
+.sf-cmp-arrow:hover {
+    transform: scale(1.08);
+    box-shadow: 0 10px 28px rgb(17 20 23 / 34%);
+}
+
+.sf-cmp-arrow:active {
+    transform: scale(.94);
+}
+
+.sf-cmp-arrow:focus-visible {
+    outline: 3px solid var(--sf-cyan-dark);
+    outline-offset: 3px;
+}
+
+/* Dòng "Товары 1–4 из 20" */
+.sf-cmp-nav-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sf-cmp-nav-text i {
+    color: var(--sf-cyan-dark);
+}
+
+@media (min-width: 768px) {
+    /* Máy tính: không cần nút ‹ › nhỏ phía trên bảng (đã có 2 nút to ở 2 mép bảng) */
+    .sf-cmp-nav .sf-cmp-nav-btn {
+        display: none;
+    }
+
+    .sf-compare > .sf-cmp-nav .sf-cmp-nav-text {
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: var(--sf-cyan-light);
+        color: var(--sf-ink);
+    }
+}
+
+@media (max-width: 767.98px) {
+    /* Điện thoại: cột hẹp nên không đặt nút to đè lên bảng (vuốt ngang hoặc dùng nút ‹ › phía trên bảng) */
+    .sf-cmp-arrows {
+        display: none;
+    }
+
+    .sf-compare-frame::before,
+    .sf-compare-frame::after {
+        width: 36px;
     }
 }
