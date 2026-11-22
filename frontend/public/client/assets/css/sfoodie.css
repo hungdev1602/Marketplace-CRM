@@ -8222,3 +8222,990 @@ body.sf-lightbox-open {
         padding: 12px 14px;
     }
 }
+
+/*===========================
+    SO SÁNH SẢN PHẨM
+===========================*/
+/* Nút so sánh: thẻ sản phẩm (tròn nhỏ dưới nút ♡), trang chi tiết sản phẩm (có chữ) */
+.sf-compare-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--sf-ink);
+    cursor: pointer;
+    transition: color .2s ease, background-color .2s ease, border-color .2s ease, transform .15s ease;
+}
+
+.sf-compare-btn:active {
+    transform: scale(.92);
+}
+
+.sf-compare-btn.is-loading {
+    opacity: .6;
+    pointer-events: none;
+}
+
+.sf-product-card > .sf-compare-btn {
+    position: absolute;
+    top: 56px;
+    right: 10px;
+    z-index: 3;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--sf-surface);
+    box-shadow: 0 2px 10px rgb(17 20 23 / 12%);
+    font-size: 15px;
+}
+
+/* Đang so sánh: nền cyan của logo */
+.sf-product-card > .sf-compare-btn.is-active {
+    background: var(--sf-cyan);
+    color: var(--sf-black);
+}
+
+/* Biểu tượng hàng mát / đông lạnh nằm dưới nút so sánh */
+.sf-product-card .sf-storage-icon {
+    top: 102px;
+}
+
+.sf-compare-btn-text {
+    margin: -8px 0 24px;
+    padding: 9px 18px;
+    border: 2px solid var(--sf-line);
+    border-radius: 999px;
+    background: var(--sf-surface);
+    font-family: var(--sf-font-body);
+    font-size: 14.5px;
+    font-weight: 800;
+    line-height: 1.3;
+}
+
+.sf-compare-btn-text span {
+    font: inherit;
+    color: inherit;
+}
+
+.sf-compare-btn-text i {
+    color: var(--sf-cyan-dark);
+}
+
+.sf-compare-btn-text.is-active {
+    border-color: var(--sf-cyan-dark);
+    background: var(--sf-cyan-light);
+}
+
+@media (hover: hover) {
+    .sf-compare-btn:hover {
+        color: var(--sf-cyan-dark);
+    }
+
+    .sf-product-card > .sf-compare-btn.is-active:hover {
+        color: var(--sf-black);
+    }
+
+    .sf-compare-btn-text:hover {
+        border-color: var(--sf-outline);
+        color: var(--sf-ink);
+    }
+}
+
+/* Biểu tượng so sánh ở đầu trang: luôn chỉ có biểu tượng (không kèm chữ) */
+.sf-icon-link.sf-compare-link {
+    width: 42px;
+    padding: 0;
+}
+
+/* Đầu trang điện thoại: chỉ hiện khi đã có sản phẩm so sánh */
+.sf-header-mobile-actions .sf-compare-link {
+    width: 40px;
+}
+
+.sf-header-mobile-actions .sf-compare-link.is-empty {
+    display: none !important;
+}
+
+/* Trang so sánh */
+.sf-compare-toolbar p {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 12px;
+}
+
+.sf-compare-limit {
+    font-size: 14px;
+    color: var(--sf-muted);
+}
+
+.sf-compare-diff {
+    padding: 0;
+}
+
+.sf-compare-diff .form-check-label {
+    font-weight: 800;
+    color: var(--sf-ink);
+}
+
+/* Nút "Добавить товар" trên thanh công cụ chỉ dùng trên điện thoại (máy tính có cột riêng trong bảng) */
+.sf-compare-add-btn {
+    display: none !important;
+}
+
+.sf-compare-hint {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 18px !important;
+    padding: 12px 16px;
+    border-radius: 14px;
+    background: var(--sf-amber-light);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--sf-text) !important;
+}
+
+.sf-compare-hint i {
+    color: var(--sf-amber);
+}
+
+.sf-compare-scroll + .sf-compare-hint {
+    margin: 18px 0 0 !important;
+}
+
+/* Cột tên dòng 210px, mỗi cột sản phẩm ít nhất 230px (nhiều sản phẩm hơn màn hình thì kéo ngang) */
+.sf-compare {
+    --sf-cmp-label: 210px;
+    --sf-cmp-col: 230px;
+}
+
+/* Kéo / vuốt ngang dừng đúng mép cột sản phẩm (cột tên dòng dính bên trái không che mất cột) */
+.sf-compare-scroll {
+    overflow-x: auto;
+    border: 2px solid var(--sf-line);
+    border-radius: var(--sf-radius);
+    background: var(--sf-surface);
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: var(--sf-cmp-label);
+}
+
+.sf-cmp-product,
+.sf-cmp-add {
+    scroll-snap-align: start;
+}
+
+.sf-compare-scroll:focus-visible {
+    outline: 2px solid var(--sf-cyan-dark);
+    outline-offset: 2px;
+}
+
+.sf-compare-table {
+    width: 100%;
+    min-width: calc(var(--sf-cmp-label) + var(--sf-cmp-cols, 1) * var(--sf-cmp-col));
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.sf-compare-table th,
+.sf-compare-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--sf-line);
+    font-size: 15px;
+    text-align: left;
+    vertical-align: top;
+    color: var(--sf-ink);
+    overflow-wrap: anywhere;
+}
+
+.sf-compare-table tbody:last-child tr:last-child > * {
+    border-bottom: 0;
+}
+
+/* Cột tên dòng dính bên trái khi kéo ngang */
+.sf-cmp-corner,
+.sf-cmp-row th {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    width: var(--sf-cmp-label);
+    background: var(--sf-surface);
+    border-right: 1px solid var(--sf-line);
+}
+
+.sf-cmp-row th {
+    font-weight: 700;
+    color: var(--sf-muted);
+}
+
+.sf-cmp-row td {
+    --sf-cmp-bg: var(--sf-surface);
+    background: var(--sf-cmp-bg);
+    font-weight: 700;
+}
+
+.sf-cmp-row td + td,
+.sf-cmp-product + .sf-cmp-product,
+.sf-cmp-product + .sf-cmp-add {
+    border-left: 1px dashed var(--sf-line);
+}
+
+/* Ô tốt nhất: rẻ nhất, giá cho 1 kg thấp nhất, đánh giá cao nhất */
+.sf-cmp-row td.is-best {
+    --sf-cmp-bg: var(--sf-green-light);
+}
+
+.sf-cmp-best {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    margin-top: 6px;
+    font-size: 12.5px;
+    font-weight: 800;
+    color: var(--sf-green);
+}
+
+.sf-cmp-empty {
+    font-weight: 600;
+    color: var(--sf-muted);
+}
+
+@media (hover: hover) {
+    .sf-cmp-row:hover th,
+    .sf-cmp-row:hover td:not(.is-best) {
+        --sf-cmp-bg: var(--sf-cyan-light);
+        background: var(--sf-cyan-light);
+    }
+}
+
+/* Tên mục: Основное, Пищевая ценность,... */
+.sf-cmp-section th {
+    padding: 18px 16px 10px;
+    background: var(--sf-bg-tint);
+    font-family: var(--sf-font-heading);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--sf-ink);
+}
+
+.sf-cmp-section th span {
+    position: sticky;
+    left: 16px;
+}
+
+/* Tên dòng trên 1 hàng riêng: chỉ dùng trên điện thoại */
+.sf-cmp-mlabel {
+    display: none;
+}
+
+/* Ô đầu cột của sản phẩm (height 1px để khung bên trong cao bằng cả ô, nút giỏ hàng các cột thẳng hàng) */
+.sf-compare-table thead th,
+.sf-compare-table thead td {
+    height: 1px;
+    border-bottom-width: 2px;
+}
+
+/* isolation: nút ✕, nhãn giảm giá trong ô không nổi lên trên cột tên dòng (dính bên trái) khi kéo ngang */
+.sf-cmp-head {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.sf-cmp-remove {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--sf-surface);
+    box-shadow: 0 2px 10px rgb(17 20 23 / 12%);
+    color: var(--sf-muted);
+    font-size: 14px;
+    cursor: pointer;
+    transition: color .15s ease;
+}
+
+.sf-cmp-remove:hover {
+    color: var(--sf-red-text);
+}
+
+.sf-cmp-remove.is-loading {
+    opacity: .5;
+    pointer-events: none;
+}
+
+.sf-cmp-img {
+    position: relative;
+    display: block;
+    width: 100%;
+    max-width: 220px;
+    aspect-ratio: 1 / 1;
+    margin-bottom: 12px;
+    border-radius: 14px;
+    background: var(--sf-img-bg);
+    overflow: hidden;
+}
+
+.sf-cmp-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.sf-cmp-head.is-out .sf-cmp-img img {
+    opacity: .45;
+}
+
+.sf-cmp-img .sf-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+}
+
+.sf-cmp-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1.35;
+    color: var(--sf-ink) !important;
+}
+
+.sf-cmp-name:hover {
+    color: var(--sf-cyan-dark) !important;
+}
+
+.sf-cmp-head .sf-product-price {
+    padding-top: 10px;
+}
+
+.sf-cmp-head .sf-cart-control,
+.sf-cmp-head > .sf-cart-out {
+    margin-top: 12px;
+}
+
+/* Cột "Добавить товар" */
+.sf-cmp-add {
+    vertical-align: middle !important;
+}
+
+.sf-cmp-add-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    height: 100%;
+    min-height: 220px;
+    padding: 16px;
+    border: 2px dashed var(--sf-line);
+    border-radius: 16px;
+    font-weight: 800;
+    text-align: center;
+    color: var(--sf-muted) !important;
+    transition: border-color .2s ease, color .2s ease;
+}
+
+.sf-cmp-add-box i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--sf-cyan-light);
+    font-size: 18px;
+    color: var(--sf-cyan-dark);
+}
+
+.sf-cmp-add-box:hover {
+    border-color: var(--sf-outline);
+    color: var(--sf-ink) !important;
+}
+
+/* Nội dung các ô */
+.sf-cmp-price {
+    margin: 0;
+    padding: 0;
+}
+
+.sf-cmp-price .sf-price {
+    font-size: 18px !important;
+}
+
+.sf-cmp-discount {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+    font-size: 14px;
+}
+
+.sf-cmp-rating {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    color: var(--sf-ink) !important;
+}
+
+.sf-cmp-rating span:last-child {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--sf-muted);
+}
+
+.sf-cmp-rating:hover span:last-child {
+    text-decoration: underline;
+}
+
+.sf-cmp-stock {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 13.5px;
+    font-weight: 800;
+}
+
+.sf-cmp-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+}
+
+.sf-cmp-links a {
+    color: var(--sf-cyan-dark) !important;
+}
+
+.sf-cmp-links a:hover {
+    text-decoration: underline;
+}
+
+.sf-cmp-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.sf-cmp-chips .sf-chip {
+    padding: 3px 10px;
+    border-width: 1.5px;
+    font-size: 13px;
+}
+
+.sf-cmp-storage {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.sf-cmp-storage i {
+    color: var(--sf-cyan-dark);
+}
+
+.sf-cmp-row .sf-pre-line {
+    margin: 0 !important;
+    font-size: 14px !important;
+    font-weight: 600;
+    line-height: 1.55;
+    color: var(--sf-text) !important;
+}
+
+.sf-cmp-row .sf-clamp {
+    max-height: 7.75em;
+}
+
+.sf-cmp-row .sf-clamp:not(.is-expanded)::after {
+    background: linear-gradient(to bottom, transparent, var(--sf-cmp-bg));
+}
+
+@media (max-width: 767.98px) {
+    /* Thẻ sản phẩm: nút so sánh nhỏ hơn (giống nút ♡) */
+    .sf-product-card > .sf-compare-btn {
+        top: 48px;
+        right: 8px;
+        width: 34px;
+        height: 34px;
+        font-size: 13px;
+    }
+
+    .sf-product-card .sf-storage-icon {
+        top: 88px;
+    }
+
+    .sf-compare-btn-text {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Bảng so sánh: bỏ cột tên dòng, tên dòng nằm trên 1 hàng riêng; mỗi cột sản phẩm ít nhất 150px */
+    .sf-compare {
+        --sf-cmp-label: 0px;
+        --sf-cmp-col: 150px;
+    }
+
+    .sf-compare-table {
+        min-width: calc(var(--sf-cmp-products, 1) * var(--sf-cmp-col));
+    }
+
+
+    /* Cột tên dòng, cột "Добавить товар" thu về rộng 0. Không bỏ hẳn bằng display: none, vì hàng tên mục / tên dòng
+       dùng colSpan đủ số cột, bỏ cột thì bảng chia độ rộng cho cả cột không còn (cột sản phẩm bị hẹp lại) */
+    .sf-compare-table .sf-cmp-corner,
+    .sf-compare-table .sf-cmp-row th,
+    .sf-compare-table .sf-cmp-add,
+    .sf-compare-table .sf-cmp-add-cell {
+        position: static;
+        width: 0;
+        padding: 0;
+        border: 0;
+        font-size: 0;
+        visibility: hidden;
+        overflow: hidden;
+    }
+
+    .sf-compare-table .sf-cmp-add > * {
+        display: none;
+    }
+
+    .sf-compare-add-btn {
+        display: inline-flex !important;
+    }
+
+    .sf-compare-table th,
+    .sf-compare-table td {
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    .sf-cmp-mlabel {
+        display: table-row;
+    }
+
+    .sf-cmp-mlabel td {
+        padding: 12px 12px 0;
+        border-bottom: 0;
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--sf-muted);
+    }
+
+    .sf-cmp-mlabel td span,
+    .sf-cmp-section th span {
+        position: sticky;
+        left: 12px;
+    }
+
+    .sf-cmp-row td {
+        padding-top: 4px;
+    }
+
+    .sf-cmp-row td + td,
+    .sf-cmp-product + .sf-cmp-product {
+        border-left-style: solid;
+    }
+
+    .sf-cmp-section th {
+        padding: 14px 12px 8px;
+        font-size: 14px;
+    }
+
+    .sf-cmp-remove {
+        width: 28px;
+        height: 28px;
+        font-size: 13px;
+    }
+
+    .sf-cmp-name {
+        font-size: 13.5px;
+    }
+
+    .sf-cmp-head .sf-price,
+    .sf-cmp-price .sf-price {
+        font-size: 16px !important;
+    }
+
+    .sf-compare-toolbar {
+        padding: 10px 14px;
+    }
+}
+
+/* Lọc theo danh mục ở trang so sánh */
+.sf-cmp-groups {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.sf-cmp-groups .sf-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--sf-font-body);
+    cursor: pointer;
+}
+
+.sf-cmp-groups .sf-chip span {
+    font-size: 12.5px;
+    font-weight: 900;
+    opacity: .65;
+}
+
+@media (hover: hover) {
+    .sf-cmp-groups .sf-chip:not(.active):hover {
+        background: var(--sf-cyan);
+        color: var(--sf-black) !important;
+    }
+}
+
+/* Nút ‹ › và "Товары 1–4 из 20" */
+.sf-cmp-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.sf-cmp-nav-btn {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 2px solid var(--sf-outline);
+    border-radius: 50%;
+    background: var(--sf-surface);
+    color: var(--sf-ink);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color .2s ease, color .2s ease, opacity .2s ease;
+}
+
+.sf-cmp-nav-btn:disabled {
+    opacity: .3;
+    cursor: default;
+}
+
+@media (hover: hover) {
+    .sf-cmp-nav-btn:not(:disabled):hover {
+        background: var(--sf-cyan);
+        border-color: var(--sf-black);
+        color: var(--sf-black);
+    }
+}
+
+.sf-cmp-nav-text {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--sf-muted);
+    white-space: nowrap;
+}
+
+/* Hàng tên sản phẩm dính trên cùng khi cuộn xuống (dưới menu / đầu trang đang dính)
+   Khung cao 0 nên không chiếm chỗ trong trang; hàng sản phẩm chạy ngang theo bảng (CompareView.tsx) */
+.sf-cmp-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: 0;
+}
+
+.sf-cmp-sticky-bar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    display: flex;
+    border: 2px solid var(--sf-line);
+    border-top: 0;
+    border-radius: 0 0 14px 14px;
+    background: var(--sf-surface);
+    box-shadow: var(--sf-menu-shadow);
+    overflow: hidden;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: opacity .2s ease, transform .2s ease, visibility .2s;
+}
+
+.sf-cmp-sticky-bar.is-visible {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+}
+
+.sf-cmp-sticky-nav {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid var(--sf-line);
+    overflow: hidden;
+}
+
+.sf-cmp-sticky-nav .sf-cmp-nav {
+    gap: 6px;
+    margin: 0;
+}
+
+.sf-cmp-sticky-nav .sf-cmp-nav-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+}
+
+.sf-cmp-sticky-nav .sf-cmp-nav-text {
+    font-size: 12px;
+}
+
+.sf-cmp-sticky-view {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.sf-cmp-sticky-row {
+    display: flex;
+    will-change: transform;
+}
+
+.sf-cmp-sticky-item {
+    display: grid;
+    flex: 0 0 auto;
+    grid-template-columns: 36px minmax(0, 1fr);
+    align-items: center;
+    column-gap: 10px;
+    padding: 8px 12px;
+    border-left: 1px dashed var(--sf-line);
+    color: var(--sf-ink) !important;
+}
+
+.sf-cmp-sticky-item:first-child {
+    border-left: 0;
+}
+
+.sf-cmp-sticky-item img {
+    grid-row: span 2;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--sf-img-bg);
+    object-fit: contain;
+}
+
+.sf-cmp-sticky-name {
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.3;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.sf-cmp-sticky-item b {
+    font-size: 13.5px;
+    font-weight: 900;
+    line-height: 1.3;
+}
+
+.sf-cmp-sticky-item b.is-sale {
+    color: var(--sf-red);
+}
+
+@media (max-width: 767.98px) {
+    .sf-cmp-nav {
+        justify-content: space-between;
+        padding: 4px;
+        border-radius: 999px;
+        background: var(--sf-bg-tint);
+    }
+
+    .sf-cmp-nav-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    /* Hàng tên sản phẩm dính trên cùng: điện thoại không có cột tên dòng nên không có nút ‹ › ở đây (vuốt bảng để xem tiếp) */
+    .sf-cmp-sticky-nav {
+        display: none !important;
+    }
+
+    .sf-cmp-sticky-item {
+        grid-template-columns: 28px minmax(0, 1fr);
+        column-gap: 8px;
+        padding: 6px 10px;
+    }
+
+    .sf-cmp-sticky-item img {
+        width: 28px;
+        height: 28px;
+    }
+
+    .sf-cmp-sticky-name {
+        font-size: 12px;
+    }
+}
+
+/* Bảng so sánh có nhiều sản phẩm hơn màn hình:
+   - Mép bảng phía còn sản phẩm (bên trái / bên phải) có bóng mờ, để khách biết còn kéo được
+   - Máy tính: 2 nút mũi tên to màu cyan ở 2 mép bảng, dính giữa màn hình khi cuộn dọc */
+.sf-compare-frame {
+    --sf-cmp-edge: rgb(17 20 23 / 14%);
+    position: relative;
+}
+
+:root[data-theme="dark"] .sf-compare-frame {
+    --sf-cmp-edge: rgb(0 0 0 / 38%);
+}
+
+.sf-compare-frame::before,
+.sf-compare-frame::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    z-index: 2;
+    width: 64px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease;
+}
+
+.sf-compare-frame::before {
+    left: calc(var(--sf-cmp-label) + 2px);
+    background: linear-gradient(to right, var(--sf-cmp-edge), transparent);
+}
+
+.sf-compare-frame::after {
+    right: 2px;
+    border-radius: 0 calc(var(--sf-radius) - 2px) calc(var(--sf-radius) - 2px) 0;
+    background: linear-gradient(to left, var(--sf-cmp-edge), transparent);
+}
+
+.sf-compare-frame.can-prev::before,
+.sf-compare-frame.can-next::after {
+    opacity: 1;
+}
+
+/* Lớp phủ cao bằng cả bảng; bên trong là hàng nút dính giữa màn hình (bắt đầu ngang giữa ảnh sản phẩm) */
+.sf-cmp-arrows {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.sf-cmp-arrows-inner {
+    position: sticky;
+    top: calc(50vh - 30px);
+    height: 60px;
+    margin-top: 110px;
+}
+
+.sf-cmp-arrow {
+    position: absolute;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    border: 3px solid var(--sf-black);
+    border-radius: 50%;
+    background: var(--sf-cyan);
+    box-shadow: 0 8px 24px rgb(17 20 23 / 28%);
+    color: var(--sf-black);
+    font-size: 22px;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.sf-cmp-arrow[hidden] {
+    display: none;
+}
+
+.sf-cmp-arrow-prev {
+    left: calc(var(--sf-cmp-label) + 14px);
+}
+
+.sf-cmp-arrow-next {
+    right: 14px;
+}
+
+.sf-cmp-arrow:hover {
+    transform: scale(1.08);
+    box-shadow: 0 10px 28px rgb(17 20 23 / 34%);
+}
+
+.sf-cmp-arrow:active {
+    transform: scale(.94);
+}
+
+.sf-cmp-arrow:focus-visible {
+    outline: 3px solid var(--sf-cyan-dark);
+    outline-offset: 3px;
+}
+
+/* Dòng "Товары 1–4 из 20" */
+.sf-cmp-nav-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sf-cmp-nav-text i {
+    color: var(--sf-cyan-dark);
+}
+
+@media (min-width: 768px) {
+    /* Máy tính: không cần nút ‹ › nhỏ phía trên bảng (đã có 2 nút to ở 2 mép bảng) */
+    .sf-cmp-nav .sf-cmp-nav-btn {
+        display: none;
+    }
+
+    .sf-compare > .sf-cmp-nav .sf-cmp-nav-text {
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: var(--sf-cyan-light);
+        color: var(--sf-ink);
+    }
+}
+
+@media (max-width: 767.98px) {
+    /* Điện thoại: cột hẹp nên không đặt nút to đè lên bảng (vuốt ngang hoặc dùng nút ‹ › phía trên bảng) */
+    .sf-cmp-arrows {
+        display: none;
+    }
+
+    .sf-compare-frame::before,
+    .sf-compare-frame::after {
+        width: 36px;
+    }
+}

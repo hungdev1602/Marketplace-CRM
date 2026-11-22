@@ -5,6 +5,7 @@ import { articleRoute } from "./article.route"
 import { languageRoute } from "./language.route"
 import { cartRoute } from "./cart.route"
 import { wishlistRoute } from "./wishlist.route"
+import { compareRoute } from "./compare.route"
 import { accountRoute } from "./account.route"
 import { searchRoute } from "./search.route"
 import { checkoutRoute } from "./checkout.route"
@@ -45,6 +46,9 @@ export const clientRoute = (app: Express) => {
   app.use("/cart", cartRoute)
 
   app.use("/wishlist", wishlistRoute)
+
+  // So sánh sản phẩm (danh sách lưu trong cookie, chỉ có ở giao diện Next.js)
+  app.use("/compare", compareRoute)
 
   // Đặt hàng, thanh toán, trang đơn hàng của khách
   app.use("/checkout", checkoutRoute)

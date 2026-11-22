@@ -168,6 +168,7 @@ Trang khách hàng:
 - [ ] Ô tìm kiếm: gợi ý khi gõ, gõ nhầm bàn phím (ví dụ `kfgif`), phím ↑ ↓ Enter, tìm bằng giọng nói (Chrome)
 - [ ] Trang sản phẩm: album ảnh / video, các tab, đánh giá (lọc theo sao, "Читать полностью", 👍 / 👎, xem ảnh lớn)
 - [ ] Thêm vào giỏ, + / − số lượng, ♡ yêu thích (số trên biểu tượng đầu trang phải đổi theo)
+- [ ] So sánh sản phẩm: nút ⚖ trên thẻ sản phẩm, trang `/compare` (xem [huong-dan-so-sanh-san-pham.md](huong-dan-so-sanh-san-pham.md))
 - [ ] Giỏ hàng: mã giảm giá đúng / sai, xoá sản phẩm, xoá hết
 - [ ] Đặt hàng: tính phí giao hàng, chọn điểm nhận hàng trên bản đồ, "Рядом со мной", thanh toán (thử với `PAYMENT_TEST_MODE=true` hoặc terminal DEMO)
 - [ ] Đăng ký, đăng nhập (giỏ hàng lúc chưa đăng nhập được gộp vào tài khoản), quên mật khẩu, đổi mật khẩu, đăng xuất

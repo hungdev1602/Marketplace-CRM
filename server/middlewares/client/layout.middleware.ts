@@ -4,6 +4,7 @@ import { buildCategoryTree } from "../../helpers/category.helper"
 import { formatNumber, formatPrice, htmlToText } from "../../helpers/format.helper"
 import { getCart, getCartQuantity } from "../../helpers/cart.helper"
 import { getWishlist } from "../../helpers/wishlist.helper"
+import { getCompareIds } from "../../helpers/compare.helper"
 import {
   clientCartMaxQuantity,
   domainFileManager,
@@ -62,6 +63,12 @@ export const loadLayoutData = async (req: Request, res: Response, next: NextFunc
   res.locals.cartMaxQuantity = clientCartMaxQuantity
   res.locals.wishlistCount = wishlist ? wishlist.items.length : 0
   res.locals.wishlistMap = Object.fromEntries((wishlist?.items || []).map((item: any) => [item.productId, true]))
+
+  // So sánh sản phẩm (cookie, không cần hỏi database): số trên biểu tượng ở đầu trang, trạng thái nút "Сравнить"
+  // compareMap: { id sản phẩm: true }
+  const compareIds = getCompareIds(req)
+  res.locals.compareCount = compareIds.length
+  res.locals.compareMap = Object.fromEntries(compareIds.map(id => [id, true]))
 
   // Hàm dùng trong file PUG
   res.locals.formatNumber = formatNumber

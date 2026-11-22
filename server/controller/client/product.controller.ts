@@ -15,7 +15,8 @@ import {
   clientProductSortList,
   clientSearchSortList,
   productOnSaleFind,
-  productVisibleFind
+  productVisibleFind,
+  shelfLifeKeyList
 } from "../../helpers/client-product.helper"
 import {
   addKeywordFind,
@@ -39,13 +40,6 @@ import {
 } from "../../helpers/review.helper"
 import { domainFileManager, reviewStatusList } from "../../config/variable.config"
 import { getSiteUrl } from "../../helpers/site-url.helper"
-
-// Từ ngữ hạn sử dụng theo đơn vị (locales), ví dụ: 6 + month => "6 месяцев" / "6 tháng"
-const shelfLifeKeyList: { [unit: string]: string } = {
-  day: "shelfLifeDay",
-  month: "shelfLifeMonth",
-  year: "shelfLifeYear"
-}
 
 // Giá trị bộ lọc trên link (?origin=VN&origin=TH) => mảng, chỉ giữ giá trị có trong danh sách lựa chọn
 const getFilterList = (value: any, optionList: { id: string }[]): string[] => {

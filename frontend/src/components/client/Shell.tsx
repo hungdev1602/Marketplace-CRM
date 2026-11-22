@@ -18,7 +18,9 @@ export function ClientShell({ data, ctx, children }: { data: any, ctx?: ViewCtx,
         cartQuantity: data.cartQuantity || 0,
         cartQuantityMap: data.cartQuantityMap || {},
         wishlistCount: data.wishlistCount || 0,
-        wishlistMap: data.wishlistMap || {}
+        wishlistMap: data.wishlistMap || {},
+        compareCount: data.compareCount || 0,
+        compareMap: data.compareMap || {}
       }}
     >
       <ThemeScript defaultTheme={viewCtx.defaultTheme} />

@@ -593,6 +593,17 @@ export const clientCartMaxQuantity: number = 99
 // Số sản phẩm tối đa trong danh sách yêu thích
 export const clientWishlistMaxItems: number = 200
 
+// ===== So sánh sản phẩm (trang khách hàng: /compare) =====
+// Danh sách so sánh không lưu trong database, mà nằm trong cookie "compareList" của trình duyệt
+// (khách chưa đăng nhập hay đã đăng nhập đều dùng như nhau), xem helpers/compare.helper.ts
+// Số sản phẩm tối đa được so sánh cùng lúc (máy tính và điện thoại như nhau)
+// Màn hình máy tính hiện vừa khoảng 4 cột, điện thoại 2 cột: nhiều hơn thì khách kéo / vuốt ngang bảng
+// hoặc bấm nút ‹ › để xem tiếp. Cookie chứa được tối đa khoảng 150 sản phẩm, nên đặt không quá 100
+export const clientCompareMaxItems: number = 20
+
+// Số ngày trình duyệt giữ danh sách so sánh, tính từ lần thêm / bỏ sản phẩm cuối cùng
+export const clientCompareKeepDays: number = 30
+
 // Đăng nhập tài khoản khách
 // - Tick "Запомнить меня": giữ đăng nhập số ngày bên dưới
 // - Không tick: đăng xuất khi tắt trình duyệt (và tối đa sau 1 ngày)
