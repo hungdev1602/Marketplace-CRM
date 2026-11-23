@@ -4,6 +4,7 @@ import {
   checkoutFreeDeliveryFrom,
   checkoutMinOrderValue,
   clientDefaultTheme,
+  legalInfo,
   orderPaymentTimeoutMinutes,
   productLowStockThreshold,
   reviewEditDays,
@@ -68,6 +69,59 @@ export const shopSettingList: IntegrationDefinition[] = [
           { id: "dark", name: "Luôn tối" }
         ],
         help: "Khách đã bấm nút đổi sáng / tối thì trình duyệt nhớ lựa chọn của khách."
+      }
+    ]
+  }),
+  section({
+    key: "legal",
+    name: "Văn bản pháp lý",
+    icon: "fa-solid fa-scale-balanced",
+    description: "Ngày có hiệu lực, người chịu trách nhiệm dữ liệu cá nhân, số đăng ký Роскомнадзор — điền vào các trang /legal (chính sách dữ liệu cá nhân, оферта, giao hàng, đổi trả).",
+    fields: [
+      {
+        key: "effectiveDate",
+        label: "Ngày có hiệu lực của văn bản (Редакция от)",
+        type: "text",
+        group: "Văn bản",
+        default: legalInfo.effectiveDate,
+        placeholder: "01.12.2026",
+        help: "Hiện ở đầu mọi văn bản pháp lý và được lưu kèm mỗi lần khách tick «đồng ý» (để chứng minh khách đã đồng ý với bản nào). Sửa nội dung văn bản thì đổi ngày này. Tên người bán, ИНН, ОГРНИП, địa chỉ, email lấy từ mục <b>Thông tin cửa hàng</b>."
+      },
+      {
+        key: "pdResponsible",
+        label: "Người chịu trách nhiệm tổ chức xử lý dữ liệu cá nhân",
+        type: "text",
+        group: "Dữ liệu cá nhân (luật 152-ФЗ)",
+        default: legalInfo.pdResponsible,
+        placeholder: "Иванов Иван Иванович",
+        help: "ИП thường là chính chủ ИП. Để trống = dùng «Tên người bán» ở mục Thông tin cửa hàng."
+      },
+      {
+        key: "pdEmail",
+        label: "Email nhận yêu cầu về dữ liệu cá nhân",
+        type: "email",
+        group: "Dữ liệu cá nhân (luật 152-ФЗ)",
+        default: legalInfo.pdEmail,
+        placeholder: "privacy@sfoodie.ru",
+        help: "Khách gửi yêu cầu xem / sửa / xoá dữ liệu, rút lại sự đồng ý tới email này. Để trống = email cửa hàng."
+      },
+      {
+        key: "rknNumber",
+        label: "Số đăng ký trong Реестр операторов ПДн",
+        type: "text",
+        group: "Dữ liệu cá nhân (luật 152-ФЗ)",
+        default: legalInfo.rknNumber,
+        placeholder: "77-26-012345",
+        help: "Có sau khi nộp «Уведомление об обработке персональных данных» cho Роскомнадзор ở pd.rkn.gov.ru (xem docs/huong-dan-trang-phap-ly.md). Để trống thì không hiện."
+      },
+      {
+        key: "hosting",
+        label: "Công ty hosting (nơi đặt server, database)",
+        type: "text",
+        group: "Dữ liệu cá nhân (luật 152-ФЗ)",
+        default: legalInfo.hosting,
+        placeholder: "ООО «Таймвэб»",
+        help: "Luật Nga bắt buộc dữ liệu cá nhân của khách lưu trên server đặt tại Nga. Để trống thì văn bản chỉ ghi «хостинг-провайдер»."
       }
     ]
   }),

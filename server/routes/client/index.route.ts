@@ -12,6 +12,7 @@ import { checkoutRoute } from "./checkout.route"
 import { orderRoute } from "./order.route"
 import { paymentRoute } from "./payment.route"
 import { reviewRoute } from "./review.route"
+import { legalRoute } from "./legal.route"
 import * as languageMiddleware from "../../middlewares/client/language.middleware"
 import * as layoutMiddleware from "../../middlewares/client/layout.middleware"
 import * as authMiddleware from "../../middlewares/client/auth.middleware"
@@ -60,6 +61,9 @@ export const clientRoute = (app: Express) => {
 
   // Tài khoản khách: đăng nhập, đăng ký, thông tin tài khoản
   app.use("/account", accountRoute)
+
+  // Văn bản pháp lý: chính sách xử lý dữ liệu cá nhân, оферта, giao hàng, đổi trả (luật Nga, Т-Банк kiểm tra khi duyệt website)
+  app.use("/legal", legalRoute)
 
   // Không trang nào khớp thì hiện trang 404
   app.use(errorController.notFound)

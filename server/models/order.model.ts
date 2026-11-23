@@ -11,6 +11,9 @@ const orderSchema = new mongoose.Schema(
     accessKey: String, // mã bí mật trong link xem đơn hàng (khách chưa đăng nhập xem đơn bằng link này)
     userId: String, // id tài khoản khách đã đăng nhập (AccountClient), trống là khách chưa đăng nhập
     lang: String, // ngôn ngữ khách dùng lúc đặt hàng (gửi email theo ngôn ngữ này)
+    // Khách tick chấp nhận оферта và đồng ý xử lý dữ liệu cá nhân lúc đặt hàng (bằng chứng theo luật 152-ФЗ)
+    agreedAt: Date,
+    consentVersion: String, // phiên bản văn bản (ngày có hiệu lực ở Cài đặt cửa hàng => Văn bản pháp lý)
 
     // Người nhận
     customer: {

@@ -122,10 +122,16 @@ export const orderPost = validate(Joi.object({
     }),
     otherwise: Joi.any().strip()
   }),
-  // Đồng ý xử lý dữ liệu cá nhân (luật 152-ФЗ) và điều kiện mua hàng
+  // Chấp nhận оферта (điều kiện mua hàng, giao hàng, đổi trả: /legal/offer)
+  agreeOffer: Joi.string().valid("on").required().messages({
+    "any.only": "checkoutOfferRequired",
+    "any.required": "checkoutOfferRequired",
+    "string.empty": "checkoutOfferRequired"
+  }),
+  // Đồng ý xử lý dữ liệu cá nhân (luật 152-ФЗ): từ 01.09.2025 phải là ô tick riêng, không gộp với оферта
   agree: Joi.string().valid("on").required().messages({
-    "any.only": "checkoutAgreeRequired",
-    "any.required": "checkoutAgreeRequired",
-    "string.empty": "checkoutAgreeRequired"
+    "any.only": "agreeRequired",
+    "any.required": "agreeRequired",
+    "string.empty": "agreeRequired"
   })
 }))

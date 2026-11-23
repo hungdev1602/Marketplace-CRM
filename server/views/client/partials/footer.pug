@@ -68,6 +68,10 @@ footer(class="sf-footer")
             a(href="/wishlist") #{t("wishlist")}
           li
             a(href="/cart") #{t("cart")}
+          li
+            a(href="/legal/delivery") #{t("legalDelivery")}
+          li
+            a(href="/legal/returns") #{t("legalReturns")}
       .col-xl-3.col-lg-3.col-md-4
         h3 #{t("footerContact")}
         ul(class="sf-footer-contact")
@@ -105,3 +109,10 @@ footer(class="sf-footer")
       - const legalParts = [shopInfo.legalName, shopInfo.inn ? `ИНН ${shopInfo.inn}` : "", shopInfo.ogrn ? `${ogrnLabel} ${shopInfo.ogrn}` : "", shopInfo.legalAddress].filter(Boolean)
       if legalParts.length > 0
         p(class="sf-footer-legal") #{legalParts.join(" · ")}
+      //- Văn bản pháp lý (/legal)
+      p(class="sf-footer-docs")
+        a(href="/legal") #{t("legalInfo")}
+        |  · 
+        a(href="/legal/privacy") #{t("legalPrivacy")}
+        |  · 
+        a(href="/legal/offer") #{t("legalOffer")}

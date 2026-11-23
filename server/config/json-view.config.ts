@@ -51,9 +51,11 @@ export const jsonViewHiddenFieldsClientByModel: { [modelName: string]: string[] 
     "notifiedAt",
     "refundId",
     "paymentId",
-    "attempt"
+    "attempt",
+    "agreedAt",
+    "consentVersion"
   ],
   Cart: ["token", "userId"],
   Wishlist: ["token", "userId"],
-  AccountClient: ["agreedAt", "lastLoginAt", "status"]
+  AccountClient: ["agreedAt", "consentVersion", "lastLoginAt", "status"]
 }

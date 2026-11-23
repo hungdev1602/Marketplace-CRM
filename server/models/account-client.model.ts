@@ -14,6 +14,7 @@ const accountClientSchema = new mongoose.Schema(
       default: "active"
     },
     agreedAt: Date, // thời gian khách đồng ý xử lý dữ liệu cá nhân (luật 152-ФЗ của Nga) lúc đăng ký
+    consentVersion: String, // phiên bản văn bản khách đồng ý (ngày có hiệu lực ở Cài đặt cửa hàng => Văn bản pháp lý)
     lastLoginAt: Date, // thời gian đăng nhập gần nhất
     deleted: {
       type: Boolean,

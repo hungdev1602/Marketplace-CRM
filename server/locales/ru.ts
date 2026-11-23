@@ -36,7 +36,9 @@ const ru = {
   // Chân trang
   footerAbout: "Магазин азиатских продуктов: лапша, соусы, специи, снеки и напитки — всё для любимых блюд Азии.",
   footerCatalog: "Каталог",
-  footerCustomers: "Покупателям",
+  footerShop: "Магазин",
+  footerCustomers: "Для покупателей",
+  footerInfo: "Информация",
   footerContact: "Контакты",
   workingHours: "Часы работы",
   copyright: "Все права защищены.",
@@ -319,7 +321,10 @@ const ru = {
   passwordHint: "Не меньше 8 символов, буквы и цифры",
   showPassword: "Показать пароль",
   rememberMe: "Запомнить меня",
-  agreeText: "Я согласен(на) на обработку персональных данных",
+  // Ô tick đồng ý: {consent}, {policy} là chỗ đặt link tới văn bản (chữ của link: linkConsent, linkPolicy)
+  agreeText: "Даю {consent} в соответствии с {policy}",
+  linkConsent: "согласие на обработку персональных данных",
+  linkPolicy: "Политикой обработки персональных данных",
   noAccount: "Нет аккаунта?",
   haveAccount: "Уже есть аккаунт?",
   loginSuccess: "Вы вошли в аккаунт",
@@ -438,8 +443,12 @@ const ru = {
   couponNotApplied: "Промокод не применён",
   freeDeliveryApplied: "Доставка для этого заказа бесплатная",
   freeDeliveryFrom: "Бесплатная доставка при заказе от",
-  checkoutAgree: "Я согласен(на) с условиями покупки и на обработку персональных данных",
-  checkoutAgreeRequired: "Нужно согласие с условиями покупки и на обработку персональных данных",
+  // Đặt hàng: chấp nhận оферта (ô riêng, tách khỏi ô đồng ý xử lý dữ liệu cá nhân theo luật 152-ФЗ từ 01.09.2025)
+  checkoutAgreeOffer: "Принимаю условия {offer}, {delivery} и {returns}",
+  linkOffer: "публичной оферты",
+  linkDelivery: "доставки",
+  linkReturns: "возврата",
+  checkoutOfferRequired: "Нужно принять условия публичной оферты",
   goToPayment: "Перейти к оплате",
   checkoutPayNote: "Вы перейдёте на защищённую страницу оплаты Т-Банка",
   backToCart: "Вернуться в корзину",
@@ -601,7 +610,22 @@ const ru = {
   reviewMineEmpty: "Вы ещё не написали ни одного отзыва",
   reviewProductDeleted: "Товар больше не продаётся",
   reviewEmailSubject: "Как вам покупка? Оцените товары",
-  reviewEmailText: "Надеемся, вам всё понравилось! Оцените товары из заказа — просто нажмите на звезду. Ваш отзыв поможет другим покупателям сделать выбор."
+  reviewEmailText: "Надеемся, вам всё понравилось! Оцените товары из заказа — просто нажмите на звезду. Ваш отзыв поможет другим покупателям сделать выбор.",
+
+  // Văn bản pháp lý (/legal), chân trang, thông báo cookie
+  legalInfo: "Правовая информация",
+  legalInfoDescription: "Сведения о продавце и документы интернет-магазина SFoodie: политика обработки персональных данных, публичная оферта, условия доставки, оплаты и возврата.",
+  legalPrivacy: "Политика обработки персональных данных",
+  legalConsent: "Согласие на обработку персональных данных",
+  legalOffer: "Публичная оферта",
+  legalDelivery: "Доставка и оплата",
+  legalReturns: "Возврат и обмен",
+  legalDocuments: "Документы",
+  legalRuOnly: "",
+  legalPrint: "Распечатать",
+  cookieNotice: "Мы используем только необходимые cookie — для корзины, входа в личный кабинет и выбора языка. Подробнее — в {policy}.",
+  linkPolicyCookie: "Политике обработки персональных данных",
+  cookieNoticeOk: "Понятно"
 }
 
 export default ru
