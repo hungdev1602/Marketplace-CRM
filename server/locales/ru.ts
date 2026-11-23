@@ -36,7 +36,9 @@ const ru = {
   // Chân trang
   footerAbout: "Магазин азиатских продуктов: лапша, соусы, специи, снеки и напитки — всё для любимых блюд Азии.",
   footerCatalog: "Каталог",
-  footerCustomers: "Покупателям",
+  footerShop: "Магазин",
+  footerCustomers: "Для покупателей",
+  footerInfo: "Информация",
   footerContact: "Контакты",
   workingHours: "Часы работы",
   copyright: "Все права защищены.",

@@ -495,8 +495,7 @@ a.sf-chip:hover {
 }
 
 .sf-header .header_logo img,
-.menu_logo img,
-.sf-footer-logo img {
+.menu_logo img {
     height: auto !important;
     object-fit: contain !important;
 }
@@ -1084,46 +1083,25 @@ a.sf-chip:hover {
 
 /*===========================
     CHÂN TRANG
+    Cột Liên hệ bên trái + 3 cột link, dòng cuối: bản quyền, người bán, chính sách dữ liệu cá nhân
 ===========================*/
 .sf-footer {
     background: var(--sf-footer-bg);
     color: #C3D2D6;
-    padding: 64px 0 0;
+    padding: 56px 0 0;
     margin-top: 0;
 }
 
-.sf-footer-logo {
-    display: block;
-    width: 200px;
-    margin-bottom: 18px;
-}
-
 .sf-footer p,
-.sf-footer span {
+.sf-footer span,
+.sf-footer li {
     color: #C3D2D6;
     font-size: 15px;
-}
-
-.sf-footer-about {
-    max-width: 340px;
-    line-height: 1.7;
-}
-
-.sf-footer h3 {
-    color: #fff;
-    font-size: 15px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    margin-bottom: 18px;
-}
-
-.sf-footer-links li {
-    margin-bottom: 10px;
+    line-height: 1.6;
 }
 
 .sf-footer a {
-    color: #C3D2D6;
+    color: #9DB0B5;
 }
 
 .sf-footer a:hover,
@@ -1131,18 +1109,49 @@ a.sf-chip:hover {
     color: var(--sf-cyan);
 }
 
-.sf-footer-contact li {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 12px;
-    line-height: 1.6;
+/* Tiêu đề lớn «Контакты» */
+.sf-footer .sf-footer-title {
+    margin-bottom: 22px;
+    font-family: var(--sf-font-heading);
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
 }
 
-.sf-footer-contact i {
+/* Tiêu đề 3 cột link */
+.sf-footer h3 {
+    margin: 8px 0 20px;
+    font-family: var(--sf-font-body);
+    font-size: 17px;
+    font-weight: 800;
+    color: #fff;
+}
+
+.sf-footer-links li {
+    margin-bottom: 12px;
+}
+
+.sf-footer-links a {
+    font-size: 16px;
+}
+
+.sf-footer-contact li {
+    margin-bottom: 10px;
+}
+
+.sf-footer-contact a {
+    color: #C3D2D6;
+}
+
+.sf-footer .sf-footer-contact .sf-footer-phone {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.sf-footer .sf-footer-contact .sf-footer-phone:hover {
     color: var(--sf-cyan);
-    margin-top: 5px;
-    width: 16px;
-    text-align: center;
 }
 
 .sf-footer-social {
@@ -1152,36 +1161,77 @@ a.sf-chip:hover {
 }
 
 .sf-footer-social a {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgb(255 255 255 / 8%);
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgb(255 255 255 / 18%);
+    border-radius: 10px;
     font-size: 18px;
+    color: #fff;
 }
 
 .sf-footer-social a:hover {
+    border-color: var(--sf-cyan);
     background: var(--sf-cyan);
     color: var(--sf-black);
 }
 
 .sf-footer-bottom {
-    margin-top: 48px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 24px;
+    margin-top: 44px;
     padding: 20px 0;
     border-top: 1px solid rgb(255 255 255 / 10%);
 }
 
-.sf-footer-bottom p {
-    font-size: 14px;
+.sf-footer .sf-footer-bottom p,
+.sf-footer .sf-footer-bottom span {
+    font-size: 13px;
     color: #8EA2A8;
 }
 
-/* Thông tin người bán (ИП, ИНН, ОГРНИП) */
-.sf-footer-bottom .sf-footer-legal {
-    margin-top: 6px;
-    font-size: 12px;
+.sf-footer .sf-footer-policy {
+    font-size: 14px;
+    color: #C3D2D6;
+}
+
+@media (max-width: 991.98px) {
+    .sf-footer {
+        padding-top: 44px;
+    }
+
+    .sf-footer .sf-footer-title {
+        font-size: 26px;
+        margin-bottom: 16px;
+    }
+
+    .sf-footer h3 {
+        margin-top: 4px;
+        margin-bottom: 14px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .sf-footer-links li {
+        margin-bottom: 8px;
+    }
+
+    .sf-footer-links a {
+        font-size: 15px;
+    }
+
+    .sf-footer-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-top: 32px;
+        /* chừa chỗ cho nút cuộn lên đầu trang ở góc phải */
+        padding-right: 56px;
+    }
 }
 
 /*===========================
@@ -9440,22 +9490,6 @@ body.sf-lightbox-open {
     background: var(--sf-red-light);
     font-weight: 700;
     color: var(--sf-red-text);
-}
-
-/* Link văn bản pháp lý ở cuối chân trang */
-.sf-footer-bottom .sf-footer-docs {
-    margin-top: 6px;
-    font-size: 13px;
-}
-
-.sf-footer-bottom .sf-footer-docs a {
-    color: inherit;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-}
-
-.sf-footer-bottom .sf-footer-docs a:hover {
-    color: var(--sf-cyan);
 }
 
 /* Link trong ô tick đồng ý (đăng ký, đặt hàng) */

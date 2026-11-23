@@ -37,7 +37,9 @@ const vi: Record<keyof typeof ru, string> = {
   // Chân trang
   footerAbout: "Cửa hàng thực phẩm châu Á: mì, nước chấm, gia vị, đồ ăn vặt và đồ uống — đủ để nấu những món châu Á bạn yêu thích.",
   footerCatalog: "Danh mục",
-  footerCustomers: "Khách hàng",
+  footerShop: "Cửa hàng",
+  footerCustomers: "Dành cho khách hàng",
+  footerInfo: "Thông tin",
   footerContact: "Liên hệ",
   workingHours: "Giờ làm việc",
   copyright: "Bảo lưu mọi quyền.",

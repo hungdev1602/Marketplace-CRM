@@ -27,7 +27,10 @@ trên văn bản có dòng ghi chú «Văn bản pháp lý được soạn bằn
 
 ### Những chỗ khác trên website đã đổi
 
-- **Chân trang**: cột «Покупателям» thêm «Доставка и оплата», «Возврат и обмен»; dòng cuối cùng thêm link «Правовая информация · Политика обработки персональных данных · Публичная оферта».
+- **Chân trang** (làm lại cho gọn): cột «Контакты» lớn bên trái (điện thoại, email, địa chỉ, giờ làm việc, mạng xã hội) và 3 cột link
+  «Магазин», «Для покупателей» (có «Доставка и оплата», «Возврат и обмен»), «Информация» (có «Правовая информация», «Публичная оферта»).
+  Dòng cuối: bản quyền + tên ИП, ИНН, ОГРНИП bên trái, link «Политика обработки персональных данных» bên phải.
+  Chọn ngôn ngữ chỉ còn ở đầu trang (máy tính) và menu ☰ (điện thoại). Giao diện PUG cũ giữ chân trang kiểu cũ (có thêm link văn bản).
 - **Form đăng ký**: ô tick đổi thành «Даю <u>согласие на обработку персональных данных</u> в соответствии с <u>Политикой обработки персональных данных</u>» — chữ gạch chân là link, mở ở tab mới (khách không mất chữ đã nhập).
 - **Trang đặt hàng**: trước đây có 1 ô tick gộp «согласен с условиями покупки и на обработку персональных данных».
   Theo luật mới phải **tách thành 2 ô riêng**, cả 2 đều bắt buộc:
@@ -112,7 +115,7 @@ Bấm **Lưu**.
 - [ ] Menu «Документы» bên trái (máy tính) / ở cuối trang (điện thoại), mục đang xem được tô đen
 - [ ] Nút **«Распечатать»**: chỉ in nội dung văn bản (có thể chọn «Lưu thành PDF»)
 - [ ] Đổi sang **VI**: tiêu đề tiếng Việt, có dòng ghi chú, nội dung vẫn tiếng Nga; thử giao diện **tối**
-- [ ] Chân trang: link «Доставка и оплата», «Возврат и обмен», dòng cuối có 3 link văn bản
+- [ ] Chân trang: cột «Контакты» + 3 cột link, dòng cuối có thông tin ИП và link chính sách; thử thu nhỏ cửa sổ (điện thoại: 2 cột link)
 - [ ] **Đăng ký** (`/account/register`): bấm link trong ô tick → mở tab mới; không tick mà bấm «Зарегистрироваться» → báo «Нужно согласие на обработку персональных данных»
 - [ ] **Đặt hàng** (`/checkout`): có 2 ô tick. Không tick ô 1 → báo «Нужно принять условия публичной оферты»; tick ô 1 mà thiếu ô 2 → báo «Нужно согласие на обработку персональных данных»; tick đủ 2 ô → đặt hàng được như cũ
 - [ ] **Thông báo cookie**: hiện lần đầu, bấm «Понятно» thì không hiện lại. Muốn xem lại: F12 → Application → Local Storage → `http://localhost:3001` → xoá dòng `sf-cookie-notice`, tải lại trang
@@ -275,5 +278,6 @@ Let's Encrypt miễn phí, phần lớn hosting bật được bằng 1 nút.
 | `server/views/client/...` (footer, đăng ký, đặt hàng) | Giao diện PUG: link văn bản, 2 ô tick |
 | `frontend/src/app/(client)/legal/page.tsx`, `legal/[slug]/page.tsx` (mới) | Trang văn bản ở Next.js |
 | `frontend/src/components/client/views/LegalView.tsx`, `LinkedText.tsx`, `PrintButton.tsx`, `CookieNotice.tsx` (mới) | Giao diện trang văn bản, chữ có link, nút in, thông báo cookie |
-| `frontend/src/components/client/Footer.tsx`, `Shell.tsx`, `views/CheckoutView.tsx`, `app/(client)/account/register/page.tsx` | Link chân trang, thông báo cookie, ô tick có link |
+| `frontend/src/components/client/Footer.tsx` | Chân trang mới: cột Контакты + 3 cột link, dòng cuối thông tin người bán + chính sách |
+| `frontend/src/components/client/Shell.tsx`, `views/CheckoutView.tsx`, `app/(client)/account/register/page.tsx` | Thông báo cookie, ô tick có link |
 | `frontend/public/client/assets/css/sfoodie.css`, `server/public/client/assets/css/sfoodie.css` | Giao diện trang văn bản (sáng / tối, điện thoại, khi in) |
