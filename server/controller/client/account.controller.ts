@@ -13,6 +13,7 @@ import { formatShopDateTime } from "../../helpers/coupon.helper"
 import { sendMail } from "../../helpers/mail.helper"
 import { getSiteUrl } from "../../helpers/site-url.helper"
 import { getAccountWaitingReviews } from "../../helpers/review.helper"
+import { getLegalVersion } from "../../helpers/legal.helper"
 
 // Trả lỗi dạng JSON cho JS ở trang khách hàng (main.js hiện thông báo, tô đỏ ô bị lỗi)
 const sendError = (res: Response, key: string, field: string = "") => {
@@ -228,7 +229,8 @@ export const registerPost = async (req: Request, res: Response) => {
       phone: phone,
       password: await bcrypt.hash(req.body.password, 10),
       status: "active",
-      agreedAt: new Date()
+      agreedAt: new Date(),
+      consentVersion: getLegalVersion()
     })
 
     await loginAccount(req, res, newAccount, true)

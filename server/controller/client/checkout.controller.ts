@@ -9,6 +9,7 @@ import {
   orderDeliveryTypeList
 } from "../../config/variable.config"
 import { getCheckoutSettings } from "../../helpers/shop-setting.helper"
+import { getLegalVersion } from "../../helpers/legal.helper"
 import { buildCartView, getCart } from "../../helpers/cart.helper"
 import { roundMoney } from "../../helpers/client-token.helper"
 import {
@@ -456,6 +457,8 @@ export const orderPost = async (req: Request, res: Response) => {
       accessKey: generateOrderAccessKey(),
       userId: account ? account.id : undefined,
       lang: res.locals.lang,
+      agreedAt: new Date(),
+      consentVersion: getLegalVersion(),
       customer: customer,
       items: cartView.itemList.map((item: any) => {
         const product = item.product

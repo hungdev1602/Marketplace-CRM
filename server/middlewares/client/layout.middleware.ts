@@ -16,6 +16,7 @@ import {
   productUnitList
 } from "../../config/variable.config"
 import { getClientDefaultTheme, getShopInfo } from "../../helpers/shop-setting.helper"
+import { legalLinkText } from "../../helpers/legal.helper"
 
 // Các danh sách lựa chọn của sản phẩm, để hiện tên (xuất xứ, đơn vị, bảo quản,...) theo ngôn ngữ bằng tOption
 const productOptions = {
@@ -74,6 +75,8 @@ export const loadLayoutData = async (req: Request, res: Response, next: NextFunc
   res.locals.formatNumber = formatNumber
   res.locals.formatPrice = formatPrice
   res.locals.htmlToText = htmlToText
+  // Chữ có link tới văn bản pháp lý, ví dụ ô tick «Даю согласие...» ở form đăng ký, đặt hàng
+  res.locals.legalLinkText = legalLinkText
   // Link ảnh lưu ở server quản lý file, chưa có ảnh thì dùng ảnh mặc định
   res.locals.mediaUrl = (path: string) => path ? `${domainFileManager}${path}` : "/client/assets/images/no-image.svg"
 

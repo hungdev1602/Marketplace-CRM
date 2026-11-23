@@ -1,4 +1,5 @@
 import { makeCtx, type ViewCtx } from "@/lib/view-ctx"
+import { CookieNotice } from "./CookieNotice"
 import { Footer } from "./Footer"
 import { Header, MainMenu } from "./Header"
 import { MobileMenu } from "./MobileMenu"
@@ -32,6 +33,7 @@ export function ClientShell({ data, ctx, children }: { data: any, ctx?: ViewCtx,
 
       <Footer ctx={viewCtx} />
       <ScrollButton />
+      <CookieNotice />
     </ShopProvider>
   )
 }

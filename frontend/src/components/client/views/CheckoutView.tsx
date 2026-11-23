@@ -8,6 +8,7 @@ import { createTranslator } from "@/lib/i18n"
 import { goTo, reloadPage } from "@/lib/top-loader"
 import { mediaSrcSet, mediaUrl } from "@/lib/view-ctx"
 import { FormField } from "../AccountForm"
+import { LinkedText, consentLinks, offerLinks } from "../LinkedText"
 import { useShop } from "../ShopProvider"
 
 // ===== Trang đặt hàng (/checkout) =====
@@ -822,9 +823,15 @@ export function CheckoutView({ data }: { data: any }) {
                   {t("freeDeliveryFrom")} {formatPrice(data.freeDeliveryFrom)}
                 </p>
               ) : null}
+              {/* 2 ô tick riêng (luật 152-ФЗ từ 01.09.2025: đồng ý xử lý dữ liệu cá nhân không được gộp với văn bản khác):
+                  chấp nhận оферта (/legal/offer) và đồng ý xử lý dữ liệu cá nhân (/legal/consent) */}
+              <div className="form-check sf-check sf-checkout-agree">
+                <input className="form-check-input" type="checkbox" id="field-agreeOffer" name="agreeOffer" />
+                <label className="form-check-label" htmlFor="field-agreeOffer"><LinkedText text={t("checkoutAgreeOffer")} links={offerLinks(t)} /></label>
+              </div>
               <div className="form-check sf-check sf-checkout-agree">
                 <input className="form-check-input" type="checkbox" id="field-agree" name="agree" />
-                <label className="form-check-label" htmlFor="field-agree">{t("checkoutAgree")}</label>
+                <label className="form-check-label" htmlFor="field-agree"><LinkedText text={t("agreeText")} links={consentLinks(t)} /></label>
               </div>
               {messageElement(formMessage)}
               <button type="submit" className="sf-btn sf-btn-primary sf-checkout-btn" disabled={!canOrder || belowMinOrder || isSubmitting}>

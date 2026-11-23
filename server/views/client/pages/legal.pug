@@ -1,0 +1,30 @@
+extends ../layouts/default.pug
+include ../mixins/page-banner.pug
+
+//- Văn bản pháp lý: /legal (Правовая информация), /legal/privacy, /legal/offer,...
+//- Nội dung văn bản (HTML) tạo ở server: helpers/legal.helper.ts, thư mục helpers/legal-documents
+
+block main
+  - const breadcrumbList = legalDoc.slug ? [{ name: t("legalInfo"), url: "/legal" }, { name: legalDoc.title }] : [{ name: t("legalInfo") }]
+  +pageBanner(legalDoc.title, breadcrumbList)
+
+  section(class="sf-section sf-section-first sf-legal-page")
+    .container
+      div(class="sf-legal")
+        aside(class="sf-legal-nav")
+          h2 #{t("legalDocuments")}
+          ul
+            each item in legalDocList
+              li
+                a(
+                  href=`/legal/${item.slug}`
+                  class=(item.slug == legalDoc.slug ? "active" : "")
+                  )
+                  i(class=item.icon)
+                  span #{item.title}
+        article(class="sf-legal-body")
+          if t("legalRuOnly")
+            p(class="sf-legal-note")
+              i.fas.fa-info-circle
+              | #{t("legalRuOnly")}
+          div(class="sf-content sf-legal-content" lang="ru") !{legalDoc.html}

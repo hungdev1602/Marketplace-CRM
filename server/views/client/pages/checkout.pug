@@ -281,13 +281,21 @@ block main
                   i.fas.fa-gift
                   | #{t("freeDeliveryFrom")} #{formatPrice(freeDeliveryFrom)}
 
+              //- 2 ô tick riêng: chấp nhận оферта, đồng ý xử lý dữ liệu cá nhân (luật 152-ФЗ từ 01.09.2025)
+              div(class="form-check sf-check sf-checkout-agree")
+                input.form-check-input(
+                  type="checkbox"
+                  id="field-agreeOffer"
+                  name="agreeOffer"
+                  )
+                label.form-check-label(for="field-agreeOffer") !{legalLinkText(t("checkoutAgreeOffer"), { offer: { href: "/legal/offer", text: t("linkOffer") }, delivery: { href: "/legal/delivery", text: t("linkDelivery") }, returns: { href: "/legal/returns", text: t("linkReturns") } })}
               div(class="form-check sf-check sf-checkout-agree")
                 input.form-check-input(
                   type="checkbox"
                   id="field-agree"
                   name="agree"
                   )
-                label.form-check-label(for="field-agree") #{t("checkoutAgree")}
+                label.form-check-label(for="field-agree") !{legalLinkText(t("agreeText"), { consent: { href: "/legal/consent", text: t("linkConsent") }, policy: { href: "/legal/privacy", text: t("linkPolicy") } })}
               +formMessage()
               button(
                 type="submit"

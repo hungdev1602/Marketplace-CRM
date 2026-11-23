@@ -22,6 +22,18 @@ export const getShopInfo = () => {
   }
 }
 
+// Thông tin dùng trong các văn bản pháp lý (/legal), ô trống thì văn bản dùng thông tin người bán / email cửa hàng
+export const getLegalInfo = () => {
+  const get = (field: string) => getIntegrationString("legal", field)
+  return {
+    effectiveDate: get("effectiveDate"),
+    pdResponsible: get("pdResponsible"),
+    pdEmail: get("pdEmail"),
+    rknNumber: get("rknNumber"),
+    hosting: get("hosting")
+  }
+}
+
 // Giao diện mặc định của trang khách hàng: system, light, dark
 export const getClientDefaultTheme = (): string => {
   return getIntegrationString("shop-info", "defaultTheme") || "system"

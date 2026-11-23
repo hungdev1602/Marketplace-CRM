@@ -8222,3 +8222,418 @@ body.sf-lightbox-open {
         padding: 12px 14px;
     }
 }
+
+/*===========================
+    VĂN BẢN PHÁP LÝ (/legal)
+    Политика обработки персональных данных, оферта, доставка, возврат
+===========================*/
+.sf-legal {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 40px;
+    align-items: start;
+}
+
+/* Menu các văn bản (máy tính: dính khi cuộn) */
+.sf-legal-nav {
+    position: sticky;
+    top: 84px;
+    padding: 18px;
+    border: 2px solid var(--sf-line);
+    border-radius: var(--sf-radius);
+    background: var(--sf-surface);
+}
+
+.sf-legal-nav h2 {
+    margin: 0 0 10px;
+    padding: 0 10px;
+    font-family: var(--sf-font-body);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--sf-muted);
+}
+
+.sf-legal-nav ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.sf-legal-nav a {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--sf-text);
+    transition: background-color .2s ease, color .2s ease;
+}
+
+/* span: giao diện mẫu tô màu riêng cho mọi thẻ span, nên phải đặt lại màu theo link */
+.sf-legal-nav a span {
+    color: inherit;
+}
+
+.sf-legal-nav a i {
+    flex: 0 0 18px;
+    margin-top: 2px;
+    text-align: center;
+    color: var(--sf-cyan-dark);
+}
+
+.sf-legal-nav a:hover {
+    background: var(--sf-cyan-light);
+    color: var(--sf-ink);
+}
+
+.sf-legal-nav a.active {
+    background: var(--sf-inverse-bg);
+    color: var(--sf-inverse-text);
+}
+
+.sf-legal-nav a.active i {
+    color: var(--sf-cyan);
+}
+
+.sf-legal-body {
+    min-width: 0;
+    max-width: 860px;
+}
+
+.sf-legal-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.sf-legal-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    flex: 1 1 320px;
+    margin: 0;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: var(--sf-cyan-light);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--sf-text);
+}
+
+.sf-legal-note i {
+    margin-top: 3px;
+    color: var(--sf-cyan-dark);
+}
+
+.sf-legal-print {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    padding: 8px 16px;
+    border: 2px solid var(--sf-line);
+    border-radius: 999px;
+    background: var(--sf-surface);
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--sf-text);
+    cursor: pointer;
+    transition: border-color .2s ease;
+}
+
+.sf-legal-print:hover {
+    border-color: var(--sf-outline);
+}
+
+.sf-legal-content {
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+.sf-legal-content > h2:first-child,
+.sf-legal-content > .sf-legal-date + h2 {
+    margin-top: 0;
+}
+
+.sf-legal-content h2 {
+    margin-top: 36px;
+    font-size: 22px;
+    scroll-margin-top: 90px;
+}
+
+.sf-legal-content h3 {
+    margin-top: 22px;
+    font-size: 18px;
+}
+
+.sf-legal-content code {
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: var(--sf-soft);
+    font-size: 14px;
+    color: var(--sf-ink);
+}
+
+/* Ngày có hiệu lực (Редакция от ...) */
+.sf-legal-content .sf-legal-date {
+    margin-bottom: 24px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--sf-muted);
+}
+
+/* Thông tin người bán: tên mục bên trái, giá trị bên phải */
+.sf-legal-content ul.sf-legal-details {
+    margin: 0 0 18px;
+    padding: 0;
+    border: 2px solid var(--sf-line);
+    border-radius: var(--sf-radius);
+    overflow: hidden;
+}
+
+.sf-legal-content ul.sf-legal-details li {
+    display: grid;
+    grid-template-columns: minmax(150px, 38%) minmax(0, 1fr);
+    gap: 16px;
+    margin: 0;
+    padding: 12px 18px;
+    list-style: none;
+    border-top: 1px solid var(--sf-line);
+}
+
+.sf-legal-content ul.sf-legal-details li:first-child {
+    border-top: 0;
+}
+
+.sf-legal-content .sf-legal-details span {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--sf-muted);
+}
+
+.sf-legal-content .sf-legal-details b {
+    font-weight: 700;
+    color: var(--sf-ink);
+    overflow-wrap: anywhere;
+}
+
+/* Mỗi mục đích xử lý dữ liệu cá nhân (chính sách) */
+.sf-legal-purpose {
+    margin: 16px 0;
+    padding: 18px 20px 6px;
+    border-left: 4px solid var(--sf-cyan);
+    border-radius: 0 12px 12px 0;
+    background: var(--sf-bg-tint);
+}
+
+.sf-legal-content .sf-legal-purpose h3 {
+    margin-top: 0;
+}
+
+.sf-legal-content .sf-legal-purpose ul {
+    padding-left: 0;
+}
+
+.sf-legal-content .sf-legal-purpose ul li {
+    list-style: none;
+}
+
+/* Ô chưa điền ở trang admin (Cài đặt cửa hàng) */
+.sf-legal-missing {
+    padding: 0 4px;
+    border-radius: 4px;
+    background: var(--sf-red-light);
+    font-weight: 700;
+    color: var(--sf-red-text);
+}
+
+/* Link văn bản pháp lý ở cuối chân trang */
+.sf-footer-bottom .sf-footer-docs {
+    margin-top: 6px;
+    font-size: 13px;
+}
+
+.sf-footer-bottom .sf-footer-docs a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.sf-footer-bottom .sf-footer-docs a:hover {
+    color: var(--sf-cyan);
+}
+
+/* Link trong ô tick đồng ý (đăng ký, đặt hàng) */
+.sf-check .form-check-label a {
+    color: var(--sf-cyan-dark);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.sf-auth-card .sf-check {
+    align-items: flex-start;
+}
+
+.sf-auth-card .sf-check .form-check-input {
+    margin-top: 2px;
+}
+
+.sf-auth-card .sf-check .form-check-label {
+    line-height: 1.45;
+}
+
+.sf-checkout-agree + .sf-checkout-agree {
+    margin-top: 4px;
+}
+
+/* Thông báo cookie (lần đầu vào website) */
+.sf-cookie-notice {
+    position: fixed;
+    left: 24px;
+    bottom: 24px;
+    z-index: 10001; /* trên nút cuộn lên đầu trang */
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    max-width: 520px;
+    padding: 14px 16px 14px 18px;
+    border: 2px solid var(--sf-outline);
+    border-radius: var(--sf-radius);
+    background: var(--sf-surface);
+    box-shadow: 0 10px 30px rgb(17 20 23 / 18%);
+}
+
+.sf-cookie-notice > i {
+    flex: 0 0 auto;
+    font-size: 22px;
+    color: var(--sf-cyan-dark);
+}
+
+.sf-cookie-notice p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--sf-text);
+}
+
+.sf-cookie-notice a {
+    color: var(--sf-cyan-dark);
+    text-decoration: underline;
+}
+
+.sf-cookie-notice .sf-btn {
+    flex: 0 0 auto;
+    padding: 8px 18px;
+    font-size: 14px;
+}
+
+@media (max-width: 991.98px) {
+    /* Điện thoại, máy tính bảng: nội dung văn bản trước, danh sách các văn bản ở dưới */
+    .sf-legal {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 32px;
+    }
+
+    .sf-legal-nav {
+        position: static;
+        order: 2;
+        padding: 12px;
+    }
+
+    .sf-legal-nav h2 {
+        margin-top: 6px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .sf-legal-content {
+        font-size: 15px;
+    }
+
+    /* Điện thoại: ít khi in, ẩn nút in cho gọn */
+    .sf-legal-print {
+        display: none;
+    }
+
+    .sf-legal-toolbar:not(:has(.sf-legal-note)) {
+        display: none;
+    }
+
+    .sf-legal-content h2 {
+        font-size: 20px;
+    }
+
+    .sf-legal-content ul.sf-legal-details li {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 2px;
+        padding: 10px 14px;
+    }
+
+    .sf-legal-purpose {
+        padding: 14px 14px 4px;
+    }
+
+    .sf-cookie-notice {
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        flex-wrap: wrap;
+        gap: 10px;
+        max-width: none;
+        padding: 12px 14px;
+    }
+
+    .sf-cookie-notice > i {
+        display: none;
+    }
+
+    .sf-cookie-notice p {
+        flex: 1 1 100%;
+        font-size: 13px;
+    }
+
+    .sf-cookie-notice .sf-btn {
+        width: 100%;
+        padding: 7px 16px;
+    }
+}
+
+/* In văn bản (nút "Распечатать"): chỉ in nội dung văn bản */
+@media print {
+    .sf-header,
+    .sfoodie .main_menu,
+    .sf-footer,
+    .sf-legal-nav,
+    .sf-legal-toolbar,
+    .sf-cookie-notice,
+    .progress-wrap,
+    .sf-breadcrumb {
+        display: none !important;
+    }
+
+    .sf-page-banner {
+        padding: 0 0 12px;
+        border: 0;
+        background: none;
+    }
+
+    .sf-legal {
+        display: block;
+    }
+
+    .sf-legal-body {
+        max-width: none;
+    }
+
+    .sf-legal-purpose {
+        break-inside: avoid;
+    }
+}

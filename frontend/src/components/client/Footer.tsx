@@ -70,6 +70,8 @@ export function Footer({ ctx }: { ctx: ViewCtx }) {
               </li>
               <li><Link href="/wishlist">{t("wishlist")}</Link></li>
               <li><Link href="/cart">{t("cart")}</Link></li>
+              <li><Link href="/legal/delivery">{t("legalDelivery")}</Link></li>
+              <li><Link href="/legal/returns">{t("legalReturns")}</Link></li>
             </ul>
           </div>
           <div className="col-xl-3 col-lg-3 col-md-4">
@@ -116,6 +118,14 @@ export function Footer({ ctx }: { ctx: ViewCtx }) {
         <div className="sf-footer-bottom">
           <p>© {ctx.currentYear} SFoodie Asian Store. {t("copyright")}</p>
           {legalParts.length > 0 && <p className="sf-footer-legal">{legalParts.join(" · ")}</p>}
+          {/* Văn bản pháp lý (trang /legal) */}
+          <p className="sf-footer-docs">
+            <Link href="/legal">{t("legalInfo")}</Link>
+            {" · "}
+            <Link href="/legal/privacy">{t("legalPrivacy")}</Link>
+            {" · "}
+            <Link href="/legal/offer">{t("legalOffer")}</Link>
+          </p>
         </div>
       </div>
     </footer>

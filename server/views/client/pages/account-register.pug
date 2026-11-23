@@ -32,7 +32,7 @@ block main
                 id="field-agree"
                 name="agree"
                 )
-              label.form-check-label(for="field-agree") #{t("agreeText")}
+              label.form-check-label(for="field-agree") !{legalLinkText(t("agreeText"), { consent: { href: "/legal/consent", text: t("linkConsent") }, policy: { href: "/legal/privacy", text: t("linkPolicy") } })}
             +formMessage()
             button(
               type="submit"

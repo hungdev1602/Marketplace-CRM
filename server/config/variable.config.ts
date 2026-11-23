@@ -565,6 +565,17 @@ export const shopInfo = {
   legalAddress: "" // địa chỉ đăng ký
 }
 
+// [admin] Thông tin dùng trong các văn bản pháp lý ở trang khách hàng (/legal: chính sách xử lý dữ liệu cá nhân,
+// đồng ý xử lý dữ liệu cá nhân, оферта, giao hàng, đổi trả). Sửa ở trang admin: Cài đặt cửa hàng => Văn bản pháp lý
+// Nội dung văn bản: helpers/legal-documents (tên người bán, ИНН, email... tự lấy từ Thông tin cửa hàng)
+export const legalInfo = {
+  effectiveDate: "", // ngày văn bản có hiệu lực (Редакция от ...), ví dụ: 01.12.2026
+  pdResponsible: "", // người chịu trách nhiệm tổ chức xử lý dữ liệu cá nhân, trống = tên người bán
+  pdEmail: "", // email nhận yêu cầu về dữ liệu cá nhân, trống = email cửa hàng
+  rknNumber: "", // số đăng ký trong Реестр операторов ПДн của Роскомнадзор, trống = không hiện
+  hosting: "" // công ty cho thuê server / database (phải đặt tại Nga), ví dụ: ООО «Таймвэб»
+}
+
 // Số sản phẩm mỗi trang ở trang danh sách sản phẩm
 export const clientProductPerPage: number = 20
 

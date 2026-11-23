@@ -320,7 +320,10 @@ const vi: Record<keyof typeof ru, string> = {
   passwordHint: "Ít nhất 8 ký tự, có cả chữ và số",
   showPassword: "Hiện mật khẩu",
   rememberMe: "Ghi nhớ đăng nhập",
-  agreeText: "Tôi đồng ý cho cửa hàng xử lý dữ liệu cá nhân",
+  // Ô tick đồng ý: {consent}, {policy} là chỗ đặt link tới văn bản (chữ của link: linkConsent, linkPolicy)
+  agreeText: "Tôi {consent} theo {policy}",
+  linkConsent: "đồng ý cho cửa hàng xử lý dữ liệu cá nhân",
+  linkPolicy: "Chính sách xử lý dữ liệu cá nhân",
   noAccount: "Chưa có tài khoản?",
   haveAccount: "Đã có tài khoản?",
   loginSuccess: "Đăng nhập thành công",
@@ -439,8 +442,12 @@ const vi: Record<keyof typeof ru, string> = {
   couponNotApplied: "Mã giảm giá chưa được áp dụng",
   freeDeliveryApplied: "Đơn hàng này được miễn phí giao hàng",
   freeDeliveryFrom: "Miễn phí giao hàng cho đơn từ",
-  checkoutAgree: "Tôi đồng ý với điều kiện mua hàng và việc xử lý dữ liệu cá nhân",
-  checkoutAgreeRequired: "Vui lòng đồng ý với điều kiện mua hàng và việc xử lý dữ liệu cá nhân",
+  // Đặt hàng: chấp nhận оферта (ô riêng, tách khỏi ô đồng ý xử lý dữ liệu cá nhân theo luật 152-ФЗ từ 01.09.2025)
+  checkoutAgreeOffer: "Tôi chấp nhận {offer}, {delivery} và {returns}",
+  linkOffer: "điều khoản mua hàng (оферта)",
+  linkDelivery: "điều kiện giao hàng",
+  linkReturns: "đổi trả",
+  checkoutOfferRequired: "Vui lòng chấp nhận điều khoản mua hàng (оферта)",
   goToPayment: "Thanh toán",
   checkoutPayNote: "Bạn sẽ được chuyển tới trang thanh toán bảo mật của Т-Банк",
   backToCart: "Quay lại giỏ hàng",
@@ -602,7 +609,22 @@ const vi: Record<keyof typeof ru, string> = {
   reviewMineEmpty: "Bạn chưa viết đánh giá nào",
   reviewProductDeleted: "Sản phẩm đã ngừng bán",
   reviewEmailSubject: "Bạn thấy đơn hàng thế nào? Hãy đánh giá nhé",
-  reviewEmailText: "Hy vọng bạn hài lòng với đơn hàng! Hãy đánh giá các sản phẩm — chỉ cần bấm vào ngôi sao. Đánh giá của bạn giúp khách hàng khác chọn mua dễ hơn."
+  reviewEmailText: "Hy vọng bạn hài lòng với đơn hàng! Hãy đánh giá các sản phẩm — chỉ cần bấm vào ngôi sao. Đánh giá của bạn giúp khách hàng khác chọn mua dễ hơn.",
+
+  // Văn bản pháp lý (/legal), chân trang, thông báo cookie
+  legalInfo: "Thông tin pháp lý",
+  legalInfoDescription: "Thông tin người bán và các văn bản của cửa hàng SFoodie: chính sách xử lý dữ liệu cá nhân, điều khoản mua hàng (оферта), điều kiện giao hàng, thanh toán và đổi trả.",
+  legalPrivacy: "Chính sách xử lý dữ liệu cá nhân",
+  legalConsent: "Đồng ý xử lý dữ liệu cá nhân",
+  legalOffer: "Điều khoản mua hàng (оферта)",
+  legalDelivery: "Giao hàng và thanh toán",
+  legalReturns: "Đổi trả hàng",
+  legalDocuments: "Văn bản",
+  legalRuOnly: "Văn bản pháp lý được soạn bằng tiếng Nga — bản tiếng Nga là bản có hiệu lực pháp lý.",
+  legalPrint: "In văn bản",
+  cookieNotice: "Website chỉ dùng cookie cần thiết — cho giỏ hàng, đăng nhập tài khoản và chọn ngôn ngữ. Xem thêm trong {policy}.",
+  linkPolicyCookie: "Chính sách xử lý dữ liệu cá nhân",
+  cookieNoticeOk: "Đã hiểu"
 }
 
 export default vi
